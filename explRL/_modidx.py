@@ -2,8 +2,8 @@
 
 d = { 'settings': { 'branch': 'main',
                 'doc_baseurl': '/explRL',
-                'doc_host': 'https://ChuntaoDan.github.io',
-                'git_url': 'https://github.com/ChuntaoDan/explRL',
+                'doc_host': 'https://Positron00.github.io',
+                'git_url': 'https://github.com/Positron00/explRL',
                 'lib_path': 'explRL'},
   'syms': { 'explRL.agents': { 'explRL.agents.Agent': ('agents.html#agent', 'explRL/agents.py'),
                                'explRL.agents.Agent.__init__': ('agents.html#agent.__init__', 'explRL/agents.py'),

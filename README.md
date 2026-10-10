@@ -10,7 +10,7 @@ This package builds brain-inspired AI agents that simultaneously explore novel e
 The package is not on PyPI yet. Install from a clone of the repository:
 
 ``` sh
-git clone https://github.com/ChuntaoDan/explRL.git
+git clone https://github.com/Positron00/explRL.git
 cd explRL
 pip install -e .
 ```

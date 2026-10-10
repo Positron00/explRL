@@ -15,8 +15,8 @@ classifiers = ["Natural Language :: English", "Intended Audience :: Developers",
 dependencies = ['numpy']
 
 [project.urls]
-Repository = "https://github.com/ChuntaoDan/explRL"
-Documentation = "https://ChuntaoDan.github.io/explRL"
+Repository = "https://github.com/Positron00/explRL"
+Documentation = "https://Positron00.github.io/explRL"
 
 [project.entry-points.nbdev]
 explRL = "explRL._modidx:d"
