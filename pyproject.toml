@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "explRL"
+dynamic = ["version"]
+description = "A repo for brain-inspired AI agents that explore novel environments and map their value landscapes"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+authors = [{name = "Chuntao Dan", email = "danc@janelia.hhmi.org"}]
+keywords = ['nbdev', 'jupyter', 'notebook', 'python']
+classifiers = ["Natural Language :: English", "Intended Audience :: Developers", "Development Status :: 3 - Alpha", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only"]
+dependencies = ['numpy']
+
+[project.urls]
+Repository = "https://github.com/ChuntaoDan/explRL"
+Documentation = "https://ChuntaoDan.github.io/explRL"
+
+[project.entry-points.nbdev]
+explRL = "explRL._modidx:d"
+
+[project.optional-dependencies]
+dev = ['nbdev', 'fastcore']
+
+[tool.setuptools.dynamic]
+version = {attr = "explRL.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["explRL"]
+
+[tool.nbdev]
