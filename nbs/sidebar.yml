@@ -4,5 +4,8 @@ website:
       - index.ipynb
       - 00_core.ipynb
       - agents.ipynb
+      - basis.ipynb
+      - demo.ipynb
       - envs.ipynb
+      - params.ipynb
       - train.ipynb

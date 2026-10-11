@@ -1,4 +1,4 @@
-"""This module loads AI agents and environments to simulate simultaneous exploration and value mapping.
+"""Factory helpers that build a ready-to-train agent and heading arena.
 
 Docs: https://Positron00.github.io/explRL/core.html.md"""
 
@@ -7,14 +7,33 @@ Docs: https://Positron00.github.io/explRL/core.html.md"""
 # %% auto #0
 __all__ = ['loadAgent', 'loadEnv']
 
-# %% ../nbs/00_core.ipynb #344991d9
-def loadAgent(): 
-    '''This function loads an agent object from a specified Agent Class. '''
-    agent = None
-    return agent
+# %% ../nbs/00_core.ipynb #5a96726a
+import numpy as np
+from .params import Params
+from .basis import vonMisesBasis
+from .agents import flexiblePolicy, PolicyGradientRL, flexibleAgent
+from .envs import HeadingArena
 
-# %% ../nbs/00_core.ipynb #99b44a28
-def loadEnv(): 
-    '''This function loads an env object from a specified Environment Class. '''
-    env = None
-    return env
+
+# %% ../nbs/00_core.ipynb #f944ff85
+def loadAgent(params=None, goal=None, seed=None):
+    'Build a flexiblePolicy, PolicyGradientRL, and flexibleAgent at a random heading.'
+    if params is None:
+        params = Params()
+    if goal is None:
+        goal = np.pi
+    rng = np.random.default_rng(seed)
+    fk = vonMisesBasis(params.nb, params.nx, params.kappa)
+    nb = params.nb
+    omega = np.concatenate([np.full(nb, params.omegaF0), np.full(nb, params.omegaS0)])
+    policy = flexiblePolicy(omega=omega, fk=fk, wParams=params.wParams)
+    rl = PolicyGradientRL(policy, lr=params.lr)
+    theta = 2 * np.pi * rng.integers(params.nx) / params.nx
+    return flexibleAgent(theta, goal, policy, rl, params, rng=rng)
+
+def loadEnv(params=None, goal=None):
+    'Build a HeadingArena; goal defaults to pi radians.'
+    if goal is None:
+        goal = np.pi
+    return HeadingArena(goal=goal)
+

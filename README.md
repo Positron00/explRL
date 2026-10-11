@@ -15,24 +15,36 @@ cd explRL
 pip install -e .
 ```
 
+## Running the demo
+
+The end-to-end reproduction is in [`nbs/demo.ipynb`](https://Positron00.github.io/explRL/nbs/demo.html). Step-by-step instructions: [`specs/demo/RUN.md`](specs/demo/RUN.md).
+
+Install dev dependencies, then run from the repo root:
+
+``` sh
+pip install -e ".[dev]"
+nbdev-export
+nbdev-test --n-workers 0 nbs/demo.ipynb          # quick (~2 s) → results/demo/quick/
+nbdev-test --n-workers 0 --flags slow nbs/demo.ipynb   # full (~40 s) → results/demo/full/
+```
+
+You can also open the notebook in Jupyter and run all cells (include `#| slow` cells for the full 240 s × 20-run demo). Outputs are written under `results/demo/` (gitignored). If `nbdev-test` hits a multiprocessing error, keep `--n-workers 0`.
+
 ## How to use
 
-This package is in early development (alpha). Loading helpers live in `explRL.core`. Agents and policies are in `explRL.agents`. Environment simulation and training loops are stubs for now.
+This package is in early development (alpha). It implements the paper’s flexible-policy agent: `explRL.params` holds the parameters, `explRL.basis` the heading basis functions, `explRL.agents` the agent and its policy-gradient learning rule, `explRL.envs` the circular arena, `explRL.train` training and evaluation, and `explRL.core` builds ready-to-use objects.
 
-Example (construct a flexible agent and sample one policy step):
+For the full Fig 2d-e reproduction, see **Running the demo** above.
+
+Example (build an agent and arena, then train briefly):
 
 ``` python
-from types import SimpleNamespace
-import numpy as np
-from explRL.agents import RL, flexibleAgent, flexiblePolicy
+from math import pi
+from explRL.core import loadAgent, loadEnv
+from explRL.train import train_agent, evaluatePolicy
 
-nb, nx = 4, 8
-policy = flexiblePolicy(
-    omega=np.zeros(2 * nb),
-    fk=np.ones((nb, nx)),
-    wParams=np.array([0.5, 1.0, 0.0, 0.5, 1.0, 0.0]),
-)
-params = SimpleNamespace(nx=nx, delT=0.01, sigF=0.1, aF=10.0, muS=0.0, sigmaS=0.5, dtS=5)
-agent = flexibleAgent(0.0, None, policy, RL(policy), params)
-dx, dt, integ = agent.samplePolicy()
+agent = loadAgent(goal=pi, seed=0)
+env = loadEnv(goal=pi)
+hist = train_agent(agent, env, Ttot=2.0)   # the paper uses 240 s
+policy = evaluatePolicy(agent)            # drift rate, fixation duration and turn bias per heading
 ```

@@ -22,7 +22,7 @@ Documentation = "https://Positron00.github.io/explRL"
 explRL = "explRL._modidx:d"
 
 [project.optional-dependencies]
-dev = ['nbdev', 'fastcore']
+dev = ['nbdev', 'fastcore', 'matplotlib']
 
 [tool.setuptools.dynamic]
 version = {attr = "explRL.__version__"}
@@ -31,3 +31,7 @@ version = {attr = "explRL.__version__"}
 include = ["explRL"]
 
 [tool.nbdev]
+tst_flags = "notest slow"
+lib_path = "explRL"
+nbs_path = "nbs"
+doc_path = "_docs"
