@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/circuit_runs.html.md"""
 # %% auto #0
 __all__ = ['LENGTHS', 'SETUPS', 'runLengths', 'goalDistanceNow', 'lastQuarterMean', 'runManyCircuit']
 
-# %% ../nbs/circuit_runs.ipynb #d673c2d1
+# %% ../nbs/circuit_runs.ipynb #e23a7e98
 import numpy as np
 from .circuit import grid, goalStats, sinGoal
 from .circuit_train import (train_circuit, concatHistory, endTime, goalSafeDistance, heldValue,
@@ -15,7 +15,7 @@ from .circuit_train import (train_circuit, concatHistory, endTime, goalSafeDista
 from .core import loadCircuitAgent
 from .envs import ZoneArena
 
-# %% ../nbs/circuit_runs.ipynb #9f8086bf
+# %% ../nbs/circuit_runs.ipynb #720f634c
 LENGTHS = dict(goal=1200.0, compass_asym=2400.0, compass_sym=4800.0, pretrain=2400.0,
                train=1200.0, probe=240.0, probeEvery=300.0)
 SETUPS = ('goal', 'compass_asym', 'compass_sym', 'both')
@@ -39,7 +39,7 @@ def lastQuarterMean(history, values, start, T, tS) -> float:
     held = heldValue(history, values, start, times, tS)
     return float(held[times >= 0.75 * T].mean())
 
-# %% ../nbs/circuit_runs.ipynb #bb654651
+# %% ../nbs/circuit_runs.ipynb #7406f0b6
 def _goal(params, seed, L):
     "Fig 3i: goal learning with a perfect compass (no compass learning, no jumps)."
     env = ZoneArena(N=params.nCirc, symmetric=True)
@@ -64,7 +64,7 @@ def _compass(params, seed, L, sym):
                 mapPJmean=float(mjp.mean()), probeBefore=before, trainJumpRate=float(h.jumped.mean()),
                 probeAfter=probe(ag, env, T=L['probe'], seed=2000 + seed))
 
-# %% ../nbs/circuit_runs.ipynb #c6a18599
+# %% ../nbs/circuit_runs.ipynb #db0355ea
 def _both(params, seed, L):
     "Fig 5: asymmetric pre-training, goal reset to a danger center, then everything on in a symmetric scene."
     N, tS = params.nCirc, params.tS

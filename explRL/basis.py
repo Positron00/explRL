@@ -7,10 +7,10 @@ Docs: https://Positron00.github.io/explRL/basis.html.md"""
 # %% auto #0
 __all__ = ['vonMisesBasis']
 
-# %% ../nbs/basis.ipynb #173784a2
+# %% ../nbs/basis.ipynb #8b113269
 import numpy as np
 
-# %% ../nbs/basis.ipynb #83d09436
+# %% ../nbs/basis.ipynb #0e99d983
 def vonMisesBasis(nb: int, nx: int, kappa: float) -> np.ndarray:
     "Returns an (nb, nx) matrix; row i is a von Mises bump centred at 2*pi*i/nb, peak value 1."
     if nb <= 0 or nx <= 0:

@@ -20,3 +20,7 @@ website:
       - multi.ipynb
       - members.ipynb
       - demo_multi.ipynb
+      - patchworld.ipynb
+      - team_refs.ipynb
+      - team_agents.ipynb
+      - demo_team.ipynb

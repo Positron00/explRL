@@ -27,7 +27,7 @@ Terms used below.
 - **FR-8** There shall be one adapter per existing agent: `FlexibleMember` (time unit `'sample'`), `PrestructuredMember` and `CircuitMember` (`'s'`). Each adapter's `event` shall perform exactly the same operations, in the same order, with the same random draws, as one pass of the body of the old loop, and return the old loop's per-event row (without its time field) as `extras`.
 
 ### One-agent-at-a-time view
-- **FR-9** A generic world shall provide `reset(seed, nAgents)`, `observe(i)` and `apply(i, action) -> (reward, dt, location, info)`.
+- **FR-9** A generic world shall provide `reset(seed, nAgents)`, `observe(i)` and `apply(i, action) -> (reward, dt, location, info)`. (Phase 6 extends this to `apply(i, action, t)` so worlds with regrowth and moving patches know the time; see [../phase6/README.md](../phase6/README.md), decision S4.)
 - **FR-10** `TeamEnv(world, nAgents, Ttot, t0=0)` shall provide `reset(seed)`, `next_agent()` (the agent index whose next event is earliest, ties to the lower index, or `None` when every agent is done), `observe(i)`, `step(action)` (applies the action for `next_agent()`, records it, reschedules that agent, and returns `(reward, done)` where `done` means that agent has no more events), and the `history` so far. Calling `step` when `next_agent()` is `None` raises `RuntimeError`.
 - **FR-11** For the same world, seed and actions, `TeamEnv` driven from outside and `runTeam` with members using the default `event` (after `world.reset(seed, n)`) shall give identical histories.
 

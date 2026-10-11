@@ -7,14 +7,14 @@ Docs: https://Positron00.github.io/explRL/members.html.md"""
 # %% auto #0
 __all__ = ['FlexibleMember', 'PrestructuredMember', 'CircuitMember']
 
-# %% ../nbs/members.ipynb #74def1b4
+# %% ../nbs/members.ipynb #b9181a1c
 import math
 
 from .circuit import goalStats
 from .multi import Member, Outcome
 from .prestructured import wrap
 
-# %% ../nbs/members.ipynb #31ec2a1e
+# %% ../nbs/members.ipynb #89546cb5
 class FlexibleMember(Member):
     "One 1 ms fixation sample or one saccade of a `flexibleAgent` in a `HeadingArena` (time in samples)."
     timeUnit = 'sample'
@@ -32,7 +32,7 @@ class FlexibleMember(Member):
         return Outcome(step.dt, 'saccade' if step.saccade else 'fixation', new_theta, r,
                        (step.theta, step.saccade, step.dt, r))
 
-# %% ../nbs/members.ipynb #a4de3b98
+# %% ../nbs/members.ipynb #044c3277
 class PrestructuredMember(Member):
     "One fixation, saccade and possible jump of a `prestructuredAgent` in a `HeadingArena` (seconds)."
     timeUnit = 's'
@@ -50,7 +50,7 @@ class PrestructuredMember(Member):
         ag.theta, ag.thetaC = wrap(thetaA1), ev.thetaC_next
         return Outcome(ev.fixDur + p.tS, 'event', ag.theta, r, row)
 
-# %% ../nbs/members.ipynb #39732c74
+# %% ../nbs/members.ipynb #14355bf1
 class CircuitMember(Member):
     "One saccade (learning at each grid step), possible jump and fixation of a `circuitAgent` in a `ZoneArena`."
     timeUnit = 's'
@@ -67,11 +67,14 @@ class CircuitMember(Member):
                 rl.updateCompass(ag, world.ringActivity(ag.a), sac.size)
             ag.move(sac.direction)
         jumped = rl.jumps and ag.maybeJump(world.ringActivity(ag.a))
-        R = world.valence(ag.a)
         fix = ag.sampleFixation()
+        R = self.reward(world, t, fix)
         if rl.learnG and R != 0:
             rl.updateGoal(ag, R, math.ceil(fix / p.dtG))
         gs = goalStats(ag.policy.wG)
         row = (ag.a, ag.c, sac.direction, sac.steps, jumped, R, fix,
                gs['thetaG'], gs['strength'], (ag.a + ag.c) % p.nCirc)
         return Outcome(p.tS + fix, 'iteration', ag.a, float(R), row)
+
+    def reward(self, world, t, fix):
+        return world.valence(self.agent.a)

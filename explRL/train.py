@@ -6,16 +6,16 @@ Docs: https://Positron00.github.io/explRL/train.html.md"""
 
 # %% auto #0
 __all__ = ['History', 'train_agent', 'evaluatePolicy', 'residency', 'runMany', 'demo_artifact_dir', 'save_demo_figure',
-           'save_demo_metrics']
+           'save_demo_metrics', 'save_demo_report']
 
-# %% ../nbs/train.ipynb #50e539b7
+# %% ../nbs/train.ipynb #4ba82fd2
 from dataclasses import dataclass
 import numpy as np
 from .members import FlexibleMember
 from .multi import runTeam
 
 
-# %% ../nbs/train.ipynb #751d47c1
+# %% ../nbs/train.ipynb #bfb78104
 @dataclass
 class History:
     t: np.ndarray
@@ -25,7 +25,7 @@ class History:
     reward: np.ndarray
 
 
-# %% ../nbs/train.ipynb #989a83ba
+# %% ../nbs/train.ipynb #1f64b90b
 def train_agent(agent, env, Ttot=None):
     'Run Algorithm 1 for Ttot seconds of simulated time, as a one-member team (time counted in samples).'
     if Ttot is None:
@@ -38,7 +38,7 @@ def train_agent(agent, env, Ttot=None):
                    np.asarray(sac, bool), np.asarray(dt, np.int64), np.asarray(rew, np.float64))
 
 
-# %% ../nbs/train.ipynb #8aaa7d6b
+# %% ../nbs/train.ipynb #86ef3de9
 def evaluatePolicy(agent):
     'Drift rate, turn probability, fixation duration, and turn bias at each heading column.'
     pol = agent.policy
@@ -51,7 +51,7 @@ def evaluatePolicy(agent):
     return dict(nu=nu, pR=pR, fixDur=p.aF / nu, turnBias=2 * pR - 1)
 
 
-# %% ../nbs/train.ipynb #4e1f9811
+# %% ../nbs/train.ipynb #7523f69c
 def residency(history, env, nBins=8, halfWidthDeg=45):
     'Fraction of time within halfWidthDeg of the goal in each equal time bin.'
     res = np.zeros(nBins)
@@ -77,7 +77,7 @@ def residency(history, env, nBins=8, halfWidthDeg=45):
     return res
 
 
-# %% ../nbs/train.ipynb #0b55905b
+# %% ../nbs/train.ipynb #94af0530
 def runMany(params, goal, nRuns, seed=0, Ttot=None):
     'Independent training runs; each result has eval, residency, and final omega.'
     from explRL.core import loadAgent, loadEnv
@@ -98,7 +98,7 @@ def runMany(params, goal, nRuns, seed=0, Ttot=None):
     return out
 
 
-# %% ../nbs/train.ipynb #643567e6
+# %% ../nbs/train.ipynb #5894e15c
 import json
 from pathlib import Path
 
@@ -132,4 +132,11 @@ def save_demo_metrics(metrics, mode='full', name='metrics.json', demo_name='demo
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(metrics, f, indent=2)
         f.write('\n')
+    return path
+
+
+def save_demo_report(text, mode='quick', name='report.md', demo_name='demo'):
+    'Write a plain-language summary next to the demo figures and metrics.'
+    path = demo_artifact_dir(mode, name=demo_name) / name
+    path.write_text(text if text.endswith('\n') else text + '\n', encoding='utf-8')
     return path

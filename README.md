@@ -34,7 +34,7 @@ You can also open the notebook in Jupyter and run all cells (include `#| slow` c
 
 **Circuit model (Figs 3-5):** [`nbs/demo_circuit.ipynb`](https://Positron00.github.io/explRL/nbs/demo_circuit.html) and [`specs/circuit/RUN.md`](specs/circuit/RUN.md).
 
-**Multi-agent loop (Phase 5):** [`nbs/demo_multi.ipynb`](https://Positron00.github.io/explRL/nbs/demo_multi.html) and [`specs/multiagent/phase5/RUN.md`](specs/multiagent/phase5/RUN.md). Multi-agent plan: [`specs/multiagent/README.md`](specs/multiagent/README.md).
+**Multi-agent loop (Phase 5):** [`nbs/demo_multi.ipynb`](https://Positron00.github.io/explRL/nbs/demo_multi.html) and [`specs/multiagent/phase5/RUN.md`](specs/multiagent/phase5/RUN.md). **Team world (Phase 6):** [`nbs/demo_team.ipynb`](https://Positron00.github.io/explRL/nbs/demo_team.html) and [`specs/multiagent/phase6/RUN.md`](specs/multiagent/phase6/RUN.md). Multi-agent plan: [`specs/multiagent/README.md`](specs/multiagent/README.md).
 
 ``` sh
 nbdev-test --n-workers 0 nbs/demo_multi.ipynb          # quick (~3 s) → results/multiagent/demo_multi/quick/

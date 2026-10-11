@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/multi.html.md"""
 # %% auto #0
 __all__ = ['Record', 'Outcome', 'TeamHistory', 'spawnRngs', 'Member', 'Clock', 'runTeam', 'TeamEnv']
 
-# %% ../nbs/multi.ipynb #c8e12416
+# %% ../nbs/multi.ipynb #0e005bc4
 import heapq
 import json
 from pathlib import Path
@@ -15,13 +15,13 @@ from typing import NamedTuple
 
 import numpy as np
 
-# %% ../nbs/multi.ipynb #985993d0
+# %% ../nbs/multi.ipynb #f61fc172
 class Record(NamedTuple):
     "One event of one agent."
     agent: int        # agent index
     t: object         # event start, in the team's time unit (int for 'sample', float for 's')
     dt: object        # event duration, same unit, > 0
-    kind: str         # 'fixation' / 'saccade' (flexible), 'event' (pre-structured), 'iteration' (circuit), 'step'
+    kind: str         # 'fixation' / 'saccade' (flexible), 'event' (pre-structured), 'iteration' (circuit), 'step', 'stay' / 'travel' (patch world)
     location: object  # where the reward was earned: the location at the end of the event
     reward: float
     extras: tuple     # the member's native row, in the order of member.extraNames
@@ -35,7 +35,7 @@ class Outcome(NamedTuple):
     reward: float
     extras: tuple = ()
 
-# %% ../nbs/multi.ipynb #a4d14547
+# %% ../nbs/multi.ipynb #ea57730f
 def _plain(x):
     "numpy scalars and arrays as plain Python values, for JSON."
     if isinstance(x, np.generic):
@@ -80,7 +80,7 @@ def spawnRngs(seed, n):
     "n independent generators from one seed."
     return [np.random.default_rng(s) for s in np.random.SeedSequence(seed).spawn(n)]
 
-# %% ../nbs/multi.ipynb #6cd55484
+# %% ../nbs/multi.ipynb #1a0e0e88
 class Member:
     "One agent in a team. `runTeam` / `TeamEnv` set `id` to the agent index."
     timeUnit = 's'
@@ -91,7 +91,7 @@ class Member:
         "Default event for generic worlds: observe, act, apply, learn."
         obs = world.observe(self.id)
         action = self.act(obs)
-        reward, dt, location, info = world.apply(self.id, action)
+        reward, dt, location, info = world.apply(self.id, action, t)
         self.learn(obs, action, reward, info)
         return Outcome(dt, 'step', location, reward, ())
 
@@ -101,7 +101,7 @@ class Member:
     def learn(self, obs, action, reward, info):
         pass
 
-# %% ../nbs/multi.ipynb #ddd3ea87
+# %% ../nbs/multi.ipynb #9453e793
 class Clock:
     "Event queue of (next start time, agent index); members stop once their start time reaches t0 + Ttot."
     def __init__(self, n, Ttot, t0=0):
@@ -145,7 +145,7 @@ def runTeam(members, world, Ttot, t0=0) -> TeamHistory:
         clock.push(t, out.dt, i)
     return hist
 
-# %% ../nbs/multi.ipynb #b44ccd81
+# %% ../nbs/multi.ipynb #67829f78
 class TeamEnv:
     "Agent-environment-cycle view of a generic world: the caller picks each action."
     def __init__(self, world, nAgents, Ttot, t0=0):
@@ -172,6 +172,6 @@ class TeamEnv:
         if i is None:
             raise RuntimeError('all agents are done')
         t, _ = self.clock.pop()
-        reward, dt, location, info = self.world.apply(i, action)
+        reward, dt, location, info = self.world.apply(i, action, t)
         self.history.add(Record(i, t, dt, 'step', location, reward, ()))
         return reward, not self.clock.push(t, dt, i)
