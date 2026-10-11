@@ -80,3 +80,7 @@ The slow run asserts:
 - Finite policy weights in every run (AC-8).
 
 Recorded values for the default 20-run setting are in [README.md — Results](README.md#results).
+
+## Related demos
+
+- Pre-structured setpoint policy (Fig 2h): [specs/prestructured/RUN.md](../prestructured/RUN.md)

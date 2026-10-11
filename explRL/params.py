@@ -7,10 +7,10 @@ Docs: https://Positron00.github.io/explRL/params.html.md"""
 # %% auto #0
 __all__ = ['Params']
 
-# %% ../nbs/params.ipynb #0285739f
+# %% ../nbs/params.ipynb #6f47c578
 from dataclasses import dataclass
 
-# %% ../nbs/params.ipynb #86e5aefe
+# %% ../nbs/params.ipynb #3355789c
 @dataclass
 class Params:
     nx: int = 96            # basis columns (arena positions) around 360 deg
@@ -27,6 +27,14 @@ class Params:
     omegaF0: float = 0.1    # initial fixation weights
     omegaS0: float = 0.0    # initial saccade weights
     lr: float = 1.0         # extra learning-rate factor (paper: 1)
+    GS: float = 0.9         # saccade heading gain (Table 1)
+    BS: float = 0.0         # saccade baseline direction
+    GF: float = 0.8         # fixation heading gain
+    BF: float = 0.05        # fixation baseline drift rate
+    GJ: float = 0.7         # bump-jump heading gain
+    BJ: float = 0.05        # bump-jump baseline probability
+    thetaJ: float = 3.141592653589793  # jump size, radians (180 deg)
+    lrG: float = 1.0        # goal-heading learning-rate factor
 
     @property
     def dtS(self) -> int:
@@ -40,3 +48,11 @@ class Params:
             raise ValueError('delT, tS, sigF, aF, and Ttot must be positive')
         if len(self.wParams) != 6:
             raise ValueError('wParams must have length 6')
+        if abs(self.GS) / 2 + abs(self.BS) > 0.5:
+            raise ValueError('turnProb must stay in [0, 1]')
+        if self.BF <= 0 or self.GF < 0:
+            raise ValueError('BF must be positive and GF non-negative')
+        if self.GJ < 0 or self.BJ < 0 or self.GJ + self.BJ > 1:
+            raise ValueError('jumpProb must stay in [0, 1]')
+        if self.lrG < 0:
+            raise ValueError('lrG must be non-negative')

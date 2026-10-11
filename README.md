@@ -30,6 +30,8 @@ nbdev-test --n-workers 0 --flags slow nbs/demo.ipynb   # full (~40 s) → result
 
 You can also open the notebook in Jupyter and run all cells (include `#| slow` cells for the full 240 s × 20-run demo). Outputs are written under `results/demo/` (gitignored). If `nbdev-test` hits a multiprocessing error, keep `--n-workers 0`.
 
+**Pre-structured policy (Fig 2h):** [`nbs/demo_prestructured.ipynb`](https://Positron00.github.io/explRL/nbs/demo_prestructured.html) and [`specs/prestructured/RUN.md`](specs/prestructured/RUN.md).
+
 ## How to use
 
 This package is in early development (alpha). It implements the paper’s flexible-policy agent: `explRL.params` holds the parameters, `explRL.basis` the heading basis functions, `explRL.agents` the agent and its policy-gradient learning rule, `explRL.envs` the circular arena, `explRL.train` training and evaluation, and `explRL.core` builds ready-to-use objects.

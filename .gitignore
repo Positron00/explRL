@@ -1,6 +1,7 @@
 _docs/
 _proc/
 results/demo/
+results/demo_prestructured/
 
 *.bak
 .gitattributes

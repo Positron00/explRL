@@ -6,6 +6,9 @@ website:
       - agents.ipynb
       - basis.ipynb
       - demo.ipynb
+      - demo_prestructured.ipynb
       - envs.ipynb
       - params.ipynb
+      - prestructured.ipynb
+      - prestructured_train.ipynb
       - train.ipynb

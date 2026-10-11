@@ -8,12 +8,12 @@ Docs: https://Positron00.github.io/explRL/train.html.md"""
 __all__ = ['History', 'train_agent', 'evaluatePolicy', 'residency', 'runMany', 'demo_artifact_dir', 'save_demo_figure',
            'save_demo_metrics']
 
-# %% ../nbs/train.ipynb #e7038210
+# %% ../nbs/train.ipynb #ccabb0d4
 from dataclasses import dataclass
 import numpy as np
 
 
-# %% ../nbs/train.ipynb #4678db51
+# %% ../nbs/train.ipynb #921fd152
 @dataclass
 class History:
     t: np.ndarray
@@ -23,7 +23,7 @@ class History:
     reward: np.ndarray
 
 
-# %% ../nbs/train.ipynb #d7a891d7
+# %% ../nbs/train.ipynb #0931c8f3
 def train_agent(agent, env, Ttot=None):
     'Run Algorithm 1 for Ttot seconds of simulated time.'
     if Ttot is None:
@@ -51,7 +51,7 @@ def train_agent(agent, env, Ttot=None):
     return History(t_arr[:i], theta_arr[:i], saccade_arr[:i], dt_arr[:i], reward_arr[:i])
 
 
-# %% ../nbs/train.ipynb #6672d41f
+# %% ../nbs/train.ipynb #4fabd2c2
 def evaluatePolicy(agent):
     'Drift rate, turn probability, fixation duration, and turn bias at each heading column.'
     pol = agent.policy
@@ -64,7 +64,7 @@ def evaluatePolicy(agent):
     return dict(nu=nu, pR=pR, fixDur=p.aF / nu, turnBias=2 * pR - 1)
 
 
-# %% ../nbs/train.ipynb #2d01f1a2
+# %% ../nbs/train.ipynb #f7e54145
 def residency(history, env, nBins=8, halfWidthDeg=45):
     'Fraction of time within halfWidthDeg of the goal in each equal time bin.'
     res = np.zeros(nBins)
@@ -90,7 +90,7 @@ def residency(history, env, nBins=8, halfWidthDeg=45):
     return res
 
 
-# %% ../nbs/train.ipynb #df8c867f
+# %% ../nbs/train.ipynb #59f0f687
 def runMany(params, goal, nRuns, seed=0, Ttot=None):
     'Independent training runs; each result has eval, residency, and final omega.'
     from explRL.core import loadAgent, loadEnv
@@ -111,17 +111,17 @@ def runMany(params, goal, nRuns, seed=0, Ttot=None):
     return out
 
 
-# %% ../nbs/train.ipynb #7ef0de06
+# %% ../nbs/train.ipynb #586c3a57
 import json
 from pathlib import Path
 
 
-def demo_artifact_dir(mode='quick'):
+def demo_artifact_dir(mode='quick', name='demo'):
     'Directory ``results/demo/{mode}/`` (or ``results/demo`` when ``mode`` is None).'
     root = Path.cwd()
     while not (root / 'pyproject.toml').exists() and root != root.parent:
         root = root.parent
-    base = root / 'results' / 'demo'
+    base = root / 'results' / name
     if mode is None:
         base.mkdir(parents=True, exist_ok=True)
         return base
@@ -130,18 +130,18 @@ def demo_artifact_dir(mode='quick'):
     return d
 
 
-def save_demo_figure(name, fig=None, mode='quick', **kwargs):
+def save_demo_figure(name, fig=None, mode='quick', demo_name='demo', **kwargs):
     'Save a matplotlib figure as ``{name}.png`` under the demo results directory.'
     import matplotlib.pyplot as plt
     fig = fig or plt.gcf()
-    path = demo_artifact_dir(mode) / f'{name}.png'
+    path = demo_artifact_dir(mode, name=demo_name) / f'{name}.png'
     fig.savefig(path, bbox_inches='tight', dpi=150, **kwargs)
     return path
 
 
-def save_demo_metrics(metrics, mode='full', name='metrics.json'):
+def save_demo_metrics(metrics, mode='full', name='metrics.json', demo_name='demo'):
     'Write demo acceptance metrics and run metadata as JSON.'
-    path = demo_artifact_dir(mode) / name
+    path = demo_artifact_dir(mode, name=demo_name) / name
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(metrics, f, indent=2)
         f.write('\n')

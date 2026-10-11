@@ -100,6 +100,6 @@ sequenceDiagram
 
 ## Future extensions (not in this demo)
 
-- `PrestructuredAgent` with goal-heading policy and bump jumps (SI Eqs. 20-25).
+- `prestructuredAgent` with goal-heading policy and bump jumps (SI Eqs. 20-25); specified in [specs/prestructured/](../prestructured/README.md).
 - `CircuitRL` with Hebbian compass and goal weights (SI Eqs. 26-39, Algorithms 3-4).
 - Safe and danger zones and PI score (Eq. 40), to reproduce Figs 3-5.
