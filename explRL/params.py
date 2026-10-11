@@ -7,10 +7,10 @@ Docs: https://Positron00.github.io/explRL/params.html.md"""
 # %% auto #0
 __all__ = ['Params']
 
-# %% ../nbs/params.ipynb #6f47c578
+# %% ../nbs/params.ipynb #a1f6fb0d
 from dataclasses import dataclass
 
-# %% ../nbs/params.ipynb #3355789c
+# %% ../nbs/params.ipynb #c245f97e
 @dataclass
 class Params:
     nx: int = 96            # basis columns (arena positions) around 360 deg
@@ -35,6 +35,12 @@ class Params:
     BJ: float = 0.05        # bump-jump baseline probability
     thetaJ: float = 3.141592653589793  # jump size, radians (180 deg)
     lrG: float = 1.0        # goal-heading learning-rate factor
+    nCirc: int = 32         # circuit heading grid (Table 1 N)
+    kappaEB: float = 3.141592653589793  # EB bump concentration (Table 1 kappa)
+    alphaC: float = 0.01    # compass weight learning rate
+    alphaG: float = 0.001   # goal weight learning rate
+    nuMax: float = 1.1      # fixation output ceiling (Eq. 32)
+    dtG: float = 0.1        # goal update step during fixation, s
 
     @property
     def dtS(self) -> int:
@@ -56,3 +62,9 @@ class Params:
             raise ValueError('jumpProb must stay in [0, 1]')
         if self.lrG < 0:
             raise ValueError('lrG must be non-negative')
+        if self.nCirc < 4 or self.nCirc % 2:
+            raise ValueError('nCirc must be even and at least 4')
+        if self.kappaEB <= 0 or self.nuMax <= 0 or self.dtG <= 0:
+            raise ValueError('kappaEB, nuMax, and dtG must be positive')
+        if self.alphaC < 0 or self.alphaG < 0:
+            raise ValueError('alphaC and alphaG must be non-negative')

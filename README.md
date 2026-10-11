@@ -32,9 +32,11 @@ You can also open the notebook in Jupyter and run all cells (include `#| slow` c
 
 **Pre-structured policy (Fig 2h):** [`nbs/demo_prestructured.ipynb`](https://Positron00.github.io/explRL/nbs/demo_prestructured.html) and [`specs/prestructured/RUN.md`](specs/prestructured/RUN.md).
 
+**Circuit model (Figs 3-5):** [`nbs/demo_circuit.ipynb`](https://Positron00.github.io/explRL/nbs/demo_circuit.html) and [`specs/circuit/RUN.md`](specs/circuit/RUN.md).
+
 ## How to use
 
-This package is in early development (alpha). It implements the paper’s flexible-policy agent: `explRL.params` holds the parameters, `explRL.basis` the heading basis functions, `explRL.agents` the agent and its policy-gradient learning rule, `explRL.envs` the circular arena, `explRL.train` training and evaluation, and `explRL.core` builds ready-to-use objects.
+This package is in early development (alpha). It implements three variants from the paper: the flexible policy (`explRL.basis`, [`flexibleAgent`](https://Positron00.github.io/explRL/agents.html#flexibleagent), policy-gradient RL), the pre-structured setpoint policy with bump jumps (`explRL.prestructured`), and the circuit model with Hebbian compass and goal weights (`explRL.circuit`). Shared pieces: `explRL.params`, `explRL.envs` (heading and zone arenas), `explRL.train`, and `explRL.core` loaders.
 
 For the full Fig 2d-e reproduction, see **Running the demo** above.
 

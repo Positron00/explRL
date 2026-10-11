@@ -84,3 +84,4 @@ Recorded values for the default 20-run setting are in [README.md — Results](RE
 ## Related demos
 
 - Pre-structured setpoint policy (Fig 2h): [specs/prestructured/RUN.md](../prestructured/RUN.md)
+- Circuit model (Figs 3-5): [specs/circuit/RUN.md](../circuit/RUN.md)

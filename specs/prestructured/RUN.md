@@ -54,3 +54,4 @@ Measured values are in [README.md — Results](README.md#results).
 ## Related
 
 - Flexible-policy demo (Fig 2d-e): [specs/demo/RUN.md](../demo/RUN.md)
+- Circuit model (Figs 3-5): [specs/circuit/RUN.md](../circuit/RUN.md)

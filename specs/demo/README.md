@@ -62,7 +62,7 @@ The paper has three model variants. This demo covers only the first one.
 |---------|---------------|---------------|
 | Flexible policy (basis functions + policy gradient) | Fig 2d-e | Yes |
 | Pre-structured policy tethered to a goal heading, with bump jumps | Fig 2h, SI | No; see [specs/prestructured/](../prestructured/README.md) |
-| Circuit model with Hebbian goal and compass weights | Figs 3-5 | No (future) |
+| Circuit model with Hebbian goal and compass weights | Figs 3-5 | No; see [specs/circuit/](../circuit/README.md) (implemented) |
 
 The current code (`flexibleAgent`, `flexiblePolicy`) already implements most of the flexible policy's sampling step, so this variant needs the least new work.
 

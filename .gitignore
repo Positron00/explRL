@@ -2,6 +2,7 @@ _docs/
 _proc/
 results/demo/
 results/demo_prestructured/
+results/demo_circuit/
 
 *.bak
 .gitattributes

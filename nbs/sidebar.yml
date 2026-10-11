@@ -7,6 +7,11 @@ website:
       - basis.ipynb
       - demo.ipynb
       - demo_prestructured.ipynb
+      - circuit.ipynb
+      - circuit_agent.ipynb
+      - circuit_train.ipynb
+      - circuit_runs.ipynb
+      - demo_circuit.ipynb
       - envs.ipynb
       - params.ipynb
       - prestructured.ipynb

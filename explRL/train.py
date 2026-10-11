@@ -8,12 +8,12 @@ Docs: https://Positron00.github.io/explRL/train.html.md"""
 __all__ = ['History', 'train_agent', 'evaluatePolicy', 'residency', 'runMany', 'demo_artifact_dir', 'save_demo_figure',
            'save_demo_metrics']
 
-# %% ../nbs/train.ipynb #ccabb0d4
+# %% ../nbs/train.ipynb #a1a72c74
 from dataclasses import dataclass
 import numpy as np
 
 
-# %% ../nbs/train.ipynb #921fd152
+# %% ../nbs/train.ipynb #46487d31
 @dataclass
 class History:
     t: np.ndarray
@@ -23,7 +23,7 @@ class History:
     reward: np.ndarray
 
 
-# %% ../nbs/train.ipynb #0931c8f3
+# %% ../nbs/train.ipynb #8c816063
 def train_agent(agent, env, Ttot=None):
     'Run Algorithm 1 for Ttot seconds of simulated time.'
     if Ttot is None:
@@ -51,7 +51,7 @@ def train_agent(agent, env, Ttot=None):
     return History(t_arr[:i], theta_arr[:i], saccade_arr[:i], dt_arr[:i], reward_arr[:i])
 
 
-# %% ../nbs/train.ipynb #4fabd2c2
+# %% ../nbs/train.ipynb #ad5e7fed
 def evaluatePolicy(agent):
     'Drift rate, turn probability, fixation duration, and turn bias at each heading column.'
     pol = agent.policy
@@ -64,7 +64,7 @@ def evaluatePolicy(agent):
     return dict(nu=nu, pR=pR, fixDur=p.aF / nu, turnBias=2 * pR - 1)
 
 
-# %% ../nbs/train.ipynb #f7e54145
+# %% ../nbs/train.ipynb #34d260a2
 def residency(history, env, nBins=8, halfWidthDeg=45):
     'Fraction of time within halfWidthDeg of the goal in each equal time bin.'
     res = np.zeros(nBins)
@@ -90,7 +90,7 @@ def residency(history, env, nBins=8, halfWidthDeg=45):
     return res
 
 
-# %% ../nbs/train.ipynb #59f0f687
+# %% ../nbs/train.ipynb #4e911b63
 def runMany(params, goal, nRuns, seed=0, Ttot=None):
     'Independent training runs; each result has eval, residency, and final omega.'
     from explRL.core import loadAgent, loadEnv
@@ -111,7 +111,7 @@ def runMany(params, goal, nRuns, seed=0, Ttot=None):
     return out
 
 
-# %% ../nbs/train.ipynb #586c3a57
+# %% ../nbs/train.ipynb #45571cbb
 import json
 from pathlib import Path
 
