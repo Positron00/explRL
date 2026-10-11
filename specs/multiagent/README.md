@@ -1,0 +1,187 @@
+# Plan: multi-agent RL, harnesses and benchmarks (Phases 5-10)
+
+Status: **active plan** (2026-10-11, revised). **Phase 5 implemented** ([phase5/](phase5/README.md)); Phases 6–10 are specced here and get their own `specs/multiagent/phaseN/` folders before coding, in the same format as `specs/circuit/`.
+
+## Why
+
+The goal is a portfolio piece for a multi-agent research role (Anthropic, Staff+ Research Scientist, Multi-Agent). The role asks for: training environments and data, comparisons of agent harnesses (memory, context management, communication), rigorous benchmarks for large agent teams, and attention to incentives, mechanism design and safety.
+
+explRL is small and numpy-based, so it cannot show scale. It can show design and rigor, and a final phase repeats the key experiment with real language-model agents.
+
+**Aim for one clear, well-measured finding, not many shallow modules.**
+
+## Headline question
+
+> At a fixed total compute budget, how does team performance change with team size under different communication harnesses, and how robust is each harness when one agent lies?
+
+The paper suggests a hypothesis. Its flies learn fast because they keep a stable internal map and move only a goal. The team version is a **shared goal map** (a blackboard that every agent reads and writes). Hypothesis:
+
+> Learned agents approach the ideal free distribution faster with a shared map, at the cost of less belief diversity and more vulnerability to liars.
+
+Each of its three parts is a test fixed before running (Phase 8). Whatever the result, it gets reported with confidence intervals.
+
+## Ideas from ecology and sociology
+
+Used to **predict, measure and test** behaviour, not as built-in agent rules (Bitter Lesson). The interesting result is whether learned agents rediscover them, and under which harness. Animal and human results come from different constraints, so they are hypotheses, not claims about LLM agents.
+
+| Idea | Source | Role in the plan |
+|---|---|---|
+| **Ideal free distribution**: selfish foragers spread over patches until every patch pays the same per forager | Fretwell & Lucas 1970 | Phase 6 reference: where selfish agents should end up, computed exactly, so the benchmark can say how far a team is from it |
+| **Stigmergy with evaporation**: ants coordinate by marking the environment, and old marks fade | ant pheromone trails (e.g. Bonabeau, Dorigo & Theraulaz 1999) | Phase 7: the blackboard is stigmergy; an evaporation rate is a memory setting |
+| **Social influence reduces crowd wisdom**: sharing estimates cuts diversity and makes groups confidently wrong | Lorenz et al. 2011 (PNAS) | Phase 8 metric: belief diversity and herding |
+| **Commons governance**: monitoring and graduated sanctions keep shared resources healthy | Ostrom 1990 | Phase 9 defence against liars and free-riders |
+
+## Phase overview
+
+| Phase | What | Output | Cost |
+|---|---|---|---|
+| 5 | One shared multi-agent interface and training loop | `explRL/multi.py` (event queue, `runTeam`, `TeamEnv`, unified history), `explRL/members.py` (adapters for the three existing agents) | numpy |
+| 6 | Team environment with real incentives (patch graph: ring and 2-D torus), plus baseline learners | `explRL/team.py`: `TeamPatchWorld`, `banditAgent`, `randomAgent`, reward schemes, references | numpy |
+| 7 | Harness configurations: communication and memory | `explRL/harness.py` | numpy |
+| 8 | Benchmark and eval suite | `explRL/bench.py`, report generator | numpy |
+| 9 | Safety: bad agents and defence mechanisms | `explRL/adversary.py`: bad agent types, defences | numpy |
+| 10 | Bridge to language-model agents (Claude API, small budget) | `explRL/llm_env.py`, `explRL/llm_agent.py`: text foraging + agentic task board, two model sizes, same benchmark | API spend |
+
+## Engineering rules (all phases)
+
+- Same workflow as now: nbdev notebooks in `nbs/`, exported to `explRL/`; modules under 200 lines (split when needed); tests in the notebooks; quick tests in normal `nbdev-test`, long runs behind `#| slow`.
+- Every run is seeded and reproducible; results and figures go under `results/multiagent/<name>/` (gitignored; `<name>` is the demo or check, for example `demo_multi` or `baseline_phase5`), with a `metrics.json` per run set.
+- Phases 5-9 add no new dependencies (numpy, matplotlib). Phase 10 adds the `anthropic` SDK as an optional extra, so the core package installs without it.
+- Each phase has its own demo notebook and acceptance checks; the final write-up reuses them.
+
+## Phase 5: shared interface (foundation)
+
+Full spec: [phase5/](phase5/README.md). **Status: implemented (2026-10-11).** Checked against the pre-Phase-5 commit: golden fixtures and all six demo `metrics.json` hashes identical; full flexible demo 4.6% slower.
+
+- **API (PettingZoo "agent-environment cycle" style):** agents act one at a time, which matches the event-based agents. `env.reset(seed)`; `env.next_agent()` returns the agent whose next event is earliest; `env.observe(agent)`; `env.step(action)` applies that agent's action and returns its reward and whether it is done. A single agent is a team of size 1.
+- **Time:** the existing agents are event-based, with variable fixation lengths and 0.32 s saccades. An **event queue** holds each agent's next event time; the env always processes the earliest. With one agent this reduces exactly to the current loops, provided random numbers are drawn in the same order (a design constraint for the spec).
+- **Adapters** wrap `flexibleAgent`, the prestructured agent and `circuitAgent` behind one `event(world, t)` method that holds the old loop body unchanged (the circuit agent learns in the middle of a saccade, so a strict act-then-learn split would change its results). New agents write only `act` and `learn`; a default `event` calls them. `HeadingArena` and `ZoneArena` stay unchanged: the adapters call their methods directly, as the old loops do. New worlds (Phase 6 on) implement a small protocol: `reset(seed, nAgents)`, `observe(i)`, `apply(i, action)`. One training loop replaces the three separate ones (the old ones stay as thin wrappers).
+- **Time units:** never converted. The flexible agent keeps counting integer 1 ms samples; the other agents use seconds; all members of one team must share a unit.
+- **Unified history:** one record per event (`agent`, `t`, `dt`, `kind`, `location`, `reward`, extras such as the compass heading or goal), exportable as JSONL. `location` is where the reward was earned, at the end of the event (on the ring: the heading in radians, or the grid index for the circuit agent). These logs double as training data.
+- **Acceptance:** all three existing demos give **byte-identical** `metrics.json` through the new loop, and short seeded runs saved from the old code ("golden fixtures") match exactly. Runs are already deterministic, so this is a strict regression check. The full flexible demo may be at most 25% slower (the others at most 10%). All tests pass.
+
+## Phase 6: team environment with incentives
+
+- **The world is a patch graph, not a fixed dimension.** It is a set of locations, a **travel-time matrix** between them and a **communication range**. Two layouts generate the matrix:
+  - **Ring**: the native heading ring with sectors. Used for the paper's agents and the bridge from Phase 5.
+  - **2-D torus**: a grid whose edges wrap around. Search area grows with the square of its size, travel time grows with distance, and the communication range defines neighbourhoods from position. Expected to be the main layout for team sizes up to 64.
+  3-D is out of scope: it adds cost but nothing the coordination, communication and incentive questions need.
+- **Actions:** generic agents choose "stay" or "go to location j", travel directly, are charged the travel time and see nothing on the way. On the ring, the paper's agents keep their native actions (fixations and saccades with their own timing); the world maps their heading to a location.
+- **`TeamPatchWorld`:** N agents in one layout. Some locations are resource patches with a stock that regrows. Agents in the same patch split the harvest, so crowding hurts. Danger locations cost reward. Patches can move every T seconds (non-stationary), which makes exploring and sharing information worth something.
+- **Interfaces:** `TeamPatchWorld` implements the Phase 5 world protocol (`reset`, `observe`, `apply`) for generic agents, uses seconds as its time unit, and on the ring also offers the native methods the circuit agent's adapter calls (`ringActivity`, `valence`).
+- **Observations:** an agent sees its own location and its own (optionally noisy) harvest. It learns about other locations only by going there, or through the Phase 7 channel.
+- **Difficulty settings (work in any layout):** number of patches, how often they move, observation noise, travel-cost scale, communication range.
+- **Reward schemes:** individual; team (mean of all); **difference reward** (team harvest this step minus the team harvest if this agent were absent, computed by the world).
+- **Agents:** the circuit agent (paper-inspired, built-in structure; **ring only**, because its goal weights encode a direction, not a place); **`banditAgent`** (a generic UCB learner over locations, with values discounted by travel time; both layouts); **`randomAgent`** (moves at random; the floor). Circuit vs bandit is a Bitter Lesson comparison: built-in structure vs a general learner, as team size and compute grow.
+- **Two references, computed numerically for each patch layout:**
+  - **Ideal free distribution** (where selfish agents should settle): every occupied patch pays the same per agent. With equal sharing and fixed patch intake, this puts agents in proportion to each patch's intake (the "input matching rule").
+  - **Social optimum** (the most total harvest any allocation can get). In the simple case it coincides with the ideal free distribution. With stocks that deplete and regrow, selfish agents over-harvest and the two differ: this gap is where reward schemes matter.
+  Travel costs are left out of both, so the optimum is an upper bound on welfare.
+- **Metrics:** welfare (total harvest), fairness (Gini), coverage of patches, **distance from the ideal free distribution** over time (and time to get within a set distance after patches move), and the welfare lost relative to the social optimum.
+- **Prototype first (decides the main layout).** Before the Phase 6 spec: a throwaway numpy script with simplified versions of the Phase 7 channels (none / blackboard / messages), ring vs 2-D torus, team sizes 1, 4, 16, 64, about 10 seeds, `banditAgent`. **Pass check ("dynamic range"):** (1) no ceiling: no harness gets within 10% of the social optimum in the first quarter of a run; (2) no floor: the no-communication team beats `randomAgent` (95% confidence intervals do not overlap); (3) the gap between the best and worst harness is significant (intervals do not overlap) for at least two team sizes and changes with team size. The layout that passes most clearly becomes the main one; the other stays as a configuration. If neither passes, adjust the difficulty settings and repeat before writing the spec.
+- **Sanity acceptance:** on the ring, configured like `ZoneArena` (two fixed safe and two danger zones, constant reward, no depletion), one circuit agent gives a history identical to `ZoneArena` through the Phase 5 loop. Everything else is a reported finding, not an assert.
+- **`ZoneArena` scene symmetry (circuit agents only):** keep **symmetric** scenes when studying compass remapping (Fig 4c, high jump rates) or when matching paper demos and Phase 5 regression fixtures. Prefer **asymmetric** scenes for new team experiments where the story is goal learning, PI, and coordination without constant 180° jumps. Always record `symmetric` in `metrics.json` when the world is a `ZoneArena`.
+
+## Phase 7: harness configurations
+
+- **Communication channels:** `none`; `blackboard` (a shared value map per location); `messages` (each agent may send k short messages per period, each a location and a value); `hierarchical` (a lead agent collects reports and assigns agents to the best reported patches, taking crowding into account; a simple greedy rule, labelled as a baseline).
+- **Reading the channel:** `banditAgent` treats reports as extra observations with a weight (1 = as good as its own). For the circuit agent, a report acts as an extra reward-gated goal update toward the reported heading. Details in the Phase 7 spec (Q8).
+- **Communication range:** messages reach only agents within the range (unlimited = everyone). On the 2-D torus this makes the communication network follow from position, so its effect on exploration (Lazer & Friedman 2007) can be measured rather than imposed.
+- **Memory:** none, a window of the last K events, or full history. For `banditAgent` this is a sliding-window estimate; for the shared channel it limits which entries are kept; for LLM agents (Phase 10) it is context management. The circuit agent's memory is its weights, so this setting does not apply to it.
+- **Evaporation (stigmergy):** blackboard entries fade at a set rate (0 = never). Fast fading forgets stale patches after they move; slow fading keeps more information but also keeps outdated or false entries longer.
+- **Two compute budgets, both reported:**
+  - **Fixed compute** (headline): total agent-seconds (N x T) is held constant, so larger teams run for less world time each. This measures parallel vs serial use of the same compute (the "groups of agents as test-time compute" axis). Larger teams also spend a larger share of their run learning from scratch; that is part of the trade-off, not a flaw.
+  - **Fixed world time:** every team runs for the same T, so compute grows with N. This shows the benefit of simply adding agents.
+- Team sizes 1, 2, 4, 8, 16, 32, 64.
+
+## Phase 8: benchmark and eval suite
+
+- **Main grid (fixed before running):** main layout, `banditAgent`, the 4 channels, 7 team sizes, both budgets, the main reward scheme (Q9), 30 seeds. Output is a tidy CSV, figures and an auto-written markdown report under `results/multiagent/`.
+- **Side sweeps, one factor at a time** from the main grid's settings: reward scheme, evaporation rate, communication range, memory, layout, agent type (circuit agent on the ring). This keeps the run count manageable instead of crossing every factor.
+- **Primary metric:** welfare per agent-second at fixed compute, in the non-stationary world.
+- **Hypothesis tests (fixed before running):** (1) time to get within a set distance of the ideal free distribution after patches move: blackboard faster than no communication; (2) belief diversity: lower with the blackboard; (3) welfare loss with one liar (Phase 9): larger with the blackboard than with messages.
+- **Secondary metrics:** time to find a moved patch, overlap of exploration between agents, how fast information spreads, communication cost per unit of reward, and a **free-riding index** (correlation between an agent's share of the team harvest and its share of patch discoveries; strongly negative means some agents live off others' finds).
+- **Belief diversity and herding (Lorenz et al. 2011):** the spread of agents' estimates of patch values (`banditAgent` value estimates; for the circuit agent, the spread of goal headings); and herding, meaning the team's shared estimate is confident (low spread) but wrong (far from the true values).
+- **Statistics:** 30 seeds, paired comparisons on the same seeds, 95% bootstrap confidence intervals, effect sizes, scaling-curve fits. Many comparisons are made, so p-values get a Holm correction; only the three hypothesis tests and the primary metric count as confirmatory, everything else is exploratory.
+- **Run time:** quick grid under 30 s (normal tests); full main grid under 10 min on a laptop (`#| slow`); side sweeps may be longer and are run on demand.
+
+## Phase 9: safety and mechanism design
+
+- **Bad agents:** a *liar* (reports high values for empty or danger locations and low values for good patches); a *free-rider* (only goes where others report value, never explores or writes); a *saboteur* (crowds the best reported patch). Swept from 0 to 1 agent, then 10% and 25% of the team.
+- **Defences:** trust weighting (an agent trusts others as much as their reports matched its own experience), spot-checking claims, reputation.
+- **Commons governance (Ostrom 1990):** monitoring (a share of reports is checked against what the checker experiences in that patch) plus **graduated sanctions** (a warning first, then lower write weight, then loss of write access). Compared with trust weighting at the same monitoring cost.
+- **Interpretability:** numpy agents' beliefs can be read from their state (`banditAgent` value estimates; on the ring, the circuit agent's goal heading from its neural weights). Compare what an agent *believes* with what it *reports* to flag liars, and report detection AUC.
+- **Outputs:** welfare vs number of bad agents for each channel and defence. Sanity check: with no bad agents, results match Phase 8.
+
+## Phase 10: language-model agents (Claude API)
+
+**Why this phase matters for the role.** Its three representative projects are: (a) RL environments to train groups of Claudes, (b) agent affordances that unlock new capabilities, with the Bitter Lesson in mind, (c) a novel eval of how large teams of agents interact. As first planned (prompted agents on text foraging), Phase 10 was strong for (c), medium for (b) and weak for (a), and open to the objection that foraging is a toy task. The five parts below address those gaps without leaving the API-only budget.
+
+**1. Two text tasks with the same structure.**
+- **Text foraging:** the patch graph described in words. Each turn an agent sees its location, its last reward, the travel time to each location it can reach and the channel contents (board or messages), and replies with an action ("stay" or "go to location j", by name) and optionally a message. Locations are named, not given as grid coordinates, so the benchmark measures coordination and not LLM spatial reasoning (a known weakness that would confound the result). Used to compare with the numpy agents.
+- **Task board (agentic version):** the same structure with real work. Each "patch" is a subtask with a checkable answer, generated from a seed (for example small logic or arithmetic puzzles, or finding the input that makes a short function return true, checked by running it), so tasks are unlimited and cannot be memorized. The board always holds more subtasks than agents. The mapping:
+
+| Foraging | Task board |
+|---|---|
+| Harvest at a patch | Solve a subtask (checked automatically) |
+| Crowding splits the harvest | Only the first correct answer scores; duplicates are wasted work |
+| Travel time | Switching cost (turns spent reading a new subtask) |
+| Patches move | Subtasks appear and expire (changing priorities) |
+| Danger zone | Penalty for a wrong submission |
+| Liar | Posts false "done" claims or wrong answers to the board |
+| Ideal free distribution / social optimum | Best assignment of agents to subtasks from their values and solve rates (solve rates measured in the single-agent pilot; computed numerically; an upper bound) |
+
+All Phase 8 and 9 metrics (distance from the ideal, belief diversity, herding, liar robustness) carry over. This targets (c) and answers the toy-task objection.
+
+**2. Two model sizes (Bitter Lesson test, for (b)).** Run the smallest and a mid-size Claude model. Question: does each harness's benefit shrink as the model gets stronger? An affordance whose benefit shrinks is a stopgap; one whose benefit holds or grows is worth building. The mid-size model runs a reduced grid; with 3 seeds this is a directional result with wide confidence intervals, compared with the small model on the same cells and seeds.
+
+**3. Tokens as compute.** Plot team performance against total tokens (agents x tokens per agent), with a fixed token limit per turn and equal token budgets across team sizes. This is the "groups of agents as test-time compute" axis in LLM units.
+
+**4. Ready to train on (partly covers (a)).** Package both tasks with the Phase 5 interface (per-agent observations, one agent acting at a time), checkable rewards, individual / team / difference reward options, and JSONL trajectory logs. This shows the environment was designed for RL; it does not prove that training works. A real training demo (RL fine-tuning of a small open model, for example GRPO with TRL) needs a GPU and is listed as a later option, not part of this plan.
+
+**5. Numpy covers large teams.** LLM runs stay at team sizes 1, 2, 4, 8. **Key finding:** does the numpy model predict how LLM teams do? Compare the two over all (channel, team size) cells, 16 per task, with Spearman correlation and a bootstrap confidence interval over seeds. Four channels alone would be too few points for a meaningful correlation. If the correlation is high, the numpy curves up to 64 agents become a credible prediction for large LLM teams, and harness ideas can be screened cheaply before LLM runs.
+
+**Running it:**
+- **Agents:** Claude models through the Anthropic API, with the Phase 7 channels mapped one to one. Memory settings become context management: last K turns, full history, or a running summary the agent writes for itself.
+- **Reproducibility:** temperature 0 where the model allows it, plus an on-disk response cache. Temperature 0 is not fully deterministic through an API, so the cache, not the temperature, is what makes reruns exact (and free).
+- **Budget:** a hard spending cap in config; the cost is estimated before each run and recorded in `metrics.json`. The API key comes from an environment variable and is never committed.
+- **Scale:** small model: 4 channels x team sizes {1, 2, 4, 8} x 5 seeds x about 50 turns per agent, on both tasks (about 30 000 calls). Mid-size model: task board only, team sizes {1, 4}, 3 seeds (about 3 000 calls). Plus the pilot. Re-check prices and size the grid to the cap before running.
+
+## Deliverable
+
+A short write-up notebook (`nbs/demo_multiagent.ipynb`) and `results/multiagent/REPORT.md`, built around the headline question: scaling curves per harness under both budgets, the three hypothesis tests (time to reach the ideal free distribution, belief diversity, liar robustness), the robustness curves from Phase 9, the numpy-vs-LLM comparison, the task-board results, whether harness benefits shrink with a stronger model, and performance against total tokens.
+
+## Decisions
+
+| ID | Question | Recommended | Needed by |
+|---|---|---|---|
+| Q1 | Event queue or fixed time step for multi-agent time | **Decided: event queue** (keeps current results exactly). Phase-specific decisions P1-P6 are in [phase5/README.md](phase5/README.md) | Phase 5 spec |
+| Q2 | World geometry: shared heading ring with sectors, or a 2-D grid | **Decided: a patch graph (locations, travel-time matrix, communication range) with two layouts, ring and 2-D torus.** The Phase 6 prototype picks the main layout by its dynamic-range check; 3-D is out of scope | Phase 6 spec |
+| Q3 | Which agents enter the team experiments | **Circuit agent (ring only), `banditAgent` (both layouts), `randomAgent` (floor)**; flexible and prestructured only through the Phase 5 regression | Phase 6 spec |
+| Q4 | Keep the old training loops | **Decided: keep them as thin wrappers** over the new loop, so demos and docs do not change | Phase 5 spec |
+| Q5 | Compute budget unit | **Agent-seconds** for numpy; **agent-turns and tokens** for LLMs; both fixed-compute and fixed-world-time curves reported | Phase 7 spec |
+| Q6 | LLM models and spending cap for Phase 10 | Smallest current Claude model for the full grid, a mid-size model for the reduced grid; cap set by you | Phase 10 spec |
+| Q7 | Subtask type for the task board | Seeded puzzles with answers checked by code; a small pilot picks a difficulty where the small model solves roughly 30-70% alone | Phase 10 spec |
+| Q8 | How each agent type uses channel reports | `banditAgent`: extra observations with a weight; circuit agent: extra reward-gated goal updates | Phase 7 spec |
+| Q9 | Reward scheme for the main grid | **Individual** (selfish agents, so the ideal free distribution is the natural reference); team and difference rewards as a side sweep | Phase 8 spec |
+
+## Risks
+
+| Risk | Mitigation |
+|---|---|
+| The team environment is too simple to show interesting coordination (harnesses look alike, or teams saturate) | 2-D torus layout and difficulty settings; the Phase 6 prototype must pass the dynamic-range check before the spec is written |
+| The paper's circuit agent cannot work in 2-D (it encodes a direction, not a place) | Keep it on the ring; generic learners carry the 2-D experiments; a place-map model stays out of scope |
+| Under fixed compute, larger teams see less world time | Report fixed-world-time curves next to fixed-compute curves |
+| Too many comparisons produce false positives | Main grid and confirmatory tests fixed before running; Holm correction; side sweeps marked exploratory |
+| Scope creep across six phases | Phases 5-8 are the core. Phases 9 and 10 can be cut down without losing the headline result |
+| LLM costs and non-determinism | Hard cap, response cache, small grid; reduced grid for the mid-size model |
+| Foraging results are dismissed as a toy task | The task board has the same structure with real, checkable work; all metrics carry over |
+| Task-board subtasks are too easy or too hard for the models | Pilot first (Q7) |
+| The numpy-vs-LLM comparison has too few points to mean anything | Compare over all (channel, team size) cells with a bootstrap interval, not over four channels |
+| No evidence that the environment can train language models | Stated plainly; the environment is packaged ready for RL; a small fine-tuning demo is a later option |
+| Phase 5 refactor breaks existing demos | Byte-identical `metrics.json` is the acceptance test |
+| Ecology ideas become hand-coded agent rules, or are over-claimed for LLM agents | Use them only as references, metrics, harness settings and defences; label any rule-based agent (such as the hierarchical lead) as a baseline; report them as hypotheses tested |
+
+## Order and rough effort
+
+5 (1-2 days) -> 6 (2-3 days, prototype first) -> 7 (2 days) -> 8 (1-2 days) -> 9 (1-2 days) -> 10 (3-4 days plus API time, including the task board and the pilot). About 11-15 working days in total.

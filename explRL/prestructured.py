@@ -8,14 +8,14 @@ Docs: https://Positron00.github.io/explRL/prestructured.html.md"""
 __all__ = ['wrap', 'angdiff', 'turnProb', 'driftRate', 'jumpProb', 'effectivePolicy', 'prestructuredPolicy', 'Event',
            'prestructuredAgent', 'GoalHeadingRL']
 
-# %% ../nbs/prestructured.ipynb #511dd988
+# %% ../nbs/prestructured.ipynb #04342658
 import math
 from dataclasses import dataclass
 import numpy as np
 from .agents import Agent, Policy, RL
 
 
-# %% ../nbs/prestructured.ipynb #c354bb4b
+# %% ../nbs/prestructured.ipynb #2b58ca5a
 def wrap(a):
     "Heading in [0, 2*pi) as a float."
     return float(a) % (2 * np.pi)
@@ -26,7 +26,7 @@ def angdiff(a, b):
     return (a - b + np.pi) % (2 * np.pi) - np.pi
 
 
-# %% ../nbs/prestructured.ipynb #3468d0a8
+# %% ../nbs/prestructured.ipynb #09d4aa8b
 def turnProb(thetaC, thetaG, p):
     "Eq. 20: probability of a clockwise saccade."
     return -p.GS / 2 * np.sin(angdiff(thetaC, thetaG)) + p.BS + 0.5
@@ -40,7 +40,7 @@ def jumpProb(thetaC, thetaG, p):
     return p.GJ / 2 * (1 - np.cos(angdiff(thetaC, thetaG))) + p.BJ
 
 
-# %% ../nbs/prestructured.ipynb #df3335f1
+# %% ../nbs/prestructured.ipynb #f9f35723
 def effectivePolicy(thetaA, thetaG, p):
     "Eq. 23: drift rate, turn probability, fixation duration and turn bias seen at arena headings thetaA."
     thetaA = np.asarray(thetaA, dtype=float)
@@ -50,7 +50,7 @@ def effectivePolicy(thetaA, thetaG, p):
     return dict(nu=nu, dS=dS, fixDur=p.aF / nu, turnBias=2 * dS - 1)
 
 
-# %% ../nbs/prestructured.ipynb #07c8b527
+# %% ../nbs/prestructured.ipynb #41ae497d
 class prestructuredPolicy(Policy):
     "Policy whose only learnable state is the goal heading thetaG (compass coordinates, radians)."
     def __init__(self, thetaG):
@@ -69,7 +69,7 @@ class Event:
     thetaC_next: float  # compass heading after saccade and jump
 
 
-# %% ../nbs/prestructured.ipynb #59c8af6b
+# %% ../nbs/prestructured.ipynb #a8a3024f
 class prestructuredAgent(Agent):
     "Agent with an arena heading `theta` and a compass heading `thetaC` that can jump by `thetaJ`."
     def __init__(self, theta, goal, policy, rl, params, rng=None, thetaC=None):
@@ -91,7 +91,7 @@ class prestructuredAgent(Agent):
         return Event(self.theta, c, fixDur, direction, dx, jumped, wrap(c1 + p.thetaJ * jumped))
 
 
-# %% ../nbs/prestructured.ipynb #9733762b
+# %% ../nbs/prestructured.ipynb #fe15f109
 class GoalHeadingRL(RL):
     "Policy-gradient update of the goal heading after each saccade (Eqs. 24-25, saccade term only)."
     def __init__(self, policy, lr=1.0, eps=1e-12):

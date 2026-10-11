@@ -1,4 +1,4 @@
-"""Training loop, run history, policy evaluation, and multi-run helpers.
+"""Training loop (run through `runTeam`), run history, policy evaluation, and multi-run helpers.
 
 Docs: https://Positron00.github.io/explRL/train.html.md"""
 
@@ -8,12 +8,14 @@ Docs: https://Positron00.github.io/explRL/train.html.md"""
 __all__ = ['History', 'train_agent', 'evaluatePolicy', 'residency', 'runMany', 'demo_artifact_dir', 'save_demo_figure',
            'save_demo_metrics']
 
-# %% ../nbs/train.ipynb #a1a72c74
+# %% ../nbs/train.ipynb #50e539b7
 from dataclasses import dataclass
 import numpy as np
+from .members import FlexibleMember
+from .multi import runTeam
 
 
-# %% ../nbs/train.ipynb #46487d31
+# %% ../nbs/train.ipynb #751d47c1
 @dataclass
 class History:
     t: np.ndarray
@@ -23,35 +25,20 @@ class History:
     reward: np.ndarray
 
 
-# %% ../nbs/train.ipynb #8c816063
+# %% ../nbs/train.ipynb #989a83ba
 def train_agent(agent, env, Ttot=None):
-    'Run Algorithm 1 for Ttot seconds of simulated time.'
+    'Run Algorithm 1 for Ttot seconds of simulated time, as a one-member team (time counted in samples).'
     if Ttot is None:
         Ttot = agent.params.Ttot
-    p = agent.params
-    n_steps = round(Ttot / p.delT)
-    t_arr = np.zeros(n_steps, dtype=np.float64)
-    theta_arr = np.zeros(n_steps, dtype=np.float64)
-    saccade_arr = np.zeros(n_steps, dtype=bool)
-    dt_arr = np.zeros(n_steps, dtype=np.int64)
-    reward_arr = np.zeros(n_steps, dtype=np.float64)
-    t, i = 0, 0
-    while t < n_steps:
-        step = agent.rl.chooseAction(agent)
-        new_theta, r = env.step(agent.theta, step.dx)
-        agent.rl.updateParams(agent, step, r)
-        t_arr[i] = t
-        theta_arr[i] = step.theta
-        saccade_arr[i] = step.saccade
-        dt_arr[i] = step.dt
-        reward_arr[i] = r
-        agent.theta = new_theta
-        t += step.dt
-        i += 1
-    return History(t_arr[:i], theta_arr[:i], saccade_arr[:i], dt_arr[:i], reward_arr[:i])
+    n_steps = round(Ttot / agent.params.delT)
+    h = runTeam([FlexibleMember(agent)], env, n_steps, t0=0)
+    rows = [(r.t,) + r.extras for r in h.records]
+    t, theta, sac, dt, rew = zip(*rows) if rows else ((),) * 5
+    return History(np.asarray(t, np.float64), np.asarray(theta, np.float64),
+                   np.asarray(sac, bool), np.asarray(dt, np.int64), np.asarray(rew, np.float64))
 
 
-# %% ../nbs/train.ipynb #ad5e7fed
+# %% ../nbs/train.ipynb #8aaa7d6b
 def evaluatePolicy(agent):
     'Drift rate, turn probability, fixation duration, and turn bias at each heading column.'
     pol = agent.policy
@@ -64,7 +51,7 @@ def evaluatePolicy(agent):
     return dict(nu=nu, pR=pR, fixDur=p.aF / nu, turnBias=2 * pR - 1)
 
 
-# %% ../nbs/train.ipynb #34d260a2
+# %% ../nbs/train.ipynb #4e1f9811
 def residency(history, env, nBins=8, halfWidthDeg=45):
     'Fraction of time within halfWidthDeg of the goal in each equal time bin.'
     res = np.zeros(nBins)
@@ -90,7 +77,7 @@ def residency(history, env, nBins=8, halfWidthDeg=45):
     return res
 
 
-# %% ../nbs/train.ipynb #4e911b63
+# %% ../nbs/train.ipynb #0b55905b
 def runMany(params, goal, nRuns, seed=0, Ttot=None):
     'Independent training runs; each result has eval, residency, and final omega.'
     from explRL.core import loadAgent, loadEnv
@@ -111,7 +98,7 @@ def runMany(params, goal, nRuns, seed=0, Ttot=None):
     return out
 
 
-# %% ../nbs/train.ipynb #45571cbb
+# %% ../nbs/train.ipynb #643567e6
 import json
 from pathlib import Path
 

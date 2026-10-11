@@ -55,3 +55,4 @@ Measured values are in [README.md — Results](README.md#results).
 
 - Flexible-policy demo (Fig 2d-e): [specs/demo/RUN.md](../demo/RUN.md)
 - Pre-structured setpoint policy (Fig 2h): [specs/prestructured/RUN.md](../prestructured/RUN.md)
+- Shared multi-agent loop (Phase 5): [specs/multiagent/phase5/RUN.md](../multiagent/phase5/RUN.md)

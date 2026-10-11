@@ -3,6 +3,7 @@ _proc/
 results/demo/
 results/demo_prestructured/
 results/demo_circuit/
+results/multiagent/
 
 *.bak
 .gitattributes

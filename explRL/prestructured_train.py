@@ -1,4 +1,4 @@
-"""Training loop, event history, and readout for the pre-structured policy.
+"""Training loop (run through `runTeam`), event history, and readout for the pre-structured policy.
 
 Docs: https://Positron00.github.io/explRL/prestructured_train.html.md"""
 
@@ -7,13 +7,15 @@ Docs: https://Positron00.github.io/explRL/prestructured_train.html.md"""
 # %% auto #0
 __all__ = ['EventHistory', 'train_prestructured', 'relHeading', 'readout', 'heldGoal', 'runManyPrestructured']
 
-# %% ../nbs/prestructured_train.ipynb #d0e48566
+# %% ../nbs/prestructured_train.ipynb #25d2b134
 from dataclasses import dataclass
 import numpy as np
-from .prestructured import angdiff, wrap
+from .prestructured import angdiff
+from .members import PrestructuredMember
+from .multi import runTeam
 
 
-# %% ../nbs/prestructured_train.ipynb #cafb9187
+# %% ../nbs/prestructured_train.ipynb #0cc55fd4
 @dataclass
 class EventHistory:
     "Per-event record of one run; headings are radians, times seconds."
@@ -27,25 +29,18 @@ class EventHistory:
     thetaG: np.ndarray     # goal heading after the update
 
 
-# %% ../nbs/prestructured_train.ipynb #b247e1eb
+# %% ../nbs/prestructured_train.ipynb #e5cddb39
 def train_prestructured(agent, env, Ttot=None) -> EventHistory:
-    "Run events (fixation + saccade) until simulated time reaches Ttot (default params.Ttot)."
-    p = agent.params
-    Ttot = p.Ttot if Ttot is None else Ttot
-    rows, t = [], 0.0
-    while t < Ttot:
-        ev = agent.rl.chooseAction(agent)
-        thetaA1, r = env.step(agent.theta, ev.dx)
-        agent.rl.updateParams(agent, ev, r)
-        rows.append((t, ev.thetaA, ev.thetaC, ev.fixDur, ev.direction, ev.jumped, r, agent.policy.thetaG))
-        agent.theta, agent.thetaC = wrap(thetaA1), ev.thetaC_next
-        t += ev.fixDur + p.tS
-    cols = list(zip(*rows))
+    "Run events (fixation + saccade) until simulated time reaches Ttot (default params.Ttot), as a one-member team."
+    Ttot = agent.params.Ttot if Ttot is None else Ttot
+    h = runTeam([PrestructuredMember(agent)], env, Ttot, t0=0.0)
+    rows = [(r.t,) + r.extras for r in h.records]
+    cols = list(zip(*rows)) if rows else [()] * 8
     return EventHistory(*(np.asarray(c) for c in cols[:4]), np.asarray(cols[4], dtype=np.int64),
                         np.asarray(cols[5], dtype=bool), *(np.asarray(c) for c in cols[6:]))
 
 
-# %% ../nbs/prestructured_train.ipynb #cc47cb2b
+# %% ../nbs/prestructured_train.ipynb #5e1ecf69
 def relHeading(thetaA, goal):
     "Arena heading minus goal, in degrees in [-180, 180); positive means clockwise of the goal."
     return np.rad2deg(angdiff(thetaA, goal))
@@ -63,7 +58,7 @@ def readout(history, goal, nBins=24) -> dict:
     return dict(centers=(edges[:-1] + edges[1:]) / 2, fixDur=fix, turnBias=bias, count=count)
 
 
-# %% ../nbs/prestructured_train.ipynb #6fd2fb75
+# %% ../nbs/prestructured_train.ipynb #b709f092
 def heldGoal(history, thetaG0, times, tS):
     "Goal heading in effect at each time: thetaG0 until the first update, then held between updates (each at its event's end)."
     tUpd = history.t + history.fixDur + tS
@@ -71,7 +66,7 @@ def heldGoal(history, thetaG0, times, tS):
     return np.where(idx < 0, thetaG0, history.thetaG[np.clip(idx, 0, None)])
 
 
-# %% ../nbs/prestructured_train.ipynb #23ccd74c
+# %% ../nbs/prestructured_train.ipynb #e002262d
 def runManyPrestructured(params, goal, nRuns, seed=0, Ttot=None, learn=True, thetaG0=None):
     "Independent runs (seed + i); each returns history, readout, starting goal heading and jump rate."
     from explRL.core import loadPrestructuredAgent, loadEnv

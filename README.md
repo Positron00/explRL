@@ -34,9 +34,16 @@ You can also open the notebook in Jupyter and run all cells (include `#| slow` c
 
 **Circuit model (Figs 3-5):** [`nbs/demo_circuit.ipynb`](https://Positron00.github.io/explRL/nbs/demo_circuit.html) and [`specs/circuit/RUN.md`](specs/circuit/RUN.md).
 
+**Multi-agent loop (Phase 5):** [`nbs/demo_multi.ipynb`](https://Positron00.github.io/explRL/nbs/demo_multi.html) and [`specs/multiagent/phase5/RUN.md`](specs/multiagent/phase5/RUN.md). Multi-agent plan: [`specs/multiagent/README.md`](specs/multiagent/README.md).
+
+``` sh
+nbdev-test --n-workers 0 nbs/demo_multi.ipynb          # quick (~3 s) → results/multiagent/demo_multi/quick/
+nbdev-test --n-workers 0 --flags slow nbs/demo_multi.ipynb   # full (~15 s) → results/multiagent/demo_multi/full/
+```
+
 ## How to use
 
-This package is in early development (alpha). It implements three variants from the paper: the flexible policy (`explRL.basis`, [`flexibleAgent`](https://Positron00.github.io/explRL/agents.html#flexibleagent), policy-gradient RL), the pre-structured setpoint policy with bump jumps (`explRL.prestructured`), and the circuit model with Hebbian compass and goal weights (`explRL.circuit`). Shared pieces: `explRL.params`, `explRL.envs` (heading and zone arenas), `explRL.train`, and `explRL.core` loaders.
+This package is in early development (alpha). It implements three variants from the paper: the flexible policy (`explRL.basis`, [`flexibleAgent`](https://Positron00.github.io/explRL/agents.html#flexibleagent), policy-gradient RL), the pre-structured setpoint policy with bump jumps (`explRL.prestructured`), and the circuit model with Hebbian compass and goal weights (`explRL.circuit`). Shared pieces: `explRL.params`, `explRL.envs` (heading and zone arenas), `explRL.train`, `explRL.core` loaders, and (Phase 5) `explRL.multi` / `explRL.members` for teams on one event queue.
 
 For the full Fig 2d-e reproduction, see **Running the demo** above.
 

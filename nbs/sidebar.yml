@@ -17,3 +17,6 @@ website:
       - prestructured.ipynb
       - prestructured_train.ipynb
       - train.ipynb
+      - multi.ipynb
+      - members.ipynb
+      - demo_multi.ipynb
