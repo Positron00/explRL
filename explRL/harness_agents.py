@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/harness_agents.html.md"""
 # %% auto #0
 __all__ = ['CommBandit', 'LeadFollower', 'CircuitCommMember']
 
-# %% ../nbs/harness_agents.ipynb #76319b98
+# %% ../nbs/harness_agents.ipynb #b00729d8
 from collections import deque
 
 import numpy as np

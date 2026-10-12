@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/bench_grid.html.md"""
 __all__ = ['CHANNELS', 'SIZES', 'PREREG', 'SWEEPS', 'STUDY_B', 'STR_COLS', 'preregHash', 'cell', 'mainGrid', 'sideSweeps',
            'runCell', 'rowKey', 'runGrid', 'writeCSV', 'readCSV', 'confirm']
 
-# %% ../nbs/bench_grid.ipynb #b9b51201
+# %% ../nbs/bench_grid.ipynb #efa57bab
 import csv
 import hashlib
 import json
@@ -97,14 +97,14 @@ def rowKey(r):
                      f"{int(r['N']):03d}", f"{int(r['seed']):05d}", f"{int(r.get('episode', 0)):02d}"])
 
 
-def runGrid(cells, workers=None):
+def runGrid(cells, workers=None, run=runCell):
     "Run cells (in `workers` spawned processes); rows sorted by key, so the result does not depend on scheduling."
     workers = workers or min(8, os.cpu_count() or 1)
     if workers == 1:
-        out = [runCell(c) for c in cells]
+        out = [run(c) for c in cells]
     else:
         with multiprocessing.get_context('spawn').Pool(workers) as p:
-            out = p.map(runCell, cells, chunksize=4)
+            out = p.map(run, cells, chunksize=4)
     return sorted((r for rows in out for r in rows), key=rowKey)
 
 
@@ -150,7 +150,7 @@ def readCSV(path):
 def confirm(rows, prereg=PREREG, seeds=None):
     "The pre-registered tests: per-seed contrasts averaged over sizes, sign-flip p, Holm, CI, dz and verdict."
     seeds = list(seeds) if seeds is not None else prereg['seeds']
-    idx = {(r['channel'], r['budget'], int(r['N']), int(r['seed'])): r for r in rows if r['study'] == 'main'}
+    idx = {(r['channel'], r['budget'], int(r['N']), int(r['seed'])): r for r in rows if r['study'] == prereg.get('study', 'main')}
     res = {}
     for name, t in prereg['tests'].items():
         d, dropped = [], 0

@@ -7,10 +7,10 @@ Docs: https://Positron00.github.io/explRL/params.html.md"""
 # %% auto #0
 __all__ = ['Params']
 
-# %% ../nbs/params.ipynb #d5ad824e
+# %% ../nbs/params.ipynb #7874251d
 from dataclasses import dataclass
 
-# %% ../nbs/params.ipynb #92f3a3d6
+# %% ../nbs/params.ipynb #d80c6b4d
 @dataclass
 class Params:
     nx: int = 96            # basis columns (arena positions) around 360 deg

@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/circuit_train.html.md"""
 __all__ = ['CircuitHistory', 'concatHistory', 'endTime', 'historyFromRecords', 'train_circuit', 'goalArena', 'goalSafeDistance',
            'heldValue', 'piScore', 'readout', 'mapJumpProb', 'stablestCompass', 'probe']
 
-# %% ../nbs/circuit_train.ipynb #2312e7b0
+# %% ../nbs/circuit_train.ipynb #4dcf0883
 import copy
 from dataclasses import dataclass, fields
 import numpy as np
@@ -16,7 +16,7 @@ from .circuit import grid, jumpProb
 from .members import CircuitMember
 from .multi import runTeam
 
-# %% ../nbs/circuit_train.ipynb #76176ec9
+# %% ../nbs/circuit_train.ipynb #7087691e
 @dataclass
 class CircuitHistory:
     "Per-iteration record; headings are grid indices, angles radians, times seconds."
@@ -46,7 +46,7 @@ def endTime(history, tS) -> float:
     "Time at which the last iteration ends (nan for an empty history)."
     return float(history.t[-1] + tS + history.fixDur[-1]) if len(history.t) else float('nan')
 
-# %% ../nbs/circuit_train.ipynb #86500237
+# %% ../nbs/circuit_train.ipynb #b8abb08d
 def historyFromRecords(records) -> CircuitHistory:
     "Build a `CircuitHistory` from `TeamHistory.forAgent` records (same layout as `train_circuit`)."
     return _history([(r.t,) + r.extras for r in records])
@@ -57,7 +57,7 @@ def train_circuit(agent, env, Ttot=None, t0=0.0) -> CircuitHistory:
     h = runTeam([CircuitMember(agent)], env, T, t0=float(t0))
     return historyFromRecords(h.records)
 
-# %% ../nbs/circuit_train.ipynb #5998b624
+# %% ../nbs/circuit_train.ipynb #4ebe6431
 def _wrap(x): return (x + np.pi) % (2 * np.pi) - np.pi
 
 def goalArena(history, N) -> np.ndarray:
@@ -79,7 +79,7 @@ def piScore(history) -> float:
     tot = history.fixDur.sum()
     return float((history.valence * history.fixDur).sum() / tot) if tot > 0 else 0.0
 
-# %% ../nbs/circuit_train.ipynb #3440cc0d
+# %% ../nbs/circuit_train.ipynb #19ec4344
 def readout(history, N) -> dict:
     "Mean fixation and turn bias per bin of arena heading minus goal in the arena (N bins, degrees)."
     rel = np.rad2deg(_wrap(grid(N)[history.a] - goalArena(history, N)))

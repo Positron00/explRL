@@ -1,6 +1,6 @@
 # Plan: multi-agent RL, harnesses and benchmarks (Phases 5-10)
 
-Status: **active plan** (2026-10-11, revised). **Phases 5 and 6 implemented** ([phase5/](phase5/README.md), [phase6/](phase6/README.md)); **Phase 7 implemented**, harness check passed ([phase7/](phase7/README.md)); **Phase 8 implemented**, its three pre-registered tests supported ([phase8/](phase8/README.md)); Phases 9–10 are specced here and get their own `specs/multiagent/phaseN/` folders before coding, in the same format as `specs/circuit/`.
+Status: **active plan** (2026-10-11, revised). **Phases 5 and 6 implemented** ([phase5/](phase5/README.md), [phase6/](phase6/README.md)); **Phase 7 implemented**, harness check passed ([phase7/](phase7/README.md)); **Phase 8 implemented**, its three pre-registered tests supported ([phase8/](phase8/README.md)); Phase 9 has a draft spec ([phase9/](phase9/README.md)); Phase 10 is specced here and gets its own `specs/multiagent/phase10/` folder before coding, in the same format as `specs/circuit/`.
 
 ## Why
 
@@ -39,7 +39,7 @@ Used to **predict, measure and test** behaviour, not as built-in agent rules (Bi
 | 6 | Team environment with real incentives (patch graph: ring and 2-D torus), plus baseline learners | `explRL/patchworld.py` (`TeamPatchWorld`, layouts, reward schemes), `explRL/team_agents.py` (`banditAgent`, `randomAgent`, `CircuitPatchMember`), `explRL/team_refs.py` (references, metrics) | numpy |
 | 7 | Harness configurations: communication and memory | `explRL/harness.py` (channels), `explRL/harness_agents.py` (channel-aware bandit, lead follower, circuit), `explRL/harness_runs.py` (configurations, budgets, runs) | numpy |
 | 8 | Benchmark and eval suite | `explRL/bench_metrics.py`, `explRL/bench_stats.py`, `explRL/bench_grid.py` (grid, pre-registered analysis), `explRL/bench_report.py`, `explRL/bench_figures.py`, `explRL/episodes.py` (study B); `explRL/credit.py` (discovery credit, piloted in Phase 7) | numpy |
-| 9 | Safety: bad agents and defence mechanisms | `explRL/adversary.py`: bad agent types, defences | numpy |
+| 9 | Safety: bad agents and defence mechanisms | `explRL/adversary.py` (bad agent types), `explRL/defence.py` (trust, reputation, sanctions, monitoring), `explRL/safety_runs.py` (runs, metrics), `explRL/safety_grid.py` (grids, H3), `explRL/safety_report.py`, `explRL/safety_figures.py` | numpy |
 | 10 | Bridge to language-model agents (Claude API, small budget) | `explRL/llm_env.py`, `explRL/llm_agent.py`: text foraging + agentic task board, two model sizes, same benchmark | API spend |
 
 ## Engineering rules (all phases)
@@ -117,6 +117,8 @@ Full spec: [phase8/](phase8/README.md). **Status: implemented (2026-10-11).** Ru
 - **Run time:** quick grid under 30 s (normal tests); full main grid under 10 min on a laptop (`#| slow`); side sweeps may be longer and are run on demand. Measured in Phase 8 (8 processes, `banditAgent` unchanged): quick grid about 4 s, main grid (1 680 runs) 280 s, side sweeps and study B 690 s (long cells need `nbdev-test --cell-timeout 0`).
 
 ## Phase 9: safety and mechanism design
+
+Full spec: [phase9/](phase9/README.md). **Status: draft spec (2026-10-11).** Decisions C1-C13 define the three bad-agent types as honest learners with one deviation each, four defences (none, private trust, shared reputation, graduated sanctions) with spot-check monitoring whose agent-seconds are counted, white-box (beliefs vs reports) and black-box detection AUC, and H3's cells: fixed compute, no defence, 8, 16 and 32 agents, one liar vs clean, relative loss of honest agents' welfare, seeds 300-329. A pilot on seeds 1000-1011 found that liars do real damage on the blackboard (25% liars: 24-46% of honest welfare) and almost none through messages, that one liar's contrast is large enough for H3 (dz about 1.85 on 12 seeds), that free-riders and saboteurs barely lower honest welfare per agent (so team welfare is reported too), and that private trust helps under attack but has a cost without one. Out of scope: defences for the hierarchical lead (it is attacked but not defended), bad circuit agents and their belief readout (Phase 8 found channels do not help circuit teams), and adaptive or colluding adversaries.
 
 - **Bad agents:** a *liar* (reports high values for empty or danger locations and low values for good patches); a *free-rider* (only goes where others report value, never explores or writes); a *saboteur* (crowds the best reported patch). Swept from 0 to 1 agent, then 10% and 25% of the team.
 - **Defences:** trust weighting (an agent trusts others as much as their reports matched its own experience), spot-checking claims, reputation.
@@ -198,4 +200,4 @@ A short write-up notebook (`nbs/demo_multiagent.ipynb`) and `results/multiagent/
 
 ## Order and rough effort
 
-5 (1-2 days) -> 6 (2-3 days, prototype first) -> 7 (2 days) -> 8 (3-4 days, including the pre-registered grid and studies A and B) -> 9 (1-2 days) -> 10 (3-4 days plus API time, including the task board and the pilot). About 13-18 working days in total.
+5 (1-2 days) -> 6 (2-3 days, prototype first) -> 7 (2 days) -> 8 (3-4 days, including the pre-registered grid and studies A and B) -> 9 (2-3 days, including the pre-registered H3 run and the defence grids) -> 10 (3-4 days plus API time, including the task board and the pilot). About 14-19 working days in total.

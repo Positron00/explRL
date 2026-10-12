@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/bench_report.html.md"""
 __all__ = ['CH', 'DEFAULTS', 'FIGURES', 'byN', 'slopes', 'perSize', 'sweepTable', 'circuitTable', 'teamOptimal', 'studyB',
            'report']
 
-# %% ../nbs/bench_report.ipynb #492ecd1e
+# %% ../nbs/bench_report.ipynb #c2185782
 import warnings
 
 import numpy as np

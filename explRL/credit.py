@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/credit.html.md"""
 # %% auto #0
 __all__ = ['Credit', 'ScoutBandit', 'runCredit']
 
-# %% ../nbs/credit.ipynb #eca6c459
+# %% ../nbs/credit.ipynb #5b1cd94a
 from collections import defaultdict, deque
 
 import numpy as np

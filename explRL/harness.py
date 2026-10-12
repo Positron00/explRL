@@ -7,13 +7,15 @@ Docs: https://Positron00.github.io/explRL/harness.html.md"""
 # %% auto #0
 __all__ = ['Blackboard', 'MessageBus', 'Lead']
 
-# %% ../nbs/harness.ipynb #7107c8e3
+# %% ../nbs/harness.ipynb #a0982dac
 from collections import defaultdict, deque
 
 import numpy as np
 
 
 class Blackboard:
+    blocked = frozenset()                      # writers whose writes are dropped (set by a Phase 9 Monitor)
+
     def __init__(self, L, K=None, lam=0.0, n=None):
         self.L, self.K, self.lam, self.tRef = L, K, float(lam), 0.0
         if K is None:
@@ -36,6 +38,9 @@ class Blackboard:
         self.tRef = t
 
     def write(self, i, loc, value, t):
+        if i in self.blocked:
+            self.stats[i]['rejected'] = self.stats[i].get('rejected', 0) + 1
+            return
         if self.K is None:
             self._age(t)
             self.S[loc] += value
@@ -61,6 +66,15 @@ class Blackboard:
             self.Tw = self.Tw - t
         self.tRef = 0.0
 
+    def viewBy(self, i, t, weights):
+        "View with each writer's sums scaled by weights[writer]; writer i left out (running-sum mode only)."
+        if self.K is not None:
+            raise ValueError('viewBy needs K = None')
+        self._age(t)
+        w = np.asarray(weights, float).copy()
+        w[i] = 0.0
+        return self._clean(w @ self.Si, w @ self.Ci)
+
     def _clean(self, S, C):
         S, C = S.copy(), C.copy()
         m = C < 1e-12
@@ -81,6 +95,8 @@ class Blackboard:
 
 
 class MessageBus:
+    blocked = frozenset()                      # senders whose messages are dropped (set by a Phase 9 Monitor)
+
     def __init__(self, n, k=2, period=10.0, radius=np.inf, rngs=None):
         self.k, self.period, self.radius, self.rngs = int(k), float(period), radius, rngs
         self.window = [-1] * n
@@ -95,6 +111,9 @@ class MessageBus:
         return False
 
     def send(self, world, i, loc, value, t):
+        if i in self.blocked:
+            self.stats[i]['rejected'] = self.stats[i].get('rejected', 0) + 1
+            return []
         near = sorted(world.neighbours(i, self.radius))
         if not near:
             return []
