@@ -21,7 +21,8 @@ From the repo root (`.venv/bin` first on `PATH`):
 | `nbdev-test --n-workers 0 nbs/bench_stats.ipynb` | bootstrap, sign-flip, Holm, effect size, scaling fit (AC-4) | ~2 s |
 | `nbdev-test --n-workers 0 nbs/episodes.ipynb` | `LevelBandit`, `runEpisodes`, persistence arms (AC-6) | ~3 s |
 | `nbdev-test --n-workers 0 nbs/bench_grid.ipynb` | grid sizes, quick grid, CSV identical for 1 and 4 workers, every runner path, `confirm` (AC-5, AC-7) | ~5 s |
-| `nbdev-test --n-workers 0 nbs/bench_report.ipynb nbs/bench_figures.ipynb` | report sections and figures | ~10 s |
+| `nbdev-test --n-workers 0 nbs/bench_report.ipynb` | summaries and report sections | ~5 s |
+| `nbdev-test --n-workers 0 nbs/bench_figures.ipynb` | figures | ~5 s |
 | `nbdev-test --n-workers 0 nbs/demo_bench.ipynb` | quick demo: pilot seeds, budgets / 10, every path (pipeline check) | ~4 s |
 | `nbdev-test --n-workers 0` | full suite (quick) | ~40 s |
 
@@ -42,7 +43,7 @@ Under `results/multiagent/bench/{quick,full,sweeps}/` (gitignored):
 
 - `runs.csv`: one row per run (one per episode for study B): cell keys, configuration, Phase 7 metrics and Phase 8 metrics.
 - `metrics.json`: mode, `PREREG`, its hash, git commit, wall time, confirmatory results, scaling slopes, side-sweep table, team-optimal `cUCB`, study B summary.
-- `report.md`: confirmatory table, per-size estimates, scaling slopes, side sweeps, circuit teams, studies A and B (all but the confirmatory table labelled exploratory).
+- `report.md`: run settings and seeds, confirmatory table, per-size estimates, scaling slopes, side sweeps, circuit teams, studies A and B (all but the confirmatory table labelled exploratory), figure guide.
 - Figures: `scaling.png`, `confirmatory.png`, `recovery.png`, `beliefs.png`, `secondary.png`, `sweeps.png`, `studyB.png`.
 
 ## Regression

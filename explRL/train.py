@@ -8,14 +8,14 @@ Docs: https://Positron00.github.io/explRL/train.html.md"""
 __all__ = ['History', 'train_agent', 'evaluatePolicy', 'residency', 'runMany', 'demo_artifact_dir', 'save_demo_figure',
            'save_demo_metrics', 'save_demo_report']
 
-# %% ../nbs/train.ipynb #e1adf341
+# %% ../nbs/train.ipynb #a4ba877f
 from dataclasses import dataclass
 import numpy as np
 from .members import FlexibleMember
 from .multi import runTeam
 
 
-# %% ../nbs/train.ipynb #3c9130be
+# %% ../nbs/train.ipynb #16b8b8e8
 @dataclass
 class History:
     t: np.ndarray
@@ -25,7 +25,7 @@ class History:
     reward: np.ndarray
 
 
-# %% ../nbs/train.ipynb #4d3c33de
+# %% ../nbs/train.ipynb #b29fa5f0
 def train_agent(agent, env, Ttot=None):
     'Run Algorithm 1 for Ttot seconds of simulated time, as a one-member team (time counted in samples).'
     if Ttot is None:
@@ -38,7 +38,7 @@ def train_agent(agent, env, Ttot=None):
                    np.asarray(sac, bool), np.asarray(dt, np.int64), np.asarray(rew, np.float64))
 
 
-# %% ../nbs/train.ipynb #93405935
+# %% ../nbs/train.ipynb #0ca6e5ea
 def evaluatePolicy(agent):
     'Drift rate, turn probability, fixation duration, and turn bias at each heading column.'
     pol = agent.policy
@@ -51,7 +51,7 @@ def evaluatePolicy(agent):
     return dict(nu=nu, pR=pR, fixDur=p.aF / nu, turnBias=2 * pR - 1)
 
 
-# %% ../nbs/train.ipynb #43151bd1
+# %% ../nbs/train.ipynb #143406c5
 def residency(history, env, nBins=8, halfWidthDeg=45):
     'Fraction of time within halfWidthDeg of the goal in each equal time bin.'
     res = np.zeros(nBins)
@@ -77,7 +77,7 @@ def residency(history, env, nBins=8, halfWidthDeg=45):
     return res
 
 
-# %% ../nbs/train.ipynb #ffda2c43
+# %% ../nbs/train.ipynb #905a41de
 def runMany(params, goal, nRuns, seed=0, Ttot=None):
     'Independent training runs; each result has eval, residency, and final omega.'
     from explRL.core import loadAgent, loadEnv
@@ -98,7 +98,7 @@ def runMany(params, goal, nRuns, seed=0, Ttot=None):
     return out
 
 
-# %% ../nbs/train.ipynb #836da126
+# %% ../nbs/train.ipynb #003e4ed7
 import json
 from pathlib import Path
 

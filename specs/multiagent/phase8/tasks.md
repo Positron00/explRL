@@ -62,11 +62,11 @@ flowchart LR
 - **Tests**: the quick demo runs in normal tests in under 30 s and writes `runs.csv`, `metrics.json`, `report.md` and figures; the report prints the `PREREG` hash and labels the quick verdicts as a pipeline check.
 
 ## T9. Main grid and confirmatory analysis
-- **What**: run `nbdev-test --n-workers 0 --flags slow nbs/demo_bench.ipynb` once on the frozen `PREREG`.
+- **What**: run `nbdev-test --n-workers 0 --cell-timeout 0 --flags slow nbs/demo_bench.ipynb` once on the frozen `PREREG`.
 - **Done when**: **AC-9**: under 10 minutes, time recorded; the confirmatory table, per-size estimates and scaling slopes are in `report.md` and in this spec's README, whatever the verdicts. If it has to be rerun (crash, bug), the README says why and what changed.
 
 ## T10. Side sweeps and studies
-- **What**: run with `--flags sweeps`.
+- **What**: run with `--cell-timeout 0 --flags sweeps` (the sweeps cell runs past nbdev's default 600 s cell limit).
 - **Done when**: **AC-10**: under 60 minutes, time recorded; the team-optimal `cUCB` per channel and size, the reward-scheme comparison, study B's learning curves and gap closed, and the side-sweep findings are in the README, labelled exploratory.
 
 ## T11. Final regression and docs

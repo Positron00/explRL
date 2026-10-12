@@ -40,7 +40,7 @@ Before any change, T1 records the Phase 7 `demo_harness` `metrics.json` hashes (
 
 ## 2. Metrics (`explRL/bench_metrics.py`)
 
-All functions take `L = ledgerArrays(world.ledger)` (columns `agent, t, dt, kind, location, patch, harvest, reward, s0, s1`). Move periods: `k = floor(t / Tmove)`; period `k` spans `[k Tmove, (k + 1) Tmove)`; **full periods** are those with `k >= 1` and `(k + 1) Tmove <= T`.
+All functions take `L = ledgerArrays(world.ledger)` (columns `agent, t, dt, kind, location, patch, harvest, reward, s0, s1`). A row's time is its stay (or fixation) start `s0`, which equals `t` for stays. Move periods: `k = floor(s0 / Tmove)`; period `k` spans `[k Tmove, (k + 1) Tmove)`; **full periods** are those with `k >= 1` and `(k + 1) Tmove <= T`.
 
 **Recovery (FR-5).** On the 1 s occupancy grid, `d = ifdDistanceTies(counts, idealFree(world, N)[0], world.intake, N)`. For each full period, with `r_i` the mean of `d` over grid points `i-9 .. i` of the period (`i >= 9`): recovery = the first `i` with `r_i <= delta` (seconds after the move), or `Tmove` if none. `RMRT` = mean over full periods; `reached` = share of periods with a finite time. `nan` without full periods.
 
@@ -55,7 +55,7 @@ Not defined (`nan`) for `hierarchical` and random teams (no per-agent estimates)
 
 **Goal spread (circuit teams).** An agent's goal heading `thetaG` is in its own compass frame; its world-frame goal is `phi = thetaG - 2 pi (c - a) / nCirc`. `goalSpread = sqrt(-2 ln R)` with `R = |mean_a exp(i phi_a)|` (circular standard deviation, radians); it goes into the row as `diversity` for circuit teams, with `beliefError` `nan`.
 
-**Discoveries (FR-7).** Rows with `kind == 'stay'`, `patch >= 0`, `harvest > 0`, in ledger (time) order; the first row per `(location, k)` is a discovery by its agent. This is the `Credit` rule: a stay at exactly `k Tmove` belongs to period `k`, as `TeamPatchWorld.advance` moves patches when `nextMove <= t`.
+**Discoveries (FR-7).** Rows with `kind != 'travel'` (stays, and circuit fixations), `patch >= 0`, `harvest > 0`, in ledger (time) order, period `floor(s0 / Tmove)`; the first row per `(location, k)` is a discovery by its agent. This is the `Credit` rule: a stay at exactly `k Tmove` belongs to period `k`, as `TeamPatchWorld.advance` moves patches when `nextMove <= t`.
 
 ```
 hShare_a = harvest_a / sum(harvest),  dShare_a = disc_a / sum(disc)
@@ -63,11 +63,11 @@ freeRiding = pearson(hShare, dShare)          (nan if N < 4 or either has zero v
 ```
 
 **Find time, overlap, follow time (FR-8).**
-- `findTime`: for each full period `k` and patch index `p`, the first row with `patch == p`, `harvest > 0` and `t` in the period gives `t - k Tmove`; `Tmove` if there is none. Mean over `(k, p)`.
-- `overlap`: for each full period, `S_a` = locations agent `a` stayed at; mean over agent pairs with a non-empty union of `|S_a & S_b| / |S_a | S_b|`; mean over periods (`nan` for N = 1).
-- `followTime`: for each discovery at `(j, k)` by agent `a` at time `t0`, the first positive-harvest stay at `j` in period `k` by another agent gives `t - t0`; `(k + 1) Tmove - t0` if none. Mean over discoveries.
+- `findTime(world, L, T)`: for each full period `k` and patch index `p`, the first harvesting row with `patch == p` and `s0` in the period gives `s0 - k Tmove`; `Tmove` if there is none. Mean over `(k, p)`.
+- `overlap(world, L, N, T)`: for each full period, `S_a` = locations agent `a` stayed (or fixated) at; mean over agent pairs with a non-empty union of `|S_a & S_b| / |S_a | S_b|`; mean over periods (`nan` for N = 1).
+- `followTime(world, L, T)`: for each discovery at `(j, k)` by agent `a` at time `t0`, the first positive harvest at `j` in period `k` by another agent gives `s0 - t0`; `min((k + 1) Tmove, T) - t0` if none. Mean over discoveries.
 
-**Row (FR-9).** `benchMetrics(cell, world, hist, m, delta)` (`m` = the `harnessMetrics` dict) returns the cell keys (`study`, `factor`, `level`, `seed`, `N`, `T` and the flattened `HarnessConfig`, world overrides as `world.<name>`), the Phase 7 scalars (`welfare`, `perAgentSecond`, `harvest`, `dangerCost`, `firstQuarterRate`, `gini`, `coverage`, `dangerShare`, `ifdMean`, `soYield`, `welfareLoss`), `written`, `sent`, `received`, `commPerWelfare` (`(written + sent) / welfare`, `nan` if welfare <= 0), `events` (`len(hist)`), `rmrt`, `reached`, `diversity`, `beliefError`, `discoveries`, `freeRiding`, `findTime`, `overlap`, `followTime`. Wall-clock times never go into rows (they would break NFR-3).
+**Row (FR-9).** `benchMetrics(cell, world, hist, m, delta)` (`m` = the `harnessMetrics` dict) returns the cell keys (`study`, `factor`, `level`, `seed`, `N`, `Trun` = the run's world time, and the flattened `HarnessConfig`, whose `T` is the configured fixed world time; world overrides as `world.<name>`, `None` as an empty string), the Phase 7 scalars (`welfare`, `perAgentSecond`, `harvest`, `dangerCost`, `firstQuarterRate`, `gini`, `coverage`, `dangerShare`, `ifdMean`, `soYield`, `welfareLoss`), `written`, `sent`, `received`, `commPerWelfare` (`(written + sent) / welfare`, `nan` if welfare <= 0), `events` (`len(hist)`), `rmrt`, `reached`, `diversity`, `beliefError`, `discoveries`, `freeRiding`, `findTime`, `overlap`, `followTime`. Wall-clock times never go into rows (they would break NFR-3).
 
 ## 3. Statistics (`explRL/bench_stats.py`)
 
@@ -82,7 +82,7 @@ def scalingFit(N, y, seeds, n=2000): # OLS of y on log2 N; slope CI by resamplin
 
 ## 4. Grid (`explRL/bench_grid.py`)
 
-A cell is a plain dict: `study`, `factor`, `level`, `cfg` (a `HarnessConfig.asDict()`), `N`, `seed`, and `runner` (`'harness'` or `'episodes'`, with `arm`, `beta`, `episodes` and `T` for the latter, whose `cfg` is `HarnessConfig(channel='blackboard')`, `factor` `'studyB'` and `level` `f"{arm}|beta={beta}"`). Its sort key is `f"{study}|{factor}|{level}|{cfg['channel']}|{cfg['budget']}|{N:03d}|{seed:05d}"`; a row's key appends `|{e:02d}` for episode rows.
+A cell is a plain dict: `study`, `factor`, `level`, `cfg` (a `HarnessConfig.asDict()`), `N`, `seed`, and `runner` (`'harness'` or `'episodes'`, with `arm`, `beta`, `episodes` and `T` for the latter, whose `cfg` is `HarnessConfig(channel='blackboard')`, `factor` `'studyB'` and `level` `f"{arm}|beta={beta}"`). Its sort key is `f"{study}|{factor}|{level}|{cfg['channel']}|{cfg['budget']}|{N:03d}|{seed:05d}"`; a row's key (`rowKey`) appends `|{episode:02d}` (00 for rows that are not episodes).
 
 | Grid | Cells |
 |---|---|
@@ -160,7 +160,7 @@ class LevelBandit(CommBandit):
         if keep == 'none': self.S[:], self.n[:], self.e = 0, 0, 0
 ```
 
-`_takeCredit` adds every credit taken from `self.credit` to `epReward`. `runEpisodes(arm, N, seed, episodes=12, T=600.0, beta=0.0, lam=0.01)`:
+`_takeCredit` adds every credit taken from `self.credit` to `epReward`. `runEpisodes(arm, N, seed, episodes=12, T=600.0, beta=0.0, lam=0.01, cLevel=0.1)`:
 
 ```python
 keep = {'strategy': 'strategy', 'all': 'all'}.get(arm.split('-')[0], 'none')
@@ -181,7 +181,7 @@ for e in range(episodes):
     rows.append(episodeRow(arm, beta, N, seed, e, world, hist, members, credit, T))
 ```
 
-`episodeRow` holds the keys plus `perAgentSecond` (net welfare), `levelMean` and `levelStd` (the `cUCB` used, across agents), `levelStable` (share of agents whose level equals their level in the previous episode; `nan` in episode 0), `discoveries` (ledger rule), `credited`, `freeRiding`. **Gap closed** (report): per N, with `W(arm)` the mean `perAgentSecond` over episodes 8-11 and seeds, `(W(arm) - W(fixed-1)) / (max_l W(fixed-l) - W(fixed-1))`; reported only when the denominator's 95% CI excludes 0.
+`episodeRow` holds the keys (`study`, `factor`, `level`, `arm`, `beta`, `seed`, `N`, `episode`, `Trun`, `channel` = blackboard, `budget` = `'episode'`) plus `perAgentSecond` (net welfare), `levelMean` and `levelStd` (the `cUCB` used, across agents), `levelStable` (share of agents whose level equals their level in the previous episode; `nan` in episode 0), `discoveries` (ledger rule), `credited`, `freeRiding`, `events`. **Gap closed** (report): per N, with `W(arm)` the mean `perAgentSecond` over episodes 8-11 and seeds, `(W(arm) - W(fixed-1)) / (max_l W(fixed-l) - W(fixed-1))`; reported only when the denominator's 95% CI excludes 0.
 
 | Setting | Default | Meaning |
 |---|---|---|
@@ -197,28 +197,28 @@ for e in range(episodes):
 
 | Figure | Content |
 |---|---|
-| `scaling.png` | welfare per agent-second vs N (log2), one line per channel, 95% CIs; panels fixed compute and fixed world time; `scalingFit` slopes in the legend |
+| `scaling.png` | welfare per agent-second vs N (log2), one line per channel, 95% CIs; panels fixed compute and fixed world time; `scalingFit` slopes (per doubling) in the legend |
 | `confirmatory.png` | per test: per-size paired differences with CIs, the averaged contrast and its CI |
 | `recovery.png` | RMRT and `reached` vs N per channel (fixed compute) |
 | `beliefs.png` | diversity and belief error vs N per channel |
-| `secondary.png` | discoveries per agent-second, free-riding index, find time, overlap, follow time, communication per welfare vs N |
+| `secondary.png` | discoveries per run (fixed compute keeps agent-seconds equal across sizes), free-riding index, find time, overlap, follow time, communication per welfare vs N |
 | `sweeps.png` | one panel per side-sweep factor: welfare per agent-second vs level, per channel, N = 16 and 64 |
-| `studyB.png` | learning curves (welfare per episode) per arm, level mean, spread and stability per episode, gap closed |
+| `studyB.png` | per arm and N, one row each: welfare, level mean and level stability per episode (the level spread and gap closed are in the report) |
 
-`report.md` sections: settings and seeds; `PREREG` hash, git commit and deviations; **confirmatory results** (table: test, contrast, mean [CI], dz, p, Holm p, verdict); per-size estimates (exploratory); scaling slopes; side sweeps; study A (team-optimal `cUCB` per channel and size); study B; timing; figure guide. Everything but the confirmatory table is labelled exploratory.
+`report.md` sections: cells, workers and wall time, `PREREG` hash, git commit, deviations and seeds; **confirmatory results** (table: test, contrast, mean [CI], dz, p, Holm p, verdict); per-size estimates; scaling slopes; side sweeps; circuit teams (welfare and goal spread); study A (team-optimal `cUCB` per channel and size); study B (last-4 welfare, gap closed, level stability); figure guide. Each section appears when its data are in the rows. Everything but the confirmatory table is labelled exploratory.
 
 ## 7. Demo (`nbs/demo_bench.ipynb`)
 
 | Section | Flag | Content | Output |
 |---|---|---|---|
-| Quick grid | none (normal tests) | `mainGrid('quick')`, `confirm` on its rows (pipeline check only, verdicts not meaningful), report | `bench/quick/` |
+| Quick grid | none (normal tests) | `mainGrid('quick')` and `sideSweeps('quick')`, `confirm` on its rows (pipeline check only, verdicts not meaningful), all figures and report sections | `bench/quick/` |
 | Main grid | `slow` | `mainGrid('full')`, timed; `confirm`; scaling, confirmatory, recovery, beliefs, secondary figures | `bench/full/` |
-| Sweeps and studies | `sweeps` | `sideSweeps('sweeps')` and study B, timed; sweeps, study A, study B figures | `bench/sweeps/` |
+| Sweeps and studies | `sweeps` | `sideSweeps('sweeps')` (side sweeps, which also give study A, and study B), timed; sweeps and study B figures | `bench/sweeps/` |
 
-`metrics.json` keys: `mode`, `prereg` (the dict), `preregHash`, `gitCommit`, `cells`, `wallSeconds`, `workers`, `confirmatory` (per test: mean, ci, dz, p, pHolm, verdict, dropped), `scaling` (per channel and budget: slope, ci), and in sweeps mode `teamOptimalCUCB` and `studyB` (per arm and N: curve, gap closed).
+`metrics.json` keys: `mode`, `prereg` (the dict), `preregHash`, `gitCommit`, `deviations`, `seeds`, `figures`, `cells`, `wallSeconds`, `workers`; in quick and full mode `confirmatory` (per test: mean, ci, dz, p, pHolm, verdict, n, dropped) and `scaling` (per channel and budget: slope, intercept, ci); in every mode `sweeps` (the side-sweep table), `teamOptimalCUCB` and `studyB` (per arm and N: welfare, level and stability curves, last-4 welfare, gap closed, level stability), empty when the rows have none.
 
 ## 8. Determinism and speed
 
 Every cell seeds its world, members and message generators from its own seed (Phase 7 rules); study B also from `10 000 + 100 seed + e`. Rows are sorted by key, and floats are written with `repr`, so the CSV is identical for any worker count (AC-5).
 
-Measured on pilot seeds 1000-1001 (8 processes): 112 main-grid runs in 23 s wall, 124 CPU-seconds, 1.48 M events, 84 µs per event on average. Expected: main grid about 31 CPU-minutes, about 4-5 minutes on 8 processes; side sweeps about 30 CPU-minutes; study B about 60 CPU-minutes; both together about 12 minutes on 8 processes. T9 and T10 record the measured times.
+Measured on pilot seeds 1000-1001 (8 processes): 112 main-grid runs in 23 s wall, 124 CPU-seconds, 1.48 M events, 84 µs per event on average. Expected: main grid about 31 CPU-minutes, about 4-5 minutes on 8 processes; side sweeps and study B about 12 minutes on 8 processes. **Measured (T9, T10):** main grid 280 s, side sweeps and study B 690 s on 8 processes. The sweeps cell runs longer than nbdev's default 600 s cell limit, so the long modes use `--cell-timeout 0`.

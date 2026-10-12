@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/multi.html.md"""
 # %% auto #0
 __all__ = ['Record', 'Outcome', 'TeamHistory', 'spawnRngs', 'Member', 'Clock', 'runTeam', 'TeamEnv']
 
-# %% ../nbs/multi.ipynb #d470fec8
+# %% ../nbs/multi.ipynb #3e4e3df6
 import heapq
 import json
 from pathlib import Path
@@ -15,7 +15,7 @@ from typing import NamedTuple
 
 import numpy as np
 
-# %% ../nbs/multi.ipynb #681191bc
+# %% ../nbs/multi.ipynb #081330cd
 class Record(NamedTuple):
     "One event of one agent."
     agent: int        # agent index
@@ -35,7 +35,7 @@ class Outcome(NamedTuple):
     reward: float
     extras: tuple = ()
 
-# %% ../nbs/multi.ipynb #5b386022
+# %% ../nbs/multi.ipynb #07248c05
 def _plain(x):
     "numpy scalars and arrays as plain Python values, for JSON."
     if isinstance(x, np.generic):
@@ -80,7 +80,7 @@ def spawnRngs(seed, n):
     "n independent generators from one seed."
     return [np.random.default_rng(s) for s in np.random.SeedSequence(seed).spawn(n)]
 
-# %% ../nbs/multi.ipynb #6d975e93
+# %% ../nbs/multi.ipynb #fd802563
 class Member:
     "One agent in a team. `runTeam` / `TeamEnv` set `id` to the agent index."
     timeUnit = 's'
@@ -101,7 +101,7 @@ class Member:
     def learn(self, obs, action, reward, info):
         pass
 
-# %% ../nbs/multi.ipynb #47a94b9f
+# %% ../nbs/multi.ipynb #126d5551
 class Clock:
     "Event queue of (next start time, agent index); members stop once their start time reaches t0 + Ttot."
     def __init__(self, n, Ttot, t0=0):
@@ -145,7 +145,7 @@ def runTeam(members, world, Ttot, t0=0) -> TeamHistory:
         clock.push(t, out.dt, i)
     return hist
 
-# %% ../nbs/multi.ipynb #87d391cd
+# %% ../nbs/multi.ipynb #8a3359ce
 class TeamEnv:
     "Agent-environment-cycle view of a generic world: the caller picks each action."
     def __init__(self, world, nAgents, Ttot, t0=0):

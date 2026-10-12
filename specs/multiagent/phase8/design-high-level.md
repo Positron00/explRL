@@ -20,7 +20,7 @@ The plan named `explRL/bench.py` and a report generator. They are split to keep 
 | `pyproject.toml` | changed | `tst_flags = "notest slow sweeps"` |
 | `tools/phase7_demo_hashes.sh` | new | hashes the Phase 7 `demo_harness` `metrics.json` files (T1) |
 
-Import rule: `bench_metrics` imports `team_refs` and `numpy` only; `bench_stats` imports `numpy` only; `episodes` imports `harness`, `harness_agents`, `harness_runs`, `credit`, `multi` and `bench_metrics`; `bench_grid` imports `harness_runs`, `bench_metrics`, `bench_stats` and `episodes`; `bench_report` imports `bench_stats`; `bench_figures` imports `bench_report`, `bench_stats` and `matplotlib`. No module imports a demo.
+Import rule: `bench_metrics` imports `team_refs` and `numpy` only; `bench_stats` imports `numpy` only; `episodes` imports `harness`, `harness_agents`, `harness_runs`, `credit`, `multi`, `team_refs` and `bench_metrics`; `bench_grid` imports `harness_runs`, `bench_metrics`, `bench_stats` and `episodes`; `bench_report` imports `bench_stats`; `bench_figures` imports `bench_report`, `bench_stats` and `matplotlib`. No module imports a demo.
 
 ## Data flow
 

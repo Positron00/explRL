@@ -7,29 +7,32 @@ Docs: https://Positron00.github.io/explRL/bench_figures.html.md"""
 # %% auto #0
 __all__ = ['mainFigures', 'sweepFigures']
 
-# %% ../nbs/bench_figures.ipynb #467e7c0d
+# %% ../nbs/bench_figures.ipynb #deb15cd1
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .bench_report import CH, _mean, _sel, byN
+from .bench_report import CH, _mean, _sel, byN, slopes
 from .bench_stats import bootCI
 
 
-def _lines(ax, rows, metric, chans=CH, **kw):
+def _lines(ax, rows, metric, chans=CH, label=None, **kw):
     for ch in chans:
         a = byN(rows, metric, channel=ch, **kw)
         if len(a):
-            ax.errorbar(a[:, 0], a[:, 1], yerr=[a[:, 1] - a[:, 2], a[:, 3] - a[:, 1]], marker='o', ms=3, capsize=2, label=ch)
+            ax.errorbar(a[:, 0], a[:, 1], yerr=[a[:, 1] - a[:, 2], a[:, 3] - a[:, 1]], marker='o', ms=3, capsize=2,
+                        label=label(ch) if label else ch)
     ax.set_xscale('log', base=2); ax.set_xlabel('team size'); ax.set_title(metric, fontsize=9)
 
 
 def mainFigures(rows, conf, prereg):
     "Figures for the main grid: scaling, confirmatory, recovery, beliefs, secondary."
-    figs, main = {}, _sel(rows, study='main')
+    figs, main, sl = {}, _sel(rows, study='main'), slopes(rows)
     f, ax = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
     for a, b in zip(ax, ('compute', 'time')):
-        _lines(a, main, 'perAgentSecond', budget=b); a.set_title(f'welfare per agent-second, fixed {b}', fontsize=9)
-    ax[0].legend(fontsize=7); figs['scaling'] = f
+        _lines(a, main, 'perAgentSecond', budget=b, label=lambda ch: f"{ch} ({sl[f'{ch}/{b}']['slope']:+.3f} per doubling)"
+               if f'{ch}/{b}' in sl else ch)
+        a.set_title(f'welfare per agent-second, fixed {b}', fontsize=9); a.legend(fontsize=6)
+    figs['scaling'] = f
     f, ax = plt.subplots(1, len(prereg['tests']), figsize=(4 * len(prereg['tests']), 3.5))
     for a, (name, t) in zip(np.atleast_1d(ax), prereg['tests'].items()):
         pts = []
@@ -57,22 +60,28 @@ def sweepFigures(table, opt, sb):
     "Figures for the side sweeps (one panel per factor), study A and study B."
     figs = {}
     if table:
-        f, ax = plt.subplots(1, len(table), figsize=(3.4 * len(table), 3.2))
+        f, ax = plt.subplots(1, len(table), figsize=(3.4 * len(table), 3.4))
+        allCols = sorted({c for lv in table.values() for v in lv.values() for c in v if c[1] in (16, 64)})
+        color = {c: f'C{i % 10}' for i, c in enumerate(allCols)}      # one colour per (channel, N) in every panel
         for a, (factor, lv) in zip(np.atleast_1d(ax), table.items()):
             levels, cols = list(lv), sorted({c for v in lv.values() for c in v if c[1] in (16, 64)})
             for c in cols:
-                a.plot(range(len(levels)), [lv[l].get(c, np.nan) for l in levels], marker='o', label=f'{c[0]}/{c[1]}')
-            a.set_xticks(range(len(levels)), levels, fontsize=7); a.set_title(factor, fontsize=9)
-        np.atleast_1d(ax)[0].set_ylabel('welfare / agent-s'); np.atleast_1d(ax)[0].legend(fontsize=6)
+                a.plot(range(len(levels)), [lv[l].get(c, np.nan) for l in levels], marker='o', color=color[c],
+                       ls='-' if c[1] == 16 else '--', label=f'{c[0]}/{c[1]}')
+            a.set_xticks(range(len(levels)), levels, fontsize=7); a.set_title(factor, fontsize=9); a.legend(fontsize=5)
+        np.atleast_1d(ax)[0].set_ylabel('welfare / agent-s')
         figs['sweeps'] = f
     if sb:
         Ns = sorted({k.split('/N=')[1] for k in sb})
-        f, ax = plt.subplots(1, len(Ns), figsize=(6 * len(Ns), 3.6), squeeze=False)
-        for a, N in zip(ax[0], Ns):
+        f, ax = plt.subplots(3, len(Ns), figsize=(6 * len(Ns), 9), squeeze=False, sharex=True)
+        for col, N in enumerate(Ns):
             for k, v in sb.items():
                 if k.endswith(f'/N={N}'):
-                    a.plot(v['curve'], marker='.', ls='--' if k.startswith('fixed') else '-', label=k.split('/N=')[0])
-            a.set_xlabel('episode'); a.set_title(f'study B, N = {N}', fontsize=9)
-        ax[0][0].set_ylabel('welfare / agent-s'); ax[0][0].legend(fontsize=6)
+                    for row, key in enumerate(('curve', 'levelCurve', 'stableCurve')):
+                        ax[row][col].plot(v[key], marker='.', ls='--' if k.startswith('fixed') else '-', label=k.split('/N=')[0])
+            ax[0][col].set_title(f'study B, N = {N}', fontsize=9); ax[2][col].set_xlabel('episode')
+        for row, name in enumerate(('welfare / agent-s', 'level (cUCB) mean', 'level stability')):
+            ax[row][0].set_ylabel(name)
+        ax[0][0].legend(fontsize=6)
         figs['studyB'] = f
     return figs
