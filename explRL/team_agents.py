@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/team_agents.html.md"""
 # %% auto #0
 __all__ = ['PatchMember', 'randomAgent', 'banditAgent', 'CircuitPatchMember']
 
-# %% ../nbs/team_agents.ipynb #15bcbc73
+# %% ../nbs/team_agents.ipynb #13ed6fb8
 from collections import deque
 
 import numpy as np
@@ -42,15 +42,19 @@ class banditAgent(PatchMember):
         self.K, self.cUCB, self.H = K, float(cUCB), float(H)
         self.rates = None
 
+    def _stats(self, obs):
+        n = np.array([len(r) for r in self.rates], float)
+        mean = np.array([np.mean(r) if len(r) else 0.0 for r in self.rates])
+        return mean, n
+
     def act(self, obs):
         T = obs['travel']
         if self.rates is None:
             self.rates = [deque(maxlen=self.K) for _ in T]
-        n = np.array([len(r) for r in self.rates])
+        mean, n = self._stats(obs)
         if (n == 0).any():
             idx = np.flatnonzero(n == 0)
             return int(idx[np.argmin(T[idx])])
-        mean = np.array([np.mean(r) for r in self.rates])
         score = (mean + self.cUCB * np.sqrt(np.log1p(n.sum()) / n)) * self.H / (self.H + T)
         return int(np.argmax(score))
 
@@ -64,7 +68,7 @@ class CircuitPatchMember(CircuitMember):
 
     def reward(self, world, t, fix):
         h, net = world.fixate(self.id, self.agent.a, t + self.agent.params.tS, fix, t)
-        self._harvest = h
+        self._harvest, self._lastNet = h, net
         s = np.sign(net)
         return int(s) if s != 0 else 0
 

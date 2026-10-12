@@ -24,3 +24,8 @@ website:
       - team_refs.ipynb
       - team_agents.ipynb
       - demo_team.ipynb
+      - harness.ipynb
+      - harness_agents.ipynb
+      - harness_runs.ipynb
+      - demo_harness.ipynb
+      - credit.ipynb
