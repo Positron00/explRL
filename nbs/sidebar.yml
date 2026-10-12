@@ -43,3 +43,15 @@ website:
       - safety_report.ipynb
       - safety_figures.ipynb
       - demo_safety.ipynb
+      - llm_client.ipynb
+      - taskboard.ipynb
+      - board_agents.ipynb
+      - llm_env.ipynb
+      - llm_board.ipynb
+      - llm_agent.ipynb
+      - llm_runs.ipynb
+      - llm_compare.ipynb
+      - llm_grid.ipynb
+      - llm_report.ipynb
+      - llm_figures.ipynb
+      - demo_llm.ipynb

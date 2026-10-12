@@ -1,6 +1,6 @@
 # Plan: multi-agent RL, harnesses and benchmarks (Phases 5-10)
 
-Status: **active plan** (2026-10-11, revised). **Phases 5 and 6 implemented** ([phase5/](phase5/README.md), [phase6/](phase6/README.md)); **Phase 7 implemented**, harness check passed ([phase7/](phase7/README.md)); **Phase 8 implemented**, its three pre-registered tests supported ([phase8/](phase8/README.md)); **Phase 9 implemented**, H3 supported ([phase9/](phase9/README.md)); Phase 10 is specced here and gets its own `specs/multiagent/phase10/` folder before coding, in the same format as `specs/circuit/`.
+Status: **active plan** (2026-10-11, revised). **Phases 5 and 6 implemented** ([phase5/](phase5/README.md), [phase6/](phase6/README.md)); **Phase 7 implemented**, harness check passed ([phase7/](phase7/README.md)); **Phase 8 implemented**, its three pre-registered tests supported ([phase8/](phase8/README.md)); **Phase 9 implemented**, H3 supported ([phase9/](phase9/README.md)); Phase 10 implemented through its pilot, analysis plan frozen, main runs next ([phase10/](phase10/README.md)).
 
 ## Why
 
@@ -40,7 +40,7 @@ Used to **predict, measure and test** behaviour, not as built-in agent rules (Bi
 | 7 | Harness configurations: communication and memory | `explRL/harness.py` (channels), `explRL/harness_agents.py` (channel-aware bandit, lead follower, circuit), `explRL/harness_runs.py` (configurations, budgets, runs) | numpy |
 | 8 | Benchmark and eval suite | `explRL/bench_metrics.py`, `explRL/bench_stats.py`, `explRL/bench_grid.py` (grid, pre-registered analysis), `explRL/bench_report.py`, `explRL/bench_figures.py`, `explRL/episodes.py` (study B); `explRL/credit.py` (discovery credit, piloted in Phase 7) | numpy |
 | 9 | Safety: bad agents and defence mechanisms | `explRL/adversary.py` (bad agent types), `explRL/defence.py` (trust, reputation, sanctions, monitoring), `explRL/safety_runs.py` (runs, metrics), `explRL/safety_grid.py` (grids, H3), `explRL/safety_report.py`, `explRL/safety_figures.py` | numpy |
-| 10 | Bridge to language-model agents (Claude API, small budget) | `explRL/llm_env.py`, `explRL/llm_agent.py`: text foraging + agentic task board, two model sizes, same benchmark | API spend |
+| 10 | Bridge to language-model agents (Claude API, small budget) | `explRL/llm_client.py` (client, response cache, budget), `explRL/taskboard.py`, `explRL/llm_env.py`, `explRL/llm_agent.py`, `explRL/llm_runs.py`, `explRL/llm_grid.py`, `explRL/llm_report.py`: text foraging + agentic task board, two model sizes, same benchmark | API spend |
 
 ## Engineering rules (all phases)
 
@@ -129,10 +129,12 @@ Full spec: [phase9/](phase9/README.md). **Status: implemented (2026-10-11).** Ru
 
 ## Phase 10: language-model agents (Claude API)
 
+Full spec: [phase10/](phase10/README.md). **Status: draft spec (2026-10-11).** Decisions L1-L19: Claude Haiku 5.5 (`claude-haiku-5-5`) for every grid and Claude Sonnet 5.5 (`claude-sonnet-5-5`) for the reduced grid, adaptive thinking at low effort; a spending cap of $150 (confirmed by the user) against an estimate of about $50-70; an on-disk response cache as the only source of exact reruns, because these models reject temperature settings; stateless single-message turns with structured-output actions; refusal fallbacks off so a refused turn is never answered by another model; a pilot that sets the task-board difficulty and per-turn settings before the analysis plan is committed. Normal tests use a fake client and need neither the `anthropic` package nor network access.
+
 **Why this phase matters for the role.** Its three representative projects are: (a) RL environments to train groups of Claudes, (b) agent affordances that unlock new capabilities, with the Bitter Lesson in mind, (c) a novel eval of how large teams of agents interact. As first planned (prompted agents on text foraging), Phase 10 was strong for (c), medium for (b) and weak for (a), and open to the objection that foraging is a toy task. The six parts below address those gaps without leaving the API-only budget.
 
 **1. Two text tasks with the same structure.**
-- **Text foraging:** the patch graph described in words. Each turn an agent sees its location, its last reward, the travel time to each location it can reach and the channel contents (board or messages), and replies with an action ("stay" or "go to location j", by name) and optionally a message. Locations are named, not given as grid coordinates, so the benchmark measures coordination and not LLM spatial reasoning (a known weakness that would confound the result). Used to compare with the numpy agents.
+- **Text foraging:** the patch graph described in words. Each turn an agent sees its location, its last reward, the travel time to each location it can reach and the channel contents (board or messages), and replies with an action ("stay" or "go to location j", by name) and optionally a report (a location and a value; the Phase 10 spec allows no free-text messages). Locations are named, not given as grid coordinates, so the benchmark measures coordination and not LLM spatial reasoning (a known weakness that would confound the result). Used to compare with the numpy agents.
 - **Task board (agentic version):** the same structure with real work. Each "patch" is a subtask with a checkable answer, generated from a seed (for example small logic or arithmetic puzzles, or finding the input that makes a short function return true, checked by running it), so tasks are unlimited and cannot be memorized. The board always holds more subtasks than agents. The mapping:
 
 | Foraging | Task board |
@@ -142,14 +144,14 @@ Full spec: [phase9/](phase9/README.md). **Status: implemented (2026-10-11).** Ru
 | Travel time | Switching cost (turns spent reading a new subtask) |
 | Patches move | Subtasks appear and expire (changing priorities) |
 | Danger zone | Penalty for a wrong submission |
-| Liar | Posts false "done" claims or wrong answers to the board |
+| Liar | Posts false "done" (solved) and "working" claims to the board |
 | Ideal free distribution / social optimum | Best assignment of agents to subtasks from their values and solve rates (solve rates measured in the single-agent pilot; computed numerically; an upper bound) |
 
-All Phase 8 and 9 metrics (distance from the ideal, belief diversity, herding, liar robustness) carry over. This targets (c) and answers the toy-task objection.
+The Phase 8 and 9 metrics carry over where they apply: welfare, discoveries and liar robustness on both tasks; distance from the ideal, recovery time, belief diversity and herding on text foraging (on the task board every subtask's value is shown, so there is nothing to estimate). This targets (c) and answers the toy-task objection.
 
 **2. Two model sizes (Bitter Lesson test, for (b)).** Run the smallest and a mid-size Claude model. Question: does each harness's benefit shrink as the model gets stronger? An affordance whose benefit shrinks is a stopgap; one whose benefit holds or grows is worth building. The mid-size model runs a reduced grid; with 3 seeds this is a directional result with wide confidence intervals, compared with the small model on the same cells and seeds.
 
-**3. Tokens as compute.** Plot team performance against total tokens (agents x tokens per agent), with a fixed token limit per turn and equal token budgets across team sizes. This is the "groups of agents as test-time compute" axis in LLM units.
+**3. Tokens as compute.** Plot team performance against total tokens (agents x tokens per agent), with a fixed token limit per turn and equal budgets across team sizes (in the Phase 10 spec: equal agent-turns per team with tokens per turn capped, so total tokens are roughly equal; actual tokens recorded). This is the "groups of agents as test-time compute" axis in LLM units.
 
 **4. Ready to train on (partly covers (a)).** Package both tasks with the Phase 5 interface (per-agent observations, one agent acting at a time), checkable rewards, individual / team / difference reward options, and JSONL trajectory logs. This shows the environment was designed for RL; it does not prove that training works. A real training demo (RL fine-tuning of a small open model, for example GRPO with TRL) needs a GPU and is listed as a later option, not part of this plan.
 
@@ -159,13 +161,13 @@ All Phase 8 and 9 metrics (distance from the ideal, belief diversity, herding, l
 
 **Running it:**
 - **Agents:** Claude models through the Anthropic API, with the Phase 7 channels mapped one to one. Memory settings become context management: last K turns, full history, or a running summary the agent writes for itself.
-- **Reproducibility:** temperature 0 where the model allows it, plus an on-disk response cache. Temperature 0 is not fully deterministic through an API, so the cache, not the temperature, is what makes reruns exact (and free).
-- **Budget:** a hard spending cap in config; the cost is estimated before each run and recorded in `metrics.json`. The API key comes from an environment variable and is never committed.
-- **Scale:** small model: 4 channels x team sizes {1, 2, 4, 8} x 5 seeds x about 50 turns per agent, on both tasks (about 30 000 calls). Mid-size model: task board only, team sizes {1, 4}, 3 seeds (about 3 000 calls). Plus the pilot. Re-check prices and size the grid to the cap before running.
+- **Reproducibility:** an on-disk response cache keyed by the full request. The current small and mid-size models reject sampling settings (temperature), so the cache, not the temperature, is what makes reruns exact (and free); live reruns are not expected to match.
+- **Budget:** a hard spending cap in config; the cost is estimated before each run and recorded in `metrics.json`. The API key comes from the environment (or the SDK's credential profile) and is never committed, logged or cached; the cap is confirmed by you before any live request.
+- **Scale:** small model: 4 channels x team sizes {1, 2, 4, 8} x 5 seeds x about 50 turns per agent, on both tasks (about 30 000 calls). Mid-size model: task board only, team sizes {1, 4}, 3 seeds (about 3 000 calls). Plus the pilot (about 1 100 calls) and the small model's arms (equal budget, framing, memory, persistence, liar: about 14 400 calls), about 49 000 calls in all; estimated about $36 at current prices. Re-check prices and size the grid to the cap before running.
 
 ## Deliverable
 
-A short write-up notebook (`nbs/demo_multiagent.ipynb`) and `results/multiagent/REPORT.md`, built around the headline question: scaling curves per harness under both budgets, the three hypothesis tests (recovery time to the ideal free distribution, belief diversity, liar robustness), the robustness curves from Phase 9, the numpy-vs-LLM comparison, the task-board results, whether harness benefits shrink with a stronger model, and performance against total tokens.
+Written in Phase 10's last task (decision L20): a short write-up notebook (`nbs/demo_multiagent.ipynb`) and `results/multiagent/REPORT.md`, built around the headline question: scaling curves per harness under both budgets, the three hypothesis tests (recovery time to the ideal free distribution, belief diversity, liar robustness), the robustness curves from Phase 9, the numpy-vs-LLM comparison, the task-board results, whether harness benefits shrink with a stronger model, and performance against total tokens.
 
 ## Decisions
 
@@ -176,8 +178,8 @@ A short write-up notebook (`nbs/demo_multiagent.ipynb`) and `results/multiagent/
 | Q3 | Which agents enter the team experiments | **Circuit agent (ring only), `banditAgent` (both layouts), `randomAgent` (floor)**; flexible and prestructured only through the Phase 5 regression | Phase 6 spec |
 | Q4 | Keep the old training loops | **Decided: keep them as thin wrappers** over the new loop, so demos and docs do not change | Phase 5 spec |
 | Q5 | Compute budget unit | **Decided: agent-seconds** for numpy, `B = 64 x 240 = 15 360` for fixed compute (Phase 7 decision H9); **agent-turns and tokens** for LLMs; both fixed-compute and fixed-world-time curves reported | Phase 7 spec |
-| Q6 | LLM models and spending cap for Phase 10 | Smallest current Claude model for the full grid, a mid-size model for the reduced grid; cap set by you | Phase 10 spec |
-| Q7 | Subtask type for the task board | Seeded puzzles with answers checked by code; a small pilot picks a difficulty where the small model solves roughly 30-70% alone | Phase 10 spec |
+| Q6 | LLM models and spending cap for Phase 10 | **Decided (Phase 10 spec L1, L2):** Claude Haiku 5.5 for the full grid, Claude Sonnet 5.5 for the reduced grid; cap $150 (set by you, 2026-10-11); refusal fallbacks off | Phase 10 spec |
+| Q7 | Subtask type for the task board | **Phase 10 spec (L8):** seeded "find x with f(x) = y" puzzles over generated integer functions, checked by evaluating our own function. The pilot found no difficulty in the planned 30-70% band (Claude Haiku 5.5 solves these puzzles or runs out of tokens); difficulty 8 (solve rate 0.89) with `max_tokens` 8000 was chosen (user, 2026-10-12) | Phase 10 spec |
 | Q8 | How each agent type uses channel reports | **Decided:** `banditAgent`: extra observations with a weight `w` (a read weight only: `w = 0` agents still share); circuit agent: `w` extra reward-gated goal steps per report. Phase 7 decisions H2, H8 | Phase 7 spec |
 | Q9 | Reward scheme for the main grid | **Decided (Phase 8 spec B1): individual** (selfish agents, so the ideal free distribution is the natural reference); team and difference rewards in the group-vs-individual comparison (Phase 8 section). Phase 7 pilot: team reward breaks bandit learning (credit assignment); difference reward is about equal to individual | Phase 8 spec |
 

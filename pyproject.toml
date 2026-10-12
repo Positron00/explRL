@@ -23,6 +23,7 @@ explRL = "explRL._modidx:d"
 
 [project.optional-dependencies]
 dev = ['nbdev', 'fastcore', 'matplotlib']
+llm = ['anthropic']
 
 [tool.setuptools.dynamic]
 version = {attr = "explRL.__version__"}
@@ -31,7 +32,7 @@ version = {attr = "explRL.__version__"}
 include = ["explRL"]
 
 [tool.nbdev]
-tst_flags = "notest slow sweeps"
+tst_flags = "notest slow sweeps llm llm_pilot"
 lib_path = "explRL"
 nbs_path = "nbs"
 doc_path = "_docs"
