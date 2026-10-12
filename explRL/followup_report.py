@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/followup_report.html.md"""
 __all__ = ['HAIKU', 'SONNET', 'hardTable', 'effortTable', 'roundsNumpyTable', 'roundsLLMTable', 'summaries', 'writeReport',
            'figBars', 'figRounds', 'writeFigures']
 
-# %% ../nbs/followup_report.ipynb #3eb83b35
+# %% ../nbs/followup_report.ipynb #f10d61e4
 import matplotlib
 
 matplotlib.use('Agg')
@@ -115,6 +115,9 @@ def writeReport(path, S, meta):
     L += [f"| {a} | {_fmt(v['welfare'])} | {_fmt(v['teamWelfare'])} | {_fmt(v['exploreShare'])} | {v['homeShare']['mean']:.2f} |"
           for a, v in S['llm']['cells'].items()]
     L += ['', '| difference | mean [95% CI] |', '|---|---|'] + [f'| {k} | {_fmt(v)} |' for k, v in S['llm']['diff'].items()]
+    if meta.get('runWall'):
+        L += ['', '## Wall time per run (s, mean by cell level)', '', '| level | seconds |', '|---|---|']
+        L += [f'| {lv} | {sec:.0f} |' for lv, sec in sorted(meta['runWall'].items())]
     path.write_text('\n'.join(L) + '\n')
     return path
 

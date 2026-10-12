@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_sched.html.md"""
 # %% auto #0
 __all__ = ['cellKey', 'seqCalls', 'orderCells', 'checkWorkload', 'runWorkload', 'mergeTiming', 'timingSummary']
 
-# %% ../nbs/llm_sched.ipynb #6f11ff81
+# %% ../nbs/llm_sched.ipynb #f7e6e6ee
 import json
 from functools import partial
 from pathlib import Path
@@ -115,7 +115,9 @@ def mergeTiming(logDir, out):
 
 
 def timingSummary(records, wall):
-    "Latency per (model, task) over live calls, calls per second, retries."
+    "Latency per (model, task) over live calls, calls per second, retries, and wall time per run (`kind='run'` records)."
+    runs = {r['key']: r['seconds'] for r in records if r.get('kind') == 'run'}
+    records = [r for r in records if r.get('kind', 'call') == 'call']
     out = {}
     for r in records:
         out.setdefault(f"{r['model']}|{r['task']}", []).append(r)
@@ -124,4 +126,5 @@ def timingSummary(records, wall):
                    p90Seconds=float(np.percentile([x['seconds'] for x in v if not x['cached']] or [np.nan], 90)))
            for k, v in sorted(out.items())}
     return dict(perModelTask=per, calls=len(records), callsPerSecond=len(records) / wall if wall > 0 else float('nan'),
-                retries=int(sum(r['retries'] for r in records)), wall=wall)
+                retries=int(sum(r['retries'] for r in records)), wall=wall, runWall=runs,
+                runWallMax=max(runs.values(), default=float('nan')))

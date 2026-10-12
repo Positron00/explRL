@@ -139,7 +139,7 @@ In Phase 10, Claude Sonnet 5.5 at `effort = low` gave far more wrong answers tha
 
 | Cells | Calls | Cost (about) |
 |---|---|---|
-| board, difficulty 8, `none` and `blackboard`, N = 1 and 4, seeds 500-502, 50 turns, effort medium, Haiku 5.5 and Sonnet 5.5 | 2 models x 2 x 5 x 3 x 50 = 3 000 (1 500 each) | Sonnet $15-20 (output per call at medium effort is not yet measured; low effort gave about 800 tokens), Haiku about $1 |
+| board, difficulty 8, `none` and `blackboard`, N = 1 and 4, seeds 500-502, 50 turns, effort medium, Haiku 5.5 and Sonnet 5.5 | 2 models x 2 x 5 x 3 x 50 = 3 000 (1 500 each) | estimated Sonnet $15-20, Haiku about $1; measured: $7.01 for D2 and B-LLM together (Sonnet at medium effort wrote 284 output tokens per call) |
 
 Measures: welfare, wrong answers, solve rate, output tokens per call; contrast: (Sonnet blackboard benefit minus Haiku's) at N = 4, now at matched effort, next to the low-effort result. Seeds 500-502 reuse the Phase 10 worlds, so effort low vs medium is paired for both models.
 
@@ -185,7 +185,7 @@ Details and checks in [tasks.md](tasks.md):
 
 **B-numpy (rounds and squads; N 8-64, 10 seeds, 17 s).** Synchronous rounds of 5 s cost welfare at every size (per agent-second: -0.017 at N = 8, -0.073 at N = 64): agents in a round do not see each other's same-round reports. Soft territories on top of rounds help small teams, more the stronger the home bias: at N = 8 from -0.017 (bias 0) to **+0.115 [0.101, 0.128] over the event-driven team at bias infinity** (squads that never leave home: 0.315 vs 0.200 per agent-second); at N = 16 only infinite bias gains (+0.042); at N = 32 and 64 no squad arm reaches the event-driven level. The frozen rule chose `beta = inf` for B-LLM.
 
-**B-LLM (rounds and strict squads; text foraging, blackboard, N = 8, Haiku, seeds 500-502).** Rounds minus event-driven: -0.03 [-0.36, 0.37] welfare per agent-turn; strict squads minus rounds: -0.03 [-0.60, 0.48]. LLM agents told to stay home did so (home share 1.00) and spent more of their turns exploring (+0.08 [0.02, 0.11]), but their welfare did not change measurably (wide intervals, 3 seeds). The numpy result (territories help at N = 8) does not carry over clearly to LLM agents. Wall time per run was not recorded per run (the timing records have no timestamps); the workload's wall time is above.
+**B-LLM (rounds and strict squads; text foraging, blackboard, N = 8, Haiku, seeds 500-502).** Rounds minus event-driven: -0.03 [-0.36, 0.37] welfare per agent-turn; strict squads minus rounds: -0.03 [-0.60, 0.48]. LLM agents told to stay home did so (home share 1.00) and spent more of their turns exploring (+0.08 [0.02, 0.11]), but their welfare did not change measurably (wide intervals, 3 seeds). The numpy result (territories help at N = 8) does not carry over clearly to LLM agents. Wall time per run was not recorded in this run (the timing records then had no per-run entry; added afterwards as `kind='run'` records, FR-A5), so the plan's B-LLM wall-time measure is missing for this run; the workload's wall time is above.
 
 Spend: $0.18 (pilot) + $7.01 (main) = **$7.19**; total for Phase 10 and the follow-ups **$40.60 of the $150 cap**.
 

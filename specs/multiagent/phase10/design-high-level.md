@@ -6,7 +6,7 @@ The plan named `explRL/llm_env.py` and `explRL/llm_agent.py`. The client, the of
 
 | Module | New / changed | Contents |
 |---|---|---|
-| `nbs/llm_client.ipynb` -> `explRL/llm_client.py` | new | `LLMClient`, `LLMReply`, `ResponseCache`, `Budget`, `BudgetExceeded`, `PRICES`, `TOKEN_PROFILE`, `estimateCost`, `costOf`, `requestKey`, `loadEnvFile` |
+| `nbs/llm_client.ipynb` -> `explRL/llm_client.py` | new | `LLMClient`, `LLMReply`, `ResponseCache`, `Budget`, `BudgetExceeded`, `PRICES`, `TOKEN_PROFILE`, `estimateCost`, `costOf`, `requestKey`, `loadEnvFile` (since the [speedup work](../speedup/README.md): `PRICES`, `TOKEN_PROFILE`, `costOf`, `estimateCost`, `Budget`, `BudgetExceeded` live in `explRL/llm_budget.py`) |
 | `nbs/llm_fake.ipynb` -> `explRL/llm_fake.py` | new | `FakeClient`, `fakeReply` (offline stand-ins) |
 | `nbs/taskboard.ipynb` -> `explRL/taskboard.py` | new | `Puzzle`, `makePuzzle`, `TaskBoardEnv` (world protocol, rewards, references), `TaskBoardSim` (numpy solve-probability version) |
 | `nbs/board_agents.ipynb` -> `explRL/board_agents.py` | new | `ClaimBoard`, `BoardLead`, `BoardBandit` (the numpy board agent) |

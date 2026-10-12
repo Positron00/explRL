@@ -8,6 +8,8 @@ The pilot (task T7, 2026-10-12; results in the README) fixed the provisional set
 
 ## 2. API client (`explRL/llm_client.py`) and offline stand-ins (`explRL/llm_fake.py`)
 
+Since the [speedup work](../speedup/design-low-level.md) (2026-10-12), pricing, the token profile, the cost functions and the budget are in `explRL/llm_budget.py` (same names and behaviour), and `LLMClient` also takes a cap floor and records per-call timing; nothing below changes in meaning.
+
 ```python
 PRICES = {   # $ per million tokens, from the pricing page 2026-10-12 (pilot, T7); first set 2026-10-06
     'claude-haiku-5-5':  dict(input=0.10, output=0.50, cacheWrite=0.125, cacheRead=0.01, checked='2026-10-12'),  # prompts <= 100K

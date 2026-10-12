@@ -7,9 +7,10 @@ Docs: https://Positron00.github.io/explRL/llm_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'DELTA', 'LLMConfig', 'setup', 'taskMetrics', 'llmStats', 'runLLM', 'makeClient', 'cellRow', 'runLLMCell']
 
-# %% ../nbs/llm_runs.ipynb #ddf85759
+# %% ../nbs/llm_runs.ipynb #00f8b734
 import json
 import os
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -178,12 +179,14 @@ def runLLMCell(cell):
     cfg = LLMConfig.fromDict(cell['cfg'])
     client = makeClient(cfg, cell.get('client'))
     client.tag = rowKey(cellRow(cell, cfg, dict(episode=0)))        # timing records only
+    t0 = time.perf_counter()
     rows, log = runLLM(cfg, cell['seed'], client)
+    wall = dict(key=client.tag, kind='run', seconds=round(time.perf_counter() - t0, 3), calls=len(client.timing))
     rows = [cellRow(cell, cfg, r) for r in rows]
     if cell.get('logDir'):
         p = Path(cell['logDir']) / 'timing' / (client.tag.replace('|', '__') + '.jsonl')
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(''.join(json.dumps(x, sort_keys=True) + '\n' for x in client.timing))
+        p.write_text(''.join(json.dumps(x, sort_keys=True) + '\n' for x in client.timing + [wall]))
         keys = {r['episode']: rowKey(r) for r in rows}
         p = Path(cell['logDir']) / (keys[0].replace('|', '__') + '.jsonl')
         p.parent.mkdir(parents=True, exist_ok=True)

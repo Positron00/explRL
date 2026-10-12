@@ -8,7 +8,7 @@
 | `nbs/llm_client.ipynb` -> `explRL/llm_client.py` | changed | `LLMClient` (now with a call floor for FR-A4, a timing hook for FR-A5 and a `tag`), `RetryCounter`, `LLMReply`, `ResponseCache`, `requestKey`, `loadEnvFile`; imports pricing and budget from `llm_budget` |
 | `nbs/llm_sched.ipynb` -> `explRL/llm_sched.py` | new | `cellKey`, `seqCalls`, `orderCells`, `checkWorkload`, `runWorkload`, `mergeTiming`, `timingSummary` |
 | `nbs/bench_grid.ipynb` -> `explRL/bench_grid.py` | changed | `runGrid(..., chunksize=4)` |
-| `nbs/team_time.ipynb` -> `explRL/team_time.py` | new | `teamRates`, `teamColumns`, `marginalGain`, `teamRateCell` (Phase 8-9 reruns) |
+| `nbs/team_time.ipynb` -> `explRL/team_time.py` | new | `teamRates`, `teamColumns`, `marginalGain`, `teamRateCell`, `teamRateGrids` (Phase 8-9 reruns) |
 | `nbs/taskboard.ipynb` -> `explRL/taskboard.py` | changed | `TaskBoardEnv.netRows`: net value per ledger row (for Part C) |
 | `nbs/rounds.ipynb` -> `explRL/rounds.py` | new | `runRounds`, the three-phase adapters for numpy members (`prepare`, `decide`, `commit`) |
 | `nbs/territory.ipynb` -> `explRL/territory.py` | new | `homeRanges`, `squadHomes`, `TerritoryBandit`, `homeShare` |
@@ -16,15 +16,15 @@
 | `nbs/llm_env.ipynb` -> `explRL/llm_env.py` | changed | `TextForagingEnv.home`: home locations listed first in the observation |
 | `nbs/llm_runs.ipynb` -> `explRL/llm_runs.py` | changed | `LLMConfig` gains `protocol`, `window`, `squads`, `beta`; `runLLM` picks `runTurns` or `runRounds`; `taskMetrics` adds Part C and `homeShare` columns; `makeClient` passes the workload's floor; `runLLMCell` sets the client's `tag` and writes the per-run timing file |
 | `nbs/llm_compare.ipynb` -> `explRL/llm_compare.py` | changed | `runNumpy` adds Part C columns (and the round protocol for numpy cells) |
-| `nbs/followup_grid.ipynb` -> `explRL/followup_grid.py` | new | `FOLLOWUP_PLAN`, `followupHash`, `hardPilotGrid`, `chooseHard`, `hardGrid`, `effortGrid`, `roundsNumpyGrid`, `chooseBeta`, `roundsGrid`, `followupQuick`, `runFollowupCell` |
-| `nbs/followup_report.ipynb` -> `explRL/followup_report.py` | new | summaries, `report.md` and figures for Parts B-D (`team_total.png`, `hard.png`, `effort.png`, `rounds.png`) |
+| `nbs/followup_grid.ipynb` -> `explRL/followup_grid.py` | new | `FW`, `BETAS`, `SEEDS`, `FOLLOWUP_PLAN`, `followupHash`, `hardPilotGrid`, `chooseHard`, `hardGrid`, `effortGrid`, `roundsNumpyGrid`, `chooseBeta`, `roundsGrid`, `followupQuick`, `runFollowupCell` |
+| `nbs/followup_report.ipynb` -> `explRL/followup_report.py` | new | `hardTable`, `effortTable`, `roundsNumpyTable`, `roundsLLMTable`, `summaries`, `writeReport`, `figBars`, `figRounds`, `writeFigures` (`hard.png`, `effort.png`, `rounds.png`, and Phase 10's `team_total.png`) |
 | `nbs/llm_report.ipynb`, `nbs/llm_figures.ipynb` | changed | team totals and marginal gain next to per-agent welfare; `figTeamTotal` (`team_total.png`) for Phase 10 |
 | `nbs/demo_llm.ipynb` | changed | `run()` uses `runWorkload`; `LLM_WORKERS`; timing outputs |
-| `nbs/demo_followup.ipynb` | new | quick (fake), B-numpy (`slow`), live D1 pilot, D1 main, D2, B-LLM (`llm`) |
-| `nbs/demo_multiagent.ipynb` | changed | `REPORT.md` gains team totals (Phase 8-10) and the follow-up results |
+| `nbs/demo_followup.ipynb` | new | quick (fake); B-numpy and the Phase 8-9 team-rate reruns with their check (`slow`); live D1 pilot, then D1 main (only if a level qualified), D2 and B-LLM (`llm`) |
+| `nbs/demo_multiagent.ipynb` | changed | `REPORT.md` gains a team-totals section (figure `report/team.png`: Phase 8 totals by size and over time from the reruns, Phase 10 totals) and a follow-up section |
 | `nbs/sidebar.yml` | changed | the new notebooks |
 
-Import rule: `llm_budget` imports nothing from the package; `llm_client` imports `llm_budget`; `llm_sched` imports `bench_grid`, `llm_budget`, `llm_grid` (`estimateGrid`, `runAnyCell`) (the client does not import it: `RetryCounter` lives in `llm_client`, which avoids an import cycle); `team_time` imports `team_refs`, `bench_metrics`, `bench_grid`, `harness_runs`, `safety_runs`, `safety_grid`; `rounds` imports `multi`; `territory` imports `harness_agents`; `llm_runs` and `llm_compare` also import `team_time`, `rounds` and `territory`; `followup_grid` imports `llm_runs`, `llm_compare`, `llm_grid`, `llm_budget`, `rounds`, `territory`, `harness_runs`; `followup_report` imports `llm_report`, `bench_stats`, `team_time` and `matplotlib`. Only `llm_client` imports `anthropic` (unchanged). No module imports a demo.
+Import rule: `llm_budget` imports nothing from the package; `llm_client` imports `llm_budget`; `llm_sched` imports `bench_grid`, `llm_budget`, `llm_grid` (`estimateGrid`, `runAnyCell`, `withClient`), `llm_runs` (`LLMConfig`) (the client does not import it: `RetryCounter` lives in `llm_client`, which avoids an import cycle); `team_time` imports `team_refs`, `bench_metrics`, `bench_grid`, `harness_runs`, `safety_runs`, `safety_grid`; `rounds` imports `multi`, `harness`, `harness_agents`, `team_agents` (the numpy adapters); `territory` imports `harness_agents`; `llm_runs` and `llm_compare` also import `team_time`, `rounds` and `territory` (`llm_compare` also `bench_grid`, `bench_metrics` for the fixed-time rows); `llm_report` imports `team_time` (`marginalGain`); `followup_grid` imports `llm_grid` and `llm_budget`; `followup_report` imports `llm_report`, `llm_figures` and `matplotlib`. Only `llm_client` imports `anthropic` (unchanged). No module imports a demo.
 
 ## Data flow
 
@@ -41,7 +41,7 @@ flowchart LR
   RT --> C[LLMClient: cache, budget floor, timing]
   RR --> C
   RUN --> ROW[row + Part C columns + turn log + timing]
-  ROW --> REP[reports, team_total.png, REPORT.md]
+  ROW --> REP[reports, team_total.png, REPORT.md (team.png)]
 ```
 
 ## Main decisions

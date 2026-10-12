@@ -32,7 +32,7 @@ class LLMClient:
         record(seconds=time.perf_counter() - t0, cached=False, retries=RetryCounter.take())
 ```
 
-A timing record: `dict(key=self.tag, model, task, seconds, retries, cached)`; `LLMMember` passes `task=env.task`. `RetryCounter` (in this module; one instance `RETRIES`, installed on the `anthropic` logger by every live `LLMClient`, so each worker process counts its own retries) supplies `retries`. `runLLMCell` sets `client.tag` to the first row key of the run and, after the run, writes `client.timing` to `logDir/timing/<row key>.jsonl` (sorted keys, one line per call). Records are appended to `self.timing` (a list) when given; nothing else changes, so requests and replies are as before. `self.calls` and `self.hits` stay (single-threaded event runs); in rounds the timing records are the per-call source of truth (H3).
+A timing record: `dict(key=self.tag, model, task, seconds, retries, cached)`; `LLMMember` passes `task=env.task`. `RetryCounter` (in this module; one instance `RETRIES`, installed on the `anthropic` logger by every live `LLMClient`, so each worker process counts its own retries) supplies `retries`. `runLLMCell` sets `client.tag` to the first row key of the run and, after the run, writes `client.timing` plus one run record (`kind='run'`, wall seconds, calls) to `logDir/timing/<row key>.jsonl` (sorted keys, one line per record). Records are appended to `self.timing` (a list) when given; nothing else changes, so requests and replies are as before. `self.calls` and `self.hits` stay (single-threaded event runs); in rounds the timing records are the per-call source of truth (H3).
 
 ## 3. Scheduling (`explRL/llm_sched.py`)
 
@@ -59,7 +59,7 @@ def runWorkload(grids, spec, workers, logDir, run=runAnyCell):
 
 A run refused by the budget inside the pool raises `BudgetExceeded` in its worker; `runWorkload` wraps `run` (`_guarded`) so that a refused cell returns no rows, and every LLM cell without rows is reported in `refused` by its `cellKey` (study, factor, level, channel, N, seed) (the pool goes on; the floor keeps other runs inside the cap). Grid by grid, the loop stops after the first grid with a refused run.
 
-`RetryCounter` (defined in `llm_client`): a `logging.Handler` on the `anthropic` logger (records from its `_base_client` child propagate to it), at INFO, that counts records whose message starts with "Retrying request" per thread; `take()` returns and resets the count for the calling thread. `mergeTiming(logDir, out)`: concatenates the per-run timing files (`logDir/timing/*.jsonl`, sorted by name) into `out` and returns the records. `timingSummary(records, wall)` -> `{'perModelTask': {'model|task': dict(calls, live, meanSeconds, p90Seconds)}, 'calls', 'callsPerSecond', 'retries', 'wall'}`.
+`RetryCounter` (defined in `llm_client`): a `logging.Handler` on the `anthropic` logger (records from its `_base_client` child propagate to it), at INFO, that counts records whose message starts with "Retrying request" per thread; `take()` returns and resets the count for the calling thread. `mergeTiming(logDir, out)`: concatenates the per-run timing files (`logDir/timing/*.jsonl`, sorted by name) into `out` and returns the records. `timingSummary(records, wall)` -> `{'perModelTask': {'model|task': dict(calls, live, meanSeconds, p90Seconds)}, 'calls', 'callsPerSecond', 'retries', 'wall', 'runWall': {row key: seconds}, 'runWallMax'}` (call records only in the call statistics).
 
 Settings: `LLM_WORKERS = 32` (decision SQ1) in `demo_llm` and `demo_followup`, used for live specs; fake and numpy workloads use `min(8, cpu)`.
 
@@ -147,23 +147,24 @@ LLM agents: `LLMMember(..., home=None)`; when `home` is set, `system()` adds "Yo
 |---|---|---|---|
 | `hardPilotGrid()` (study `hardPilot`, seeds 640-642) | board solo, difficulty {10, 12} x `maxTokens` {8000, 16000}, Haiku, effort low, 30 turns | 360 | $0.5 |
 | `hardGrid(d, m)` (study `hard`, seeds 643-647) | board, {none, blackboard} x N {1, 4}, difficulty `d`, `maxTokens` `m`, 50 turns | 2 500 | $2-3 |
-| `effortGrid()` (study `effort`, seeds 500-502) | board difficulty 8, {none, blackboard} x N {1, 4}, effort medium, `maxTokens` 8000, Haiku and Sonnet, 50 turns | 3 000 | $16-21 |
+| `effortGrid()` (study `effort`, seeds 500-502) | board difficulty 8, {none, blackboard} x N {1, 4}, effort medium, `maxTokens` 8000, Haiku and Sonnet, 50 turns | 3 000 | $16-21 estimated; measured with `roundsGrid`: $7.01 together (Sonnet at medium effort wrote 284 output tokens per call, not the 800 assumed) |
 | `roundsNumpyGrid()` (study `roundsNumpy`, seeds 700-709) | foraging (5 s stays), blackboard, N {8, 16, 32, 64}, T = 600 s; arms: events, rounds (`d` 5), rounds + squads of 2 with `beta` {0, 0.25, 0.5, 1, 2, inf} | none | none |
 | `roundsGrid(beta)` (study `rounds`, seeds 500-502) | foraging, blackboard, N 8, 50 turns, Haiku; arms: rounds (`d` 5), rounds + 4 squads at `beta` | 2 x 3 x 408 | $1-2 |
-| `followupQuick()` | the first cell of each grid at 3 turns (numpy cells at T = 60 s, N 8), fake client | none | none |
+| `followupQuick()` | at 3 turns, fake client: the first hard-pilot and hard cells, the first and last effort cells (one per model), one cell per B-LLM arm, and every B-numpy arm at N = 8, T = 60 s, seed 700 | none | none |
 
 `chooseHard(rows)` and `chooseBeta(rows)` implement the frozen rules (requirements FR-D2, FR-D5; `chooseBeta` considers `beta > 0` only); `chooseHard` returns `None` when no setting qualifies. The event-driven baseline for B-LLM is the Phase 10 main-grid foraging/blackboard/N 8 rows on seeds 500-502, read from `results/multiagent/llm/full/runs.csv` (no new call). `FOLLOWUP_PLAN` holds the requirements' analysis table as data, the rules, the seeds, models, settings and `PRICES`; `followupHash()` as `planHash`. `runFollowupCell` is `llm_grid.runAnyCell` (numpy cells to `runNumpyCell`, LLM cells to `runLLMCell`). Helpers: `FW` (the Phase 10 foraging world), `BETAS`, `SEEDS`.
 
 ## 9. Demos and reports
 
-`demo_llm.run(mode, grids, spec, workers)` keeps its outputs and adds `timing.jsonl` and `metrics['timing']`, calling `runWorkload`. New `demo_followup`:
+`demo_llm.run(mode, grids, spec, workers=None)` (workers default: `LLM_WORKERS` for live specs, else `WORKERS`) keeps its outputs and adds `timing.jsonl` and `metrics['timing']`, calling `runWorkload`; `demo_followup.run(mode, grids, spec, p10, workers=None)` does the same for the follow-ups, with `meta['runWall']` (mean run wall time per cell level). New `demo_followup`:
 
 | Section | Flag | Content | Output |
 |---|---|---|---|
 | Quick | none | `followupQuick()` with the fake client, pooled and grid by grid, 1 and 8 processes (byte-identical); a tiny-cap check (AC-3) | `followup/quick/` |
 | B-numpy | `slow` | `roundsNumpyGrid()`; `chooseBeta` printed | `followup/numpy/` |
-| D1 pilot | `llm` | assert `FOLLOWUP_PLAN` frozen; `hardPilotGrid()` live at `LLM_WORKERS`; timing summary (the rate-limit probe); `chooseHard` (stops if `None`) | `followup/pilot/` |
-| Main | `llm` | `hardGrid(chooseHard)`, `effortGrid()`, `roundsGrid(chooseBeta)` as one workload (priority D1, D2, B-LLM if it does not fit) | `followup/full/` |
+| Team rates | `slow` | `teamRateGrids()` rerun with `teamRateCell`; every original column checked against the saved CSVs (FR-C3) | `bench/teamrate/`, `safety/teamrate/` |
+| D1 pilot | `llm` | assert `FOLLOWUP_PLAN` frozen; `hardPilotGrid()` live at `LLM_WORKERS`; timing summary (the rate-limit probe); `chooseHard` printed (`None`: the user decides) | `followup/pilot/` |
+| Main | `llm` | `hardGrid(chooseHard)` (only if a level qualified), `effortGrid()`, `roundsGrid(chooseBeta)` as one workload (priority D1, D2, B-LLM if it does not fit) | `followup/full/` |
 
 `followup_report`: `summaries(rows, phase10Rows)` with the FOLLOWUP_PLAN contrasts; `writeReport` (provenance first: plan hash, commit, models, prices with date, cost of the runs, total spend, timing summary); figures `team_total.png`, `hard.png` (blackboard benefit at difficulty 8 vs the hard level), `effort.png` (size contrast at low vs medium effort), `rounds.png` (B-numpy per N and arm; B-LLM arms). `llm_report` adds team welfare and marginal gain next to per-agent welfare; `llm_figures.figTeamTotal`. `demo_multiagent` adds the team-total view (Phase 8-10: `team_total.png` for the Phase 8-9 reruns from `results/multiagent/{bench,safety}/teamrate/`, and Phase 10 from its regenerated rows) and a follow-up section to `REPORT.md`.
 

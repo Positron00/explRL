@@ -14,7 +14,7 @@ Terms used below.
 
 ## Functional requirements
 
-### API client (`explRL/llm_client.py`, `explRL/llm_fake.py`)
+### API client (`explRL/llm_client.py`, `explRL/llm_fake.py`; pricing and the budget in `explRL/llm_budget.py` since the speedup work)
 - **FR-1** `LLMClient(model, effort, maxTokens, cache, budget, prices, client=None)` (`cache` a `ResponseCache`) shall send one request per call (`complete(system, blocks, schema) -> LLMReply`) through the Anthropic SDK, with adaptive thinking (the model default), `output_config` holding the effort and the JSON-schema format, prompt-cache breakpoints on the system prompt and the last history block, no sampling parameters and no refusal fallback. It shall never read or log the API key itself (the SDK resolves credentials).
 - **FR-2** Every request shall be keyed by `sha256` of its canonical JSON (model, system, messages, output config, max tokens). A key found in the cache returns the stored reply with `cached = True` at zero charge to the budget (the reply keeps the cost of the call that produced it, so rows do not depend on the cache); otherwise the live reply is stored before it is returned (if a concurrent identical request stored one first, that one is returned; the budget is charged the cost of the call actually made).
 - **FR-3** `Budget(cap)` shall keep the session's spend; `LLMClient` shall refuse a live call when the budget is exhausted (`BudgetExceeded`), and the run's expected cost (below) shall be checked against what is left, so a run is refused before it starts if the estimate exceeds what is left. `estimateCost(model, task, agents, turns)` shall give that estimate from a per-model, per-task token profile (`TOKEN_PROFILE`, measured in the pilot).

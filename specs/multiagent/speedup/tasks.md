@@ -47,7 +47,7 @@ flowchart LR
 - **Done when**: **AC-8** (Phase 10 part): no request, existing columns identical; new hashes recorded.
 
 ## T6. Phase 8-9 team rates (Part C, numpy reruns)
-- **Files**: `nbs/team_time.ipynb` (grids and checks); outputs `results/multiagent/{bench,safety}/teamrate/` (section 4).
+- **Files**: `nbs/team_time.ipynb` (`teamRateGrids`, `teamRateCell`); `nbs/demo_followup.ipynb` (`slow` section: the reruns and the column check); outputs `results/multiagent/{bench,safety}/teamrate/` (sections 4, 9).
 - **What**: rerun the Phase 8 main grid and the Phase 9 attack grid with `teamRateCell`; compare original columns with the saved CSVs.
 - **Done when**: **AC-8** (Phase 8-9 part): every original column identical; the confirmatory folders untouched (their hashes unchanged).
 
