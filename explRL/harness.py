@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/harness.html.md"""
 # %% auto #0
 __all__ = ['Blackboard', 'MessageBus', 'Lead']
 
-# %% ../nbs/harness.ipynb #9718e43f
+# %% ../nbs/harness.ipynb #41a88bd4
 from collections import defaultdict, deque
 
 import numpy as np

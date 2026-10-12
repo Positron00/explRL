@@ -190,6 +190,8 @@ Counts: `round(0.10 N)` and `round(0.25 N)` with a minimum of 1 (N = 16: 2 and 4
 
 ## 6. Report (`explRL/safety_report.py`, `explRL/safety_figures.py`)
 
+`safety_report.summaries(rows)` builds every table (`group` by keys with mean and bootstrap CI per metric; `costBenefit` pairs defended clean runs with the attack grid's clean, undefended runs, and defended 25%-liar runs with undefended ones); `report(meta, conf, tabs)` writes the text; `safety_figures.safetyFigures(tabs)` draws each figure whose table has data.
+
 | Figure | Content |
 |---|---|
 | `attack.png` | honest welfare per honest agent-second vs number of bad agents; one panel per kind and size, one line per channel; no defence |

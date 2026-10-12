@@ -1,6 +1,6 @@
 # Tasks: Phase 9, safety and mechanism design
 
-Status: in progress. Done: T1-T7.
+Status: **done** (2026-10-11). All tasks complete; results in [README.md](README.md).
 
 Rules for every task:
 

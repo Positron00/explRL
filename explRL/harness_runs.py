@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/harness_runs.html.md"""
 __all__ = ['HarnessConfig', 'benchWorld', 'circuitWorld', 'worldTime', 'makeChannel', 'makeTeam', 'netHarvest', 'harnessMetrics',
            'runHarness', 'rangeCheck']
 
-# %% ../nbs/harness_runs.ipynb #dec02480
+# %% ../nbs/harness_runs.ipynb #c65a7549
 from dataclasses import asdict, dataclass, field
 from typing import Optional
 

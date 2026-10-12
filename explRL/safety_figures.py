@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/safety_figures.html.md"""
 # %% auto #0
 __all__ = ['KINDS', 'CHANS', 'DEFS', 'safetyFigures']
 
-# %% ../nbs/safety_figures.ipynb #c8cc36c9
+# %% ../nbs/safety_figures.ipynb #522a6a0e
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -96,4 +96,6 @@ def safetyFigures(tabs):
             _err(ax, p, label=ch)
         ax.set_xscale('log', base=2); ax.axhline(0, color='k', lw=0.6); ax.set_xlabel('team size')
         ax.set_ylabel('relative honest-welfare loss, one liar'); ax.legend(fontsize=7); figs['h3'] = f
+    for f in figs.values():
+        f.tight_layout()
     return figs

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/safety_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'SafetyConfig', 'makeTeam9', 'auc', 'safetyRow', 'runSafety', 'lossRows']
 
-# %% ../nbs/safety_runs.ipynb #a7cad109
+# %% ../nbs/safety_runs.ipynb #f22682b8
 from dataclasses import dataclass
 
 import numpy as np

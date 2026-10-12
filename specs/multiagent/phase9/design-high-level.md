@@ -12,12 +12,12 @@ The plan named `explRL/adversary.py` for bad agents and defences. Defences, runs
 | `nbs/defence.ipynb` -> `explRL/defence.py` | new | `Monitor` (reputation, strikes, sanctions), `DefendedBandit` (weighted reads, checks, spot-check trips, report log) |
 | `nbs/safety_runs.ipynb` -> `explRL/safety_runs.py` | new | `SafetyConfig`, `makeTeam9`, `runSafety`, `safetyRow`, `auc`, `lossRows` |
 | `nbs/safety_grid.ipynb` -> `explRL/safety_grid.py` | new | `attackGrid`, `defenceGrid`, `monitorGrid`, `h3Grid`, `runSafetyCell`, `PREREG_H3` |
-| `nbs/safety_report.ipynb` -> `explRL/safety_report.py` | new | summaries and the `report.md` text |
-| `nbs/safety_figures.ipynb` -> `explRL/safety_figures.py` | new | figures |
+| `nbs/safety_report.ipynb` -> `explRL/safety_report.py` | new | `group`, `costBenefit`, `summaries` and the `report.md` text |
+| `nbs/safety_figures.ipynb` -> `explRL/safety_figures.py` | new | `safetyFigures` (all figures from the summary tables) |
 | `nbs/demo_safety.ipynb` | new | quick grid (normal tests), H3 (`slow`), exploratory grids (`sweeps`) |
 | `tools/phase8_baseline.sh` | new | records the Phase 7 `demo_harness` hashes and the Phase 8 quick `runs.csv` hash after Phase 8 (T1) |
 
-Import rule: `adversary` imports `harness`, `harness_agents`, `team_agents`; `defence` imports `harness`, `harness_agents`, `adversary` (`ReportLog`); `safety_runs` imports `adversary`, `defence`, `harness_runs`, `bench_metrics`, `multi`, `team_refs`; `safety_grid` imports `safety_runs`, `harness_runs`; `safety_report` imports `bench_stats`; `safety_figures` imports `safety_report`, `bench_stats`, `matplotlib`. No module imports a demo.
+Import rule: `adversary` imports `harness`, `harness_agents`, `team_agents`; `defence` imports `harness`, `harness_agents`, `adversary` (`ReportLog`); `safety_runs` imports `adversary`, `defence`, `harness_runs`, `bench_metrics`, `multi`, `team_refs`; `safety_grid` imports `safety_runs`, `harness_runs`; `safety_report` imports `bench_report` (formatting helpers), `bench_stats` and `safety_runs` (`lossRows`); `safety_figures` imports `matplotlib` and `numpy` only (it draws from the summary tables). No module imports a demo.
 
 ## Data flow
 

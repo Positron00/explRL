@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/safety_grid.html.md"""
 __all__ = ['THETA', 'PREREG_H3', 'KINDS', 'DEFENCES', 'preregHashH3', 'counts', 'scell', 'attackGrid', 'defenceGrid',
            'monitorGrid', 'h3Grid', 'runSafetyCell']
 
-# %% ../nbs/safety_grid.ipynb #b74473fc
+# %% ../nbs/safety_grid.ipynb #d0215be1
 import hashlib
 import json
 

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/adversary.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'BAD', 'ReportLog', 'Liar', 'FreeRider', 'Saboteur', 'LeadLiar', 'LeadFreeRider', 'LeadSaboteur']
 
-# %% ../nbs/adversary.ipynb #e8a2ec73
+# %% ../nbs/adversary.ipynb #153bc32d
 from collections import deque
 
 import numpy as np

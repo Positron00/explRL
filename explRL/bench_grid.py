@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/bench_grid.html.md"""
 __all__ = ['CHANNELS', 'SIZES', 'PREREG', 'SWEEPS', 'STUDY_B', 'STR_COLS', 'preregHash', 'cell', 'mainGrid', 'sideSweeps',
            'runCell', 'rowKey', 'runGrid', 'writeCSV', 'readCSV', 'confirm']
 
-# %% ../nbs/bench_grid.ipynb #781180de
+# %% ../nbs/bench_grid.ipynb #841258e1
 import csv
 import hashlib
 import json

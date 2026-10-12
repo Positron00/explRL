@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/safety_report.html.md"""
 # %% auto #0
 __all__ = ['FIGURES', 'group', 'costBenefit', 'summaries', 'report']
 
-# %% ../nbs/safety_report.ipynb #d7446b1f
+# %% ../nbs/safety_report.ipynb #53163590
 from .bench_report import _f, _mean
 from .bench_stats import bootCI
 from .safety_runs import lossRows
@@ -19,7 +19,8 @@ def group(rows, keys, metrics):
     for r in rows:
         g.setdefault(tuple(r[k] for k in keys), []).append(r)
     return {k: {**{m: (_mean([float(r[m]) for r in v]), *bootCI([float(r[m]) for r in v])) for m in metrics}, 'n': len(v)}
-            for k, v in sorted(g.items(), key=lambda kv: tuple(str(x) for x in kv[0]))}
+            for k, v in sorted(g.items(), key=lambda kv: tuple((0, float(x), '') if isinstance(x, (int, float))
+                                                          else (1, 0.0, str(x)) for x in kv[0]))}
 
 
 def _by(rows, **kw):
