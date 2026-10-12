@@ -1,6 +1,6 @@
 # Tasks: Phase 10, language-model agents (Claude API)
 
-Status: T1-T8 done (2026-10-12; credentials from the git-ignored `.env.local`; pilot in two rounds, see the README); T9 next.
+Status: all tasks done (2026-10-12): credentials from the git-ignored `.env.local`; pilot in two rounds; main runs 47 988 calls, $32.68; cached reruns byte-identical; deliverable written. See the README.
 
 Rules for every task:
 

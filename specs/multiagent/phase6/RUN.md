@@ -69,6 +69,7 @@ diff <(cut -d' ' -f1,3 results/multiagent/baseline_phase5/sha256.txt) <(cut -d' 
 - Phase 7 harness: [../phase7/RUN.md](../phase7/RUN.md)
 - Phase 8 benchmark: [../phase8/RUN.md](../phase8/RUN.md)
 - Phase 9 safety: [../phase9/RUN.md](../phase9/RUN.md)
+- Phase 10 LLM agents: [../phase10/RUN.md](../phase10/RUN.md)
 - Phase 5 multi-agent loop: [../phase5/RUN.md](../phase5/RUN.md)
 - Flexible-policy demo (Fig 2d-e): [specs/demo/RUN.md](../../demo/RUN.md)
 - Pre-structured setpoint policy (Fig 2h): [specs/prestructured/RUN.md](../../prestructured/RUN.md)

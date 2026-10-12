@@ -29,7 +29,7 @@ Terms used below.
 
 ### Runs (`explRL/llm_runs.py`)
 - **FR-10** `LLMConfig` shall hold the task, channel, team size, turns per agent, equal-budget total, model, effort, `maxTokens`, memory, framing, liar count, persistence episodes and lessons, task-board difficulty and world settings; it round-trips through a plain dict.
-- **FR-11** `runLLM(cfg, seed, client)` shall build the world, channel and team (scripted liar in slot 0 when asked), run it with the Phase 5 event queue until every agent has used its turns (`runTurns`), elicit beliefs, and return the turn log and one flat row per episode: welfare, honest welfare, Phase 8 metrics where they apply, invalid-action and refusal counts, tokens (input, cache write, cache read, output), cost, cache hit rate, share of turns with a report, exploration share per agent (mean and spread of each agent's share of turns spent going to a location with no current report), the free-riding index, and belief diversity (foraging).
+- **FR-11** `runLLM(cfg, seed, client)` shall build the world, channel and team (scripted liar in slot 0 when asked), run it with the Phase 5 event queue until every agent has used its turns (`runTurns`), elicit beliefs, and return the turn log and one flat row per episode: welfare, honest welfare, Phase 8 metrics where they apply, invalid-action and refusal counts, tokens (input, cache write, cache read, output), cost (the cache hit rate goes to the mode's `metrics.json`, so rows do not depend on the cache), share of turns with a report, exploration share per agent (mean and spread of each agent's share of turns spent going to a location with no current report), the free-riding index, and belief diversity (foraging).
 - **FR-12** `mainGrid`, `sonnetGrid`, `budgetGrid`, `framingGrid`, `persistGrid`, `memoryGrid`, `liarGrid` and `pilotGrid` shall return cells (design-low-level section 7); `runLLMCell` shall run one cell for `bench_grid.runGrid(cells, run=runLLMCell)` (`runAnyCell` dispatches LLM and numpy cells); `quickGrid` shall give every grid's quick cells and `estimateGrid` the expected calls and cost of any cells.
 - **FR-13** `numpyGrid(task)` shall give the matching numpy cells (decision L12) and `runNumpyCell` (`explRL/llm_compare.py`) shall run one with the same turn-limited loop (`runNumpy`); `compareNumpy(llmRows, numpyRows)` shall return, per task, Spearman's rho over the 16 (channel, size) cells and a bootstrap CI over seeds.
 
@@ -72,7 +72,7 @@ Normal tests (`nbdev-test --n-workers 0`, offline):
 
 Live and manual checks:
 
-- **AC-7 Pilot (T7):** with `--flags llm_pilot`, the single-agent task board picks a difficulty with a Haiku 5.5 solve rate of 30-70%; per-turn tokens, cache hit rate, invalid-action rate and cost are recorded; effort is fixed; prices are re-checked; `ANALYSIS_PLAN` is committed.
+- **AC-7 Pilot (T7):** with `--flags llm_pilot`, the single-agent task board picks a difficulty with a Haiku 5.5 solve rate of 30-70% (not reachable: the user chose difficulty 8, solve rate 0.89, with `max_tokens` 8000; README, Pilot results); per-turn tokens, cache hit rate, invalid-action rate and cost are recorded; effort is fixed; prices are re-checked; `ANALYSIS_PLAN` is committed.
 - **AC-8 Main runs (T9):** with `--flags llm`, every grid runs within the cap; cost and timing recorded; findings reported, not asserted.
 - **AC-9 Rerun:** a second run of any mode is served fully from the cache (zero cost) and its outputs are byte-identical.
 

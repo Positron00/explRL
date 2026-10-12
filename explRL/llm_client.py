@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/llm_client.html.md"""
 __all__ = ['PRICES', 'TOKEN_PROFILE', 'USAGE', 'BudgetExceeded', 'loadEnvFile', 'costOf', 'estimateCost', 'requestKey',
            'LLMReply', 'ResponseCache', 'Budget', 'LLMClient', 'FakeClient']
 
-# %% ../nbs/llm_client.ipynb #0fed4206
+# %% ../nbs/llm_client.ipynb #7971d2ec
 import fcntl
 import hashlib
 import json
@@ -110,11 +110,18 @@ class ResponseCache:
         return json.loads(p.read_text()) if p.exists() else None
 
     def put(self, key, value):
+        "Store unless present (first writer wins, across processes); returns the stored value."
         p = self._path(key)
         p.parent.mkdir(parents=True, exist_ok=True)
         tmp = p.with_name(f'{p.name}.{os.getpid()}.tmp')
         tmp.write_text(json.dumps(value, sort_keys=True))
-        os.replace(tmp, p)
+        try:
+            os.link(tmp, p)
+            return json.loads(tmp.read_text())
+        except FileExistsError:
+            return json.loads(p.read_text())
+        finally:
+            tmp.unlink()
 
 
 class Budget:
@@ -182,8 +189,8 @@ class LLMClient:
             self.pending = 0.0
         reply = LLMReply.fromResponse(self.client.messages.create(**req), self.prices[self.model])
         self.calls += 1
-        if self.cache is not None:
-            self.cache.put(key, reply.asDict())
+        if self.cache is not None:          # a concurrent identical request may have stored its reply first: use that
+            reply = LLMReply(**self.cache.put(key, reply.asDict()))
         if self.budget is not None:
             self.budget.add(reply.cost, self.model)
         return reply

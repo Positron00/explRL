@@ -55,3 +55,4 @@ website:
       - llm_report.ipynb
       - llm_figures.ipynb
       - demo_llm.ipynb
+      - demo_multiagent.ipynb

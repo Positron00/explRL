@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/llm_report.html.md"""
 __all__ = ['NAN', 'mainTable', 'harnessBenefit', 'sizeContrast', 'armTable', 'budgetTable', 'interfaceTable', 'summaries',
            'writeReport']
 
-# %% ../nbs/llm_report.ipynb #a50a0b79
+# %% ../nbs/llm_report.ipynb #2c60da11
 import math
 
 import numpy as np
@@ -120,7 +120,7 @@ def interfaceTable(rows):
         tot = lambda k: float(np.nansum([_f(r[k]) for r in rs]))
         c = max(tot('calls'), 1)
         out[st] = dict(runs=len(rs), calls=int(tot('calls')), invalid=tot('invalid') / c, refusals=int(tot('refusals')),
-                       maxTokenStops=int(tot('maxTokenStops')), cacheHit=float(np.nanmean([_f(r['cacheHit']) for r in rs])),
+                       maxTokenStops=int(tot('maxTokenStops')),
                        promptCacheRead=float(np.nanmean([_f(r['promptCacheRead']) for r in rs])),
                        inputTokens=int(tot('inputTokens') + tot('cacheWriteTokens') + tot('cacheReadTokens')),
                        outputTokens=int(tot('outputTokens')), cost=tot('cost'))
@@ -169,10 +169,10 @@ def writeReport(path, S, meta):
     L += [f'| {ch} | {N} | {_fmt(s)} |' for (ch, N), s in S['budget'].items()]
     L += ['', '## Arms (difference from control, paired)', '', '| contrast | mean [95% CI] | n |', '|---|---|---|']
     L += [f'| {k} | {_fmt(s)} | {s["n"]} |' for k, s in S['arms'].items()]
-    L += ['', '## Interface, tokens and cost', '', '| study | runs | calls | invalid | refusals | max_tokens | cache hit | '
-          'prompt-cache read | input tokens | output tokens | cost $ |', '|---|---|---|---|---|---|---|---|---|---|---|']
+    L += ['', '## Interface, tokens and cost', '', '| study | runs | calls | invalid | refusals | max_tokens | '
+          'prompt-cache read | input tokens | output tokens | cost $ |', '|---|---|---|---|---|---|---|---|---|---|']
     L += [f"| {st} | {v['runs']} | {v['calls']} | {v['invalid']:.3f} | {v['refusals']} | {v['maxTokenStops']} | "
-          f"{v['cacheHit']:.2f} | {v['promptCacheRead']:.2f} | {v['inputTokens']} | {v['outputTokens']} | {v['cost']:.2f} |"
+          f"{v['promptCacheRead']:.2f} | {v['inputTokens']} | {v['outputTokens']} | {v['cost']:.2f} |"
           for st, v in S['interface'].items()]
     path.write_text('\n'.join(L) + '\n')
     return path

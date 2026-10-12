@@ -59,5 +59,6 @@ Run from a copy of the working tree if you keep editing notebooks meanwhile (eve
 ## Related
 
 - Phase 8 benchmark: [../phase8/RUN.md](../phase8/RUN.md)
+- Phase 10 LLM agents: [../phase10/RUN.md](../phase10/RUN.md)
 - Phase 7 harness: [../phase7/RUN.md](../phase7/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)

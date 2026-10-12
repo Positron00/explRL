@@ -9,7 +9,7 @@ __all__ = ['CHANNELS', 'SIZES', 'TASKS', 'HAIKU', 'SONNET', 'SETTINGS', 'ANALYSI
            'mainGrid', 'sonnetGrid', 'numpyGrid', 'budgetGrid', 'framingGrid', 'memoryGrid', 'persistGrid', 'liarGrid',
            'pilotGrid', 'quickGrid', 'withClient', 'runAnyCell', 'estimateGrid']
 
-# %% ../nbs/llm_grid.ipynb #0c92d35c
+# %% ../nbs/llm_grid.ipynb #eb290d09
 import copy
 import hashlib
 import json

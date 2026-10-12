@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/llm_runs.html.md"""
 __all__ = ['NAN', 'DELTA', 'LLMConfig', 'setup', 'taskMetrics', 'llmStats', 'runLLM', 'fakeReply', 'makeClient', 'cellRow',
            'runLLMCell']
 
-# %% ../nbs/llm_runs.ipynb #b9d8218c
+# %% ../nbs/llm_runs.ipynb #6f156596
 import hashlib
 import json
 import os
@@ -117,7 +117,6 @@ def llmStats(members):
                 calls=len(recs), inputTokens=u['input_tokens'], cacheWriteTokens=u['cache_creation_input_tokens'],
                 cacheReadTokens=u['cache_read_input_tokens'], outputTokens=u['output_tokens'],
                 cost=float(sum(x['cost'] for x in recs)),
-                cacheHit=float(np.mean([x['cached'] for x in recs])) if recs else NAN,
                 promptCacheRead=u['cache_read_input_tokens'] / inp if inp else NAN)
 
 

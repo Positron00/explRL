@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_compare.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'runNumpy', 'runNumpyCell', 'rankAvg', 'spearman', 'compareNumpy']
 
-# %% ../nbs/llm_compare.ipynb #e92b7b84
+# %% ../nbs/llm_compare.ipynb #a4029c1b
 import numpy as np
 
 from .adversary import Liar

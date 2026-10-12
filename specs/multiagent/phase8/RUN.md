@@ -60,5 +60,6 @@ Run from a copy of the working tree if you keep editing notebooks meanwhile (eve
 
 - Phase 7 harness: [../phase7/RUN.md](../phase7/RUN.md)
 - Phase 9 safety: [../phase9/RUN.md](../phase9/RUN.md)
+- Phase 10 LLM agents: [../phase10/RUN.md](../phase10/RUN.md)
 - Phase 6 team world: [../phase6/RUN.md](../phase6/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)

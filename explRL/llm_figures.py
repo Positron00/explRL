@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_figures.html.md"""
 # %% auto #0
 __all__ = ['COLORS', 'figWelfare', 'figModel', 'figTokens', 'figNumpy', 'figArms', 'writeFigures']
 
-# %% ../nbs/llm_figures.ipynb #333caa7c
+# %% ../nbs/llm_figures.ipynb #51c5ef88
 import matplotlib
 
 matplotlib.use('Agg')
@@ -76,6 +76,7 @@ def figTokens(rows, S, path):
         axs[0].scatter(tok, team, color=COLORS[r['channel']], marker='o' if r['task'] == 'forage' else 's', s=14)
     axs[0].set(xscale='log', xlabel='total tokens per run', ylabel='team welfare',
                title='Tokens as compute (circles: foraging, squares: board)')
+    axs[0].xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     for ch in ('none', 'blackboard'):
         pts = sorted((N, s) for (c, N), s in S['budget'].items() if c == ch)
         if pts:
@@ -102,7 +103,7 @@ def figNumpy(rows, numpyRows, S, path):
                     ax.scatter(np.mean(b), np.mean(a), color=col, s=10 + 8 * N, label=ch if N == 1 else None)
         v = S['numpy'].get(task)
         rho = f"rho {v['rho']:.2f} [{v['ci'][0]:.2f}, {v['ci'][1]:.2f}]" if v else ''
-        ax.set(xlabel='numpy team welfare', ylabel='LLM team welfare', title=f'{task}: {rho}')
+        ax.set(xlabel='numpy welfare per agent-turn', ylabel='LLM welfare per agent-turn', title=f'{task}: {rho}')
     _legend(axs[0])
     return _save(fig, path)
 
@@ -110,7 +111,7 @@ def figNumpy(rows, numpyRows, S, path):
 def figArms(S, path):
     "Each arm's difference from its control (95% CI)."
     items = list(S['arms'].items())
-    fig, ax = plt.subplots(figsize=(8, 0.35 * len(items) + 1.2))
+    fig, ax = plt.subplots(figsize=(10, 0.35 * len(items) + 1.2))
     y = np.arange(len(items))
     m = np.array([s['mean'] for _, s in items])
     err = [m - np.array([s['ci'][0] for _, s in items]), np.array([s['ci'][1] for _, s in items]) - m]

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_agent.html.md"""
 # %% auto #0
 __all__ = ['FRAMING', 'BELIEF_SCHEMA', 'MEMORY', 'LLMMember', 'elicitBeliefs', 'BoardLiar', 'ScriptedLiarText', 'runTurns']
 
-# %% ../nbs/llm_agent.ipynb #5c203831
+# %% ../nbs/llm_agent.ipynb #9db5e4fa
 import heapq
 import math
 
@@ -82,7 +82,7 @@ class LLMMember(Member):
         self.log.append(dict(kind='turn', agent=self.id, t=_plain(t), obs=obs, response=reply.text,
                              action=_plain(action), valid=valid, reward=_plain(reward), report=_plain(report),
                              explore=explore, stop=reply.stopReason, refusal=reply.refusal, usage=reply.usage,
-                             cost=reply.cost, cached=reply.cached))
+                             cost=reply.cost))
         return Outcome(dt, info['kind'], loc, reward, (valid, reply.cached, reply.cost, explore, report is not None))
 
 
@@ -99,7 +99,7 @@ def elicitBeliefs(member):
         if j is not None and isinstance(v, (int, float)) and math.isfinite(v):
             mean[j], n[j] = float(v), 1.0
     member.log.append(dict(kind='beliefs', agent=member.id, response=reply.text, usage=reply.usage, cost=reply.cost,
-                           cached=reply.cached, stop=reply.stopReason, refusal=reply.refusal))
+                           stop=reply.stopReason, refusal=reply.refusal))
     return dict(mean=mean.tolist(), n=n.tolist())
 
 
