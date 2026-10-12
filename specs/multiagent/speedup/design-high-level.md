@@ -6,19 +6,19 @@
 |---|---|---|
 | `nbs/llm_budget.ipynb` -> `explRL/llm_budget.py` | new (split from `llm_client`) | `PRICES`, `TOKEN_PROFILE`, `costOf`, `estimateCost`, `maxCallCost`, `Budget`, `BudgetExceeded` |
 | `nbs/llm_client.ipynb` -> `explRL/llm_client.py` | changed | `LLMClient` (now with a call floor for FR-A4, a timing hook for FR-A5 and a `tag`), `RetryCounter`, `LLMReply`, `ResponseCache`, `requestKey`, `loadEnvFile`; imports pricing and budget from `llm_budget` |
-| `nbs/llm_sched.ipynb` -> `explRL/llm_sched.py` | new | `seqCalls`, `orderCells`, `checkWorkload`, `runWorkload`, `mergeTiming`, `timingSummary` |
+| `nbs/llm_sched.ipynb` -> `explRL/llm_sched.py` | new | `cellKey`, `seqCalls`, `orderCells`, `checkWorkload`, `runWorkload`, `mergeTiming`, `timingSummary` |
 | `nbs/bench_grid.ipynb` -> `explRL/bench_grid.py` | changed | `runGrid(..., chunksize=4)` |
 | `nbs/team_time.ipynb` -> `explRL/team_time.py` | new | `teamRates`, `teamColumns`, `marginalGain`, `teamRateCell` (Phase 8-9 reruns) |
 | `nbs/taskboard.ipynb` -> `explRL/taskboard.py` | changed | `TaskBoardEnv.netRows`: net value per ledger row (for Part C) |
 | `nbs/rounds.ipynb` -> `explRL/rounds.py` | new | `runRounds`, the three-phase adapters for numpy members (`prepare`, `decide`, `commit`) |
-| `nbs/territory.ipynb` -> `explRL/territory.py` | new | `homeRanges`, `TerritoryBandit`, `homeShare` |
+| `nbs/territory.ipynb` -> `explRL/territory.py` | new | `homeRanges`, `squadHomes`, `TerritoryBandit`, `homeShare` |
 | `nbs/llm_agent.ipynb` -> `explRL/llm_agent.py` | changed | `LLMMember.prepare / decide / commit` (its `event` calls the three); home-range sentence in `system()` |
 | `nbs/llm_env.ipynb` -> `explRL/llm_env.py` | changed | `TextForagingEnv.home`: home locations listed first in the observation |
 | `nbs/llm_runs.ipynb` -> `explRL/llm_runs.py` | changed | `LLMConfig` gains `protocol`, `window`, `squads`, `beta`; `runLLM` picks `runTurns` or `runRounds`; `taskMetrics` adds Part C and `homeShare` columns; `makeClient` passes the workload's floor; `runLLMCell` sets the client's `tag` and writes the per-run timing file |
 | `nbs/llm_compare.ipynb` -> `explRL/llm_compare.py` | changed | `runNumpy` adds Part C columns (and the round protocol for numpy cells) |
 | `nbs/followup_grid.ipynb` -> `explRL/followup_grid.py` | new | `FOLLOWUP_PLAN`, `followupHash`, `hardPilotGrid`, `chooseHard`, `hardGrid`, `effortGrid`, `roundsNumpyGrid`, `chooseBeta`, `roundsGrid`, `followupQuick`, `runFollowupCell` |
 | `nbs/followup_report.ipynb` -> `explRL/followup_report.py` | new | summaries, `report.md` and figures for Parts B-D (`team_total.png`, `hard.png`, `effort.png`, `rounds.png`) |
-| `nbs/llm_report.ipynb`, `nbs/llm_figures.ipynb` | changed | team totals next to per-agent welfare; `team_total.png` for Phase 10 |
+| `nbs/llm_report.ipynb`, `nbs/llm_figures.ipynb` | changed | team totals and marginal gain next to per-agent welfare; `figTeamTotal` (`team_total.png`) for Phase 10 |
 | `nbs/demo_llm.ipynb` | changed | `run()` uses `runWorkload`; `LLM_WORKERS`; timing outputs |
 | `nbs/demo_followup.ipynb` | new | quick (fake), B-numpy (`slow`), live D1 pilot, D1 main, D2, B-LLM (`llm`) |
 | `nbs/demo_multiagent.ipynb` | changed | `REPORT.md` gains team totals (Phase 8-10) and the follow-up results |

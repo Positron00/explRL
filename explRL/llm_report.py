@@ -8,13 +8,14 @@ Docs: https://Positron00.github.io/explRL/llm_report.html.md"""
 __all__ = ['NAN', 'mainTable', 'harnessBenefit', 'sizeContrast', 'armTable', 'budgetTable', 'interfaceTable', 'summaries',
            'writeReport']
 
-# %% ../nbs/llm_report.ipynb #0b189ae5
+# %% ../nbs/llm_report.ipynb #b2d8819a
 import math
 
 import numpy as np
 
 from .bench_stats import bootCI
 from .llm_compare import compareNumpy
+from .team_time import marginalGain
 
 NAN = float('nan')
 
@@ -49,8 +50,8 @@ def mainTable(rows, study='main', metric='welfare'):
     out = {}
     for r in _sel(rows, study=study):
         out.setdefault((r['task'], r['channel'], int(_f(r['N']))), []).append(r)
-    return {k: dict(_stat(r[metric] for r in v), invalid=_stat(_f(r['invalid']) / max(_f(r['calls']), 1) for r in v)['mean'])
-            for k, v in sorted(out.items())}
+    return {k: dict(_stat(r[metric] for r in v), invalid=_stat(_f(r['invalid']) / max(_f(r['calls']), 1) for r in v)['mean'],
+                    team=_stat(r.get('teamWelfare', NAN) for r in v)) for k, v in sorted(out.items())}
 
 
 def harnessBenefit(rows, study='main', metric='welfare'):
@@ -129,7 +130,7 @@ def interfaceTable(rows):
 
 def summaries(rows, numpyRows=()):
     llm = [r for r in rows if r.get('runner') == 'llm']
-    return dict(main=mainTable(llm), benefit=harnessBenefit(llm), sonnetBenefit=harnessBenefit(llm, 'sonnet'),
+    return dict(main=mainTable(llm), gain=marginalGain(_sel(llm, study='main')), benefit=harnessBenefit(llm), sonnetBenefit=harnessBenefit(llm, 'sonnet'),
                 sizeContrast=sizeContrast(llm), numpy=compareNumpy(_sel(llm, study='main'), list(numpyRows))
                 if numpyRows else {}, budget=budgetTable(llm), arms=armTable(llm), interface=interfaceTable(llm))
 
@@ -152,9 +153,11 @@ def writeReport(path, S, meta):
          f"- Cost: ${meta['cost']:.2f} for these runs' replies (a reply served from the cache counts at its original cost); "
          f"${meta.get('spent', 0.0):.2f} charged in all (spend ledger) of the ${meta['cap']:.0f} cap; calls {meta['calls']}, cache hits "
          f"{meta['cacheHits']}; wall time {meta['wall']:.0f} s", '',
-         '## Welfare per agent-turn (main grid, mean [95% CI])', '', '| task | channel | N | welfare | invalid share |',
-         '|---|---|---|---|---|']
-    L += [f'| {t} | {ch} | {N} | {_fmt(s)} | {s["invalid"]:.3f} |' for (t, ch, N), s in S['main'].items()]
+         '## Welfare (main grid, mean [95% CI]): per agent-turn and team total (post hoc)', '',
+         '| task | channel | N | welfare per agent-turn | team total | invalid share |', '|---|---|---|---|---|---|']
+    L += [f'| {t} | {ch} | {N} | {_fmt(s)} | {_fmt(s["team"])} | {s["invalid"]:.3f} |' for (t, ch, N), s in S['main'].items()]
+    L += ['', '## Marginal gain per added agent (team total at N minus at N/2, per added agent; post hoc)', '',
+          '| task | channel | N | gain |', '|---|---|---|---|'] + [f'| {t} | {ch} | {N} | {g:.2f} |' for (t, ch, N), g in S['gain'].items()]
     L += ['', '## Harness benefit (channel minus none, paired on seed)', '', '| model | task | channel | N | benefit |',
           '|---|---|---|---|---|']
     L += [f'| {m} | {t} | {ch} | {N} | {_fmt(s)} |' for m, key in (('Haiku', 'benefit'), ('Sonnet', 'sonnetBenefit'))

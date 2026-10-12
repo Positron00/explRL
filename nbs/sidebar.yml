@@ -43,6 +43,7 @@ website:
       - safety_report.ipynb
       - safety_figures.ipynb
       - demo_safety.ipynb
+      - llm_budget.ipynb
       - llm_client.ipynb
       - llm_fake.ipynb
       - taskboard.ipynb
@@ -56,4 +57,11 @@ website:
       - llm_report.ipynb
       - llm_figures.ipynb
       - demo_llm.ipynb
+      - team_time.ipynb
+      - rounds.ipynb
+      - territory.ipynb
+      - llm_sched.ipynb
+      - followup_grid.ipynb
+      - followup_report.ipynb
+      - demo_followup.ipynb
       - demo_multiagent.ipynb

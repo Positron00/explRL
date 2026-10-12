@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'DELTA', 'LLMConfig', 'setup', 'taskMetrics', 'llmStats', 'runLLM', 'makeClient', 'cellRow', 'runLLMCell']
 
-# %% ../nbs/llm_runs.ipynb #dcd6148a
+# %% ../nbs/llm_runs.ipynb #ddf85759
 import json
 import os
 from dataclasses import asdict, dataclass, field
@@ -22,11 +22,15 @@ from .harness import MessageBus
 from .harness_runs import benchWorld, HarnessConfig, makeChannel, makeTeam, netHarvest
 from .llm_agent import LLMMember, ScriptedLiarText, elicitBeliefs, runTurns
 from .llm_board import TextBoardEnv
-from .llm_client import Budget, LLMClient, ResponseCache, estimateCost, loadEnvFile
+from .llm_budget import Budget, estimateCost
+from .llm_client import LLMClient, ResponseCache, loadEnvFile
 from .llm_env import TextForagingEnv, locationNames
 from .llm_fake import FakeClient, fakeReply
 from .multi import spawnRngs
 from .taskboard import TaskBoardEnv, TaskBoardSim
+from .rounds import runRounds
+from .team_time import teamColumns
+from .territory import homeShare, squadHomes
 from .team_refs import idealFree, ifdDistanceTies, ledgerArrays, occupancy, socialOptimum
 
 NAN, DELTA = float('nan'), 0.5        # DELTA: the Phase 8 IFD tolerance
@@ -48,6 +52,10 @@ class LLMConfig:
     episodes: int = 1                 # persistence arm
     lessons: bool = False
     difficulty: int = 2               # task board
+    protocol: str = 'events'          # 'events' (runTurns) or 'rounds' (runRounds, window below)
+    window: float = 0.0
+    squads: int = 0                   # 0 = no squads; else k squads with home ranges (foraging)
+    beta: float = 0.0                 # home bias of squad members (numpy: score bonus; inf = never leave)
     world: dict = field(default_factory=dict)   # benchWorld / TaskBoardEnv overrides; board 'solveRate' for numpy
 
     def asDict(self):
@@ -64,11 +72,11 @@ class LLMConfig:
 def setup(cfg, seed, numpy=False):
     "World, text adaptor and channel for one episode (`numpy`: the board's simulated-solve version)."
     N = cfg.N
+    kw = {k: v for k, v in cfg.world.items() if k != 'T'}      # 'T': fixed world time of numpy cells
     if cfg.task == 'forage':
-        w = benchWorld(**cfg.world)
+        w = benchWorld(**kw)
         w.reset(seed, N)
         return w, TextForagingEnv(w, locationNames(w.L, seed)), makeChannel(HarnessConfig(channel=cfg.channel), w.L, N, seed)
-    kw = dict(cfg.world)
     rate = kw.pop('solveRate', 0.5)
     w = TaskBoardSim(seed, N, rate, difficulty=cfg.difficulty, **kw) if numpy else \
         TaskBoardEnv(seed, N, difficulty=cfg.difficulty, **kw)
@@ -82,7 +90,8 @@ def taskMetrics(cfg, w, hist, honest, T, est=None):
     N, tEnd = cfg.N, max(r.t + r.dt for r in hist.records)
     if cfg.task == 'forage':
         L = ledgerArrays(w.ledger)
-        net = np.bincount(L['agent'], weights=netHarvest(w, L), minlength=N)
+        rowNet, period = netHarvest(w, L), w.Tmove
+        net = np.bincount(L['agent'], weights=rowNet, minlength=N)
         times, counts = occupancy(L, N, w.nPatches, tEnd)
         disc = discoveries(w, L)
         rmrt, reached = recovery(w, L, N, tEnd, DELTA)
@@ -91,13 +100,13 @@ def taskMetrics(cfg, w, hist, honest, T, est=None):
                      ifdMean=float(ifdDistanceTies(counts, idealFree(w, N)[0], w.intake, N).mean()),
                      diversity=div, beliefError=err, soShare=float(net.sum()) / (tEnd * socialOptimum(w, N)[1]))
     else:
-        net = w.netByAgent()
+        net, L, rowNet, period = w.netByAgent(), ledgerArrays(w.ledger), np.array(w.netRows), 10.0
         extra = dict(solved=w.counts['solved'], opens=w.counts['opens'], wrong=w.counts['wrong'],
                      duplicates=w.duplicateTurns(), discoveries=int(w.firstSolves().sum()),
                      soShare=float(net.sum()) / (T * w.socialOptimum(1.0)))
     h = list(honest)
     return dict(welfare=float(net.sum()) / (N * T), welfareHonest=float(net[h].sum()) / (len(h) * T) if h else NAN,
-                tEnd=float(tEnd), **extra)
+                tEnd=float(tEnd), **extra, **teamColumns(L, rowNet, period, tEnd))
 
 
 def llmStats(members):
@@ -127,10 +136,14 @@ def runLLM(cfg, seed, client):
         ws = seed if cfg.episodes == 1 else 10000 + 100 * seed + e
         w, env, ch = setup(cfg, ws)
         liars = [ScriptedLiarText(cfg.task, ch, r) for r in spawnRngs(ws + 3000, cfg.nLiar)]
-        llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing, lessons[k] if cfg.lessons else '') for k in range(nLLM)]
-        hist = runTurns(liars + llm, w, T)
+        homes = squadHomes(w.L, cfg.N, cfg.squads) if cfg.squads else [None] * cfg.N
+        env.home = {i: homes[i] for i in range(cfg.N) if homes[i]}
+        llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing, lessons[k] if cfg.lessons else '', homes[cfg.nLiar + k],
+                         strict=cfg.beta == float('inf')) for k in range(nLLM)]
+        hist = runRounds(liars + llm, w, cfg.window, turns=T) if cfg.protocol == 'rounds' else runTurns(liars + llm, w, T)
         est = [elicitBeliefs(m) for m in llm] if cfg.task == 'forage' else None
-        rows.append(dict(episode=e, **taskMetrics(cfg, w, hist, range(cfg.nLiar, cfg.N), T, est), **llmStats(llm)))
+        rows.append(dict(episode=e, **taskMetrics(cfg, w, hist, range(cfg.nLiar, cfg.N), T, est), **llmStats(llm),
+                         **({'homeShare': homeShare(ledgerArrays(w.ledger), homes)} if cfg.squads else {})))
         log += [dict(episode=e, **x) for m in llm for x in m.log]
         lessons = [m.notes for m in llm]
     return rows, log
@@ -148,7 +161,7 @@ def makeClient(cfg, spec=None):
         loadEnvFile()                          # ANTHROPIC_API_KEY from the git-ignored .env.local, if not already set
     return LLMClient(cfg.model, cfg.effort, cfg.maxTokens, ResponseCache(spec['cache']) if spec.get('cache') else None,
                      Budget(spec['cap'], spec['ledger']) if spec.get('ledger') else None,
-                     client=None if live else FakeClient(fakeReply))
+                     client=None if live else FakeClient(fakeReply), floor=spec.get('floor', 0.0), timing=[])
 
 
 def cellRow(cell, cfg, r):
@@ -163,9 +176,14 @@ def cellRow(cell, cfg, r):
 def runLLMCell(cell):
     "Run one LLM cell in this process (one client per process); the turn log goes to `cell['logDir']` if given."
     cfg = LLMConfig.fromDict(cell['cfg'])
-    rows, log = runLLM(cfg, cell['seed'], makeClient(cfg, cell.get('client')))
+    client = makeClient(cfg, cell.get('client'))
+    client.tag = rowKey(cellRow(cell, cfg, dict(episode=0)))        # timing records only
+    rows, log = runLLM(cfg, cell['seed'], client)
     rows = [cellRow(cell, cfg, r) for r in rows]
     if cell.get('logDir'):
+        p = Path(cell['logDir']) / 'timing' / (client.tag.replace('|', '__') + '.jsonl')
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(''.join(json.dumps(x, sort_keys=True) + '\n' for x in client.timing))
         keys = {r['episode']: rowKey(r) for r in rows}
         p = Path(cell['logDir']) / (keys[0].replace('|', '__') + '.jsonl')
         p.parent.mkdir(parents=True, exist_ok=True)

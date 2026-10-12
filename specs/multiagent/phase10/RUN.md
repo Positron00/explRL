@@ -54,6 +54,8 @@ Live sections make API calls only with `EXPLRL_LLM_LIVE=1`; every request is che
 
 **Reruns are free and exact only with the cache.** With `results/multiagent/llm/cache/` present, rerunning either mode sends no request (the ledger does not grow), takes about 10 s for the full mode, and writes byte-identical `runs.csv` and `turns.jsonl` (AC-9, checked twice). Without the cache, live reruns differ (these models take no sampling parameters). The cache (about 50 000 small JSON files) is gitignored; keep a copy to reproduce the results. The results recorded in [README.md](README.md) are against the frozen `ANALYSIS_PLAN` (hash `83df7591d1de`, commit `ce9d661`).
 
+**Reference outputs (AC-9).** On 2026-10-12 the full outputs were regenerated once from the cache with the team-total columns and the round/squad config columns of the [speedup plan](../speedup/README.md) (no request; every earlier column value-identical; `turns.jsonl` unchanged). Reference sha256: `runs.csv` `377dea800560a7955f1211b2a7e9cef6bc31f041807966944226916029735d3d`, `turns.jsonl` `3eed3aae5eac1596f2c9152a366d2dd3c6e6cda10cc99a04366680e53ae11a01`. The file before that change is kept as `full/runs_before_teamrate.csv` (`runs.csv` sha256 then: `da2fe8623b0978a9c1f04e6bb09ef16e2073d90924f536941a5e41c76842de46`).
+
 ## Artifacts
 
 Under `results/multiagent/llm/{quick,pilot,pilot_probe,full}/` (gitignored):

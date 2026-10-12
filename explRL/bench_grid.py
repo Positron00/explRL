@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/bench_grid.html.md"""
 __all__ = ['CHANNELS', 'SIZES', 'PREREG', 'SWEEPS', 'STUDY_B', 'STR_COLS', 'preregHash', 'cell', 'mainGrid', 'sideSweeps',
            'runCell', 'rowKey', 'runGrid', 'writeCSV', 'readCSV', 'confirm']
 
-# %% ../nbs/bench_grid.ipynb #841258e1
+# %% ../nbs/bench_grid.ipynb #e7cdf86a
 import csv
 import hashlib
 import json
@@ -97,14 +97,14 @@ def rowKey(r):
                      f"{int(r['N']):03d}", f"{int(r['seed']):05d}", f"{int(r.get('episode', 0)):02d}"])
 
 
-def runGrid(cells, workers=None, run=runCell):
+def runGrid(cells, workers=None, run=runCell, chunksize=4):
     "Run cells (in `workers` spawned processes); rows sorted by key, so the result does not depend on scheduling."
     workers = workers or min(8, os.cpu_count() or 1)
     if workers == 1:
         out = [run(c) for c in cells]
     else:
         with multiprocessing.get_context('spawn').Pool(workers) as p:
-            out = p.map(run, cells, chunksize=4)
+            out = p.map(run, cells, chunksize=chunksize)
     return sorted((r for rows in out for r in rows), key=rowKey)
 
 

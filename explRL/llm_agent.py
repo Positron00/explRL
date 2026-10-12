@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_agent.html.md"""
 # %% auto #0
 __all__ = ['FRAMING', 'BELIEF_SCHEMA', 'MEMORY', 'LLMMember', 'elicitBeliefs', 'BoardLiar', 'ScriptedLiarText', 'runTurns']
 
-# %% ../nbs/llm_agent.ipynb #9db5e4fa
+# %% ../nbs/llm_agent.ipynb #ea4522b9
 import heapq
 import math
 
@@ -40,11 +40,11 @@ class LLMMember(Member):
     observation (decision L4); the reply is parsed, applied, and its report posted to the channel."""
     extraNames = ('valid', 'cached', 'cost', 'explore', 'reported')
 
-    def __init__(self, client, env, channel=None, memory='full', framing='own', lessons=''):
+    def __init__(self, client, env, channel=None, memory='full', framing='own', lessons='', home=None, strict=False):
         if memory not in MEMORY:
             raise ValueError(f'unknown memory {memory}')
         self.client, self.env, self.channel, self.memory = client, env, channel, memory
-        self.framing, self.lessons, self.timeUnit = framing, lessons, env.timeUnit
+        self.framing, self.lessons, self.timeUnit, self.home, self.strict = framing, lessons, env.timeUnit, home, strict
         self.past, self.notes, self.log, self._system = [], '', [], None
 
     def system(self):
@@ -53,6 +53,10 @@ class LLMMember(Member):
             if self.lessons:
                 s += '\n\nLessons you wrote at the end of earlier episodes (the world changes between episodes):\n' + \
                      self.lessons
+            if self.home:
+                s += '\n\nYour squad\'s home range is the locations ' + ', '.join(self.env.names[j] for j in sorted(self.home)) + \
+                     ' (an arc of the ring); ' + ('stay and work only there; read teammates\' reports from everywhere.'
+                                                  if self.strict else 'prefer working there, but you may go anywhere.')
             self._system = s
         return self._system
 
@@ -68,10 +72,19 @@ class LLMMember(Member):
             blocks[-1]['cache_control'] = {'type': 'ephemeral'}
         return blocks
 
-    def event(self, world, t):
+    def prepare(self, world, t):
+        "Observe at `t` and render the request (serial: reads and updates the channel's per-agent state)."
         obs = self.env.observe(self.id, t, self.channel)
-        reply = self.client.complete(self.system(), self.history() + [{'type': 'text', 'text': 'Now:\n' + obs}],
-                                     self.env.SCHEMA)
+        return obs, self.system(), self.history() + [{'type': 'text', 'text': 'Now:\n' + obs}]
+
+    def decide(self, prep):
+        "The API call (may run concurrently with other members' calls in a round)."
+        obs, system, blocks = prep
+        return obs, self.client.complete(system, blocks, self.env.SCHEMA, task=self.env.task)
+
+    def commit(self, world, t, dec):
+        "Parse, apply at `t`, post the report and log the turn."
+        obs, reply = dec
         action, report, valid = self.env.parse(reply.parsed, self.id)
         reward, dt, loc, info = world.apply(self.id, action, t)
         self.env.post(self.id, report, t, self.channel, info)
@@ -85,6 +98,9 @@ class LLMMember(Member):
                              cost=reply.cost))
         return Outcome(dt, info['kind'], loc, reward, (valid, reply.cached, reply.cost, explore, report is not None))
 
+    def event(self, world, t):
+        return self.commit(world, t, self.decide(self.prepare(world, t)))
+
 
 def elicitBeliefs(member):
     "Text foraging: one request for the agent's estimate of each location's value -> Phase 8 {'mean', 'n'}."
@@ -92,7 +108,8 @@ def elicitBeliefs(member):
     q = ('The run is over. For each location you have an opinion about, estimate the reward per second a lone '
          'forager would get by staying there now (its food rate, or a negative value for danger). Leave out the '
          'locations you know nothing about. Reply with JSON: estimates is a list of {location, value}.')
-    reply = member.client.complete(member.system(), member.history() + [{'type': 'text', 'text': q}], BELIEF_SCHEMA)
+    reply = member.client.complete(member.system(), member.history() + [{'type': 'text', 'text': q}], BELIEF_SCHEMA,
+                                   task=env.task)
     mean, n = np.zeros(env.world.L), np.zeros(env.world.L)
     for e in (reply.parsed or {}).get('estimates', []) if isinstance(reply.parsed, dict) else []:
         j, v = env.index.get(str(e.get('location', '')).strip().lower()), e.get('value')

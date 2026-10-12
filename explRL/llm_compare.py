@@ -7,15 +7,21 @@ Docs: https://Positron00.github.io/explRL/llm_compare.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'runNumpy', 'runNumpyCell', 'rankAvg', 'spearman', 'compareNumpy']
 
-# %% ../nbs/llm_compare.ipynb #a4029c1b
+# %% ../nbs/llm_compare.ipynb #6c6cb568
 import numpy as np
 
 from .adversary import Liar
 from .board_agents import BoardBandit
-from .harness_runs import HarnessConfig, makeTeam
+from .bench_grid import PREREG
+from .bench_metrics import benchMetrics
+from .harness_runs import HarnessConfig, harnessMetrics, makeTeam, netHarvest
 from .llm_agent import BoardLiar, runTurns
 from .llm_runs import LLMConfig, cellRow, setup, taskMetrics
-from .multi import spawnRngs
+from .multi import runTeam, spawnRngs
+from .rounds import runRounds
+from .team_refs import ledgerArrays
+from .team_time import teamColumns
+from .territory import TerritoryBandit, homeShare, squadHomes
 
 NAN = float('nan')
 
@@ -27,19 +33,39 @@ def runNumpy(cfg, seed):
         raise ValueError('numpy cells have one episode')
     T, N = cfg.turnsPerAgent(), cfg.N
     w, _, ch = setup(cfg, seed, numpy=True)
+    homes = squadHomes(w.L, N, cfg.squads) if cfg.task == 'forage' and cfg.squads else [None] * N
     if cfg.task == 'forage':
         members = makeTeam(HarnessConfig(channel=cfg.channel), N, seed, ch)
         members[:cfg.nLiar] = [Liar(ch) for _ in range(cfg.nLiar)]
+        if cfg.squads:
+            members[cfg.nLiar:] = [TerritoryBandit(ch, homes[i], cfg.beta) for i in range(cfg.nLiar, N)]
     else:
         members = [BoardLiar(ch, r, w.solveRate) if i < cfg.nLiar else BoardBandit(ch, r)
                    for i, r in enumerate(spawnRngs(seed + 1000, N))]
-    hist = runTurns(members, w, T)
+    if 'T' in cfg.world:                                   # fixed world time: a Phase 8-style row
+        return [_timedRow(cfg, seed, w, ch, members, homes)]
+    hist = runRounds(members, w, cfg.window, turns=T) if cfg.protocol == 'rounds' else runTurns(members, w, T)
     est = None
     if cfg.task == 'forage' and cfg.channel != 'hierarchical':
         tEnd = max(r.t + r.dt for r in hist.records)
         est = [dict(zip(('mean', 'n'), (m.tolist(), n.tolist()))) for m, n in
                (members[i].estimates(tEnd) for i in range(cfg.nLiar, N))]
-    return [dict(episode=0, **taskMetrics(cfg, w, hist, range(cfg.nLiar, N), T, est))]
+    extra = {'homeShare': homeShare(ledgerArrays(w.ledger), homes)} if cfg.squads else {}
+    return [dict(episode=0, **taskMetrics(cfg, w, hist, range(cfg.nLiar, N), T, est), **extra)]
+
+
+def _timedRow(cfg, seed, w, ch, members, homes):
+    "Fixed world time T: run as Phase 8 (runTeam, or runRounds with Ttot) and build its row; `welfare` = team total."
+    T = float(cfg.world['T'])
+    hist = runRounds(members, w, cfg.window, Ttot=T) if cfg.protocol == 'rounds' else runTeam(members, w, T)
+    hc = HarnessConfig(channel=cfg.channel, budget='time', T=T, world={k: v for k, v in cfg.world.items() if k != 'T'})
+    m = harnessMetrics(hc, w, hist, ch, members, cfg.N, T)
+    row = benchMetrics(dict(study='', factor='', level='', seed=seed), w, hist, m, PREREG['delta'])
+    for k in ('study', 'factor', 'level', 'seed'):        # the cell's keys come from cellRow
+        row.pop(k)
+    L = ledgerArrays(w.ledger)
+    row.update(episode=0, **teamColumns(L, netHarvest(w, L), w.Tmove, T))
+    return {**row, **({'homeShare': homeShare(L, homes)} if cfg.squads else {})}
 
 
 def runNumpyCell(cell):

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/taskboard.html.md"""
 # %% auto #0
 __all__ = ['OPS', 'Puzzle', 'makePuzzle', 'Task', 'TaskBoardEnv', 'TaskBoardSim']
 
-# %% ../nbs/taskboard.ipynb #acbc9e46
+# %% ../nbs/taskboard.ipynb #3b3eea14
 from dataclasses import dataclass
 
 import numpy as np
@@ -78,7 +78,7 @@ class TaskBoardEnv:
     def reset(self, seed, nAgents):
         self.rng, self.rngSim = spawnRngs(seed, 2)
         self.nAgents, self.tWorld, self.serial = int(nAgents), 0.0, 0
-        self.tasks, self.open, self.ledger = {}, [], []
+        self.tasks, self.open, self.ledger, self.netRows = {}, [], [], []
         self.opened, self.last = [None] * nAgents, [0.0] * nAgents
         self.pending, self.wrongBy = np.zeros(nAgents), np.zeros(nAgents, int)
         self.counts = dict(solved=0, wrong=0, duplicates=0, opens=0)
@@ -147,6 +147,7 @@ class TaskBoardEnv:
         info['net'] = delta
         r = self._reward(i, delta)
         self.ledger.append(row[:7] + (r,) + row[8:])
+        self.netRows.append(delta)          # net value of this row, whatever the reward scheme (team totals)
         self.last[i] = r
         return r, 1.0, row[4], info
 

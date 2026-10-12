@@ -31,7 +31,7 @@ Terms used below.
 - **FR-B2** Every member type used in Part B shall support the three phases: `LLMMember`, `CommBandit` (and its subclasses), and the new `TerritoryBandit`. `LLMMember.event` shall remain equivalent to prepare, decide, commit in a row, so event-driven runs are unchanged.
 - **FR-B3** `homeRanges(L, k)` shall split the location ring into `k` contiguous arcs of `L / k` locations; squad `s` holds agents `s x N / k` to `(s + 1) x N / k - 1`.
 - **FR-B4** `TerritoryBandit(channel, home, beta, ...)` shall be a `CommBandit` whose choice score adds `beta` for home locations (with `beta = inf`, only home locations are chosen; with `beta = 0`, exactly `CommBandit`'s choices); unknown home locations are tried before unknown others.
-- **FR-B5** For LLM agents, a squad member shall get its home range in the system prompt (one sentence, the names of its arc) and the observation shall list home locations first; it may go anywhere.
+- **FR-B5** For LLM agents, a squad member shall get its home range in the system prompt (one sentence, the names of its arc) and the observation shall list home locations first. With a finite `beta` the sentence asks it to prefer its range (it may go anywhere); with `beta = inf` it asks it to stay and work only there (it still reads reports from everywhere). The model's actual bias is measured (`homeShare`).
 - **FR-B6** Rows shall record the protocol, window, squads and bias, and `homeShare` (the share of an agent's stays inside its home range, mean over agents).
 
 ### Part C: team totals over time (post hoc metrics)

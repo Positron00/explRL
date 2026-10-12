@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_env.html.md"""
 # %% auto #0
 __all__ = ['FORAGE_SCHEMA', 'BOARD_SCHEMA', 'locationNames', 'TextForagingEnv']
 
-# %% ../nbs/llm_env.ipynb #330f7115
+# %% ../nbs/llm_env.ipynb #cf905b67
 import math
 
 import numpy as np
@@ -46,7 +46,7 @@ class TextForagingEnv:
     def __init__(self, world, names):
         self.world, self.names = world, list(names)
         self.index = {n.lower(): j for j, n in enumerate(self.names)}
-        self.shown = {}
+        self.shown, self.home = {}, {}          # home: agent -> home locations, listed first (squads)
 
     def rules(self):
         w = self.world
@@ -90,7 +90,8 @@ class TextForagingEnv:
         w.advance(t)
         o = w.observe(i)
         loc, travel = o['location'], o['travel']
-        order = sorted(range(w.L), key=lambda j: (travel[j], j))
+        home = self.home.get(i, ())
+        order = sorted(range(w.L), key=lambda j: (j not in home, travel[j], j))
         lines = [f"Time {t:.1f} s. You are at {nm[loc]}. Your last action earned {o['lastReward']:.2f}.",
                  'Travel times from ' + nm[loc] + ': ' + ', '.join(f'{nm[j]} {travel[j]:.1f} s' for j in order if j != loc)]
         shown = set()

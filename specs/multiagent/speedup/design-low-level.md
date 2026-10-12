@@ -32,7 +32,7 @@ class LLMClient:
         record(seconds=time.perf_counter() - t0, cached=False, retries=RetryCounter.take())
 ```
 
-A timing record: `dict(key=self.tag, model, task, seconds, retries, cached)`; `LLMMember` passes `task=env.task`. `RetryCounter` (in this module, see section 3) supplies `retries`. `runLLMCell` sets `client.tag` to the first row key of the run and, after the run, writes `client.timing` to `logDir/timing/<row key>.jsonl` (sorted keys, one line per call). Records are appended to `self.timing` (a list) when given; nothing else changes, so requests and replies are as before. `self.calls` and `self.hits` stay (single-threaded event runs); in rounds the timing records are the per-call source of truth (H3).
+A timing record: `dict(key=self.tag, model, task, seconds, retries, cached)`; `LLMMember` passes `task=env.task`. `RetryCounter` (in this module; one instance `RETRIES`, installed on the `anthropic` logger by every live `LLMClient`, so each worker process counts its own retries) supplies `retries`. `runLLMCell` sets `client.tag` to the first row key of the run and, after the run, writes `client.timing` to `logDir/timing/<row key>.jsonl` (sorted keys, one line per call). Records are appended to `self.timing` (a list) when given; nothing else changes, so requests and replies are as before. `self.calls` and `self.hits` stay (single-threaded event runs); in rounds the timing records are the per-call source of truth (H3).
 
 ## 3. Scheduling (`explRL/llm_sched.py`)
 
@@ -52,12 +52,14 @@ def runWorkload(grids, spec, workers, logDir, run=runAnyCell):
     """grids: [(name, cells)] in priority order. If spec is live and the workload does not fit (or with
     spec['pooled'] = False), run grid by grid as Phase 10 did; else one pool over orderCells(all cells) with
     chunksize = 1. Each LLM cell gets spec['floor'] = workers x max call cost, which `makeClient` passes to `LLMClient(floor=...)`. Returns
-    dict(rows=sorted by rowKey, done=[grid names], refused=[row keys], stopped=reason or None)."""
+    dict(rows, done=[grid names], refused=[cell keys], stopped=reason or None, pooled, need, left, floor).
+    Rows are grouped by grid in the given order, each grid's rows sorted by rowKey, in every mode: this is the order the
+    Phase 10 demo wrote, so outputs stay byte-identical to the Phase 10 reference."""
 ```
 
-A run refused by the budget inside the pool raises `BudgetExceeded` in its worker; `runWorkload` wraps `run` so that a refused cell returns no rows and its key is recorded in `refused` (the pool goes on; the floor keeps other runs inside the cap).
+A run refused by the budget inside the pool raises `BudgetExceeded` in its worker; `runWorkload` wraps `run` (`_guarded`) so that a refused cell returns no rows, and every LLM cell without rows is reported in `refused` by its `cellKey` (study, factor, level, channel, N, seed) (the pool goes on; the floor keeps other runs inside the cap). Grid by grid, the loop stops after the first grid with a refused run.
 
-`RetryCounter` (defined in `llm_client`, used here only to install it): a `logging.Handler` attached to the `anthropic` logger (and its `_base_client` child) at INFO that counts records whose message starts with "Retrying request"; `take()` returns and resets the count for the calling thread. `mergeTiming(logDir, out)`: concatenates the per-run timing files (sorted by name) into `timing.jsonl`. `timingSummary(path)` -> `{'perModelTask': {(model, task): dict(calls, live, meanSeconds, p90Seconds)}, 'callsPerSecond', 'retries', 'wall'}`.
+`RetryCounter` (defined in `llm_client`): a `logging.Handler` on the `anthropic` logger (records from its `_base_client` child propagate to it), at INFO, that counts records whose message starts with "Retrying request" per thread; `take()` returns and resets the count for the calling thread. `mergeTiming(logDir, out)`: concatenates the per-run timing files (`logDir/timing/*.jsonl`, sorted by name) into `out` and returns the records. `timingSummary(records, wall)` -> `{'perModelTask': {'model|task': dict(calls, live, meanSeconds, p90Seconds)}, 'calls', 'callsPerSecond', 'retries', 'wall'}`.
 
 Settings: `LLM_WORKERS = 32` (decision SQ1) in `demo_llm` and `demo_followup`, used for live specs; fake and numpy workloads use `min(8, cpu)`.
 
@@ -106,9 +108,14 @@ def runRounds(members, world, d, turns=None, Ttot=None, t0=0.0, threads=8):
     each member's own start time; reschedule each at start + dt. Stops a member after `turns` events or once its start
     reaches t0 + Ttot. With d = 0 a round holds only the earliest pending member (ties to the lower index), which is
     exactly the event-driven loop. Returns a TeamHistory like runTurns / runTeam."""
+
+# Later events inside the same window (found in implementation): a member whose event ends inside the window has its
+# next event inside it too; that event is prepared and decided when its turn comes in event order (its own outcome is
+# needed first), so world time never goes backwards. Only each member's first event of a window is decided on the
+# window-start snapshot, concurrently. On the board (every event one turn, d = 1) every decision is concurrent.
 ```
 
-World time never goes backwards: commits are ordered by start time and all starts in a round are at or after `s`; observations use the world as advanced to `s` (`TextForagingEnv.observe(i, s, ...)` advances to `s`, not to the member's own start). Task board: every event lasts one turn, so with `d = 1` a round is one turn of the whole team.
+World time never goes backwards: commits are applied in (start, index) order across the whole window, including later in-window events; first decisions of a window use the world as advanced to `s` (`TextForagingEnv.observe(i, s, ...)` advances to `s`), later in-window decisions the world at their own start. `LLMMember.prepare` returns `(observation, system, blocks)`; `decide` makes the call with `task=env.task`. Task board: every event lasts one turn, so with `d = 1` a round is one turn of the whole team.
 
 ## 6. Territories (`explRL/territory.py`, `llm_agent`, `llm_env`)
 
@@ -126,13 +133,13 @@ def homeShare(L, homes):
     "Mean over agents of the share of an agent's stays inside its home range."
 ```
 
-Squad of agent `i` with `k` squads and `N` agents: `s = i // (N // k)`; its home range `homeRanges(L, k)[s]`.
+Squad of agent `i` with `k` squads and `N` agents: `s = i // (N // k)`; its home range `homeRanges(L, k)[s]` (`squadHomes(L, N, k)` gives the list for a team).
 
-LLM agents: `LLMMember(..., home=None)`; when `home` is set, `system()` adds "Your squad's home range is the locations A, B, ... (an arc of the ring); prefer working there, but you may go anywhere." and `TextForagingEnv.home[i]` makes `observe` list home locations first in the travel line (the rest nearest first, as before). The cache keys of event-driven runs do not change (no home, same prompt).
+LLM agents: `LLMMember(..., home=None)`; when `home` is set, `system()` adds "Your squad's home range is the locations A, B, ... (an arc of the ring); prefer working there, but you may go anywhere." (with `strict=True`, set by `runLLM` when `beta = inf`: "...; stay and work only there; read teammates' reports from everywhere.") and `TextForagingEnv.home[i]` makes `observe` list home locations first in the travel line (the rest nearest first, as before). The cache keys of event-driven runs do not change (no home, same prompt).
 
 ## 7. Config and rows (`llm_runs`, `llm_compare`)
 
-`LLMConfig` gains `protocol: str = 'events'`, `window: float = 0.0`, `squads: int = 0`, `beta: float = 0.0`. `runLLM` and `runNumpy` call `runTurns` for `'events'` and `runRounds(..., d=window)` for `'rounds'`; with `squads > 0` they build homes (`homeRanges`) and use `TerritoryBandit` (numpy) or `LLMMember(home=...)` (LLM). Rows gain the four fields (through `cellRow`), `homeShare` (when squads are used), `teamWelfare` and `teamRate_k`. Fixed-world-time numpy cells (B-numpy) use `Ttot` instead of turns: `LLMConfig.world['T']` sets it (600 s), and their row is built as in Phase 8 (`harnessMetrics` with `HarnessConfig(channel, budget='time', T, world)`, then `benchMetrics`), plus `teamColumns` and `homeShare`. In these rows `welfare` is the team total and `perAgentSecond` the per-agent measure (Phase 8 names), unlike Phase 10's per agent-turn `welfare`; they live in their own CSV (`followup/numpy/`) and reports label the measure explicitly.
+`LLMConfig` gains `protocol: str = 'events'`, `window: float = 0.0`, `squads: int = 0`, `beta: float = 0.0`. `runLLM` and `runNumpy` call `runTurns` for `'events'` and `runRounds(..., d=window)` for `'rounds'`; with `squads > 0` they build homes (`homeRanges`) and use `TerritoryBandit` (numpy) or `LLMMember(home=...)` (LLM). Rows gain the four fields (through `cellRow`), `homeShare` (when squads are used), `teamWelfare` and `teamRate_k`. Fixed-world-time numpy cells (B-numpy) use `Ttot` instead of turns: `LLMConfig.world['T']` sets it (600 s), and their row is built as in Phase 8 (`harnessMetrics` with `HarnessConfig(channel, budget='time', T, world)`, then `benchMetrics`), plus `teamColumns` and `homeShare`. `benchMetrics`' own study, factor, level and seed placeholders are dropped so that the cell's keys (from `cellRow`) are kept. In these rows `welfare` is the team total and `perAgentSecond` the per-agent measure (Phase 8 names), unlike Phase 10's per agent-turn `welfare`; they live in their own CSV (`followup/numpy/`) and reports label the measure explicitly.
 
 ## 8. Follow-up grids and plan (`explRL/followup_grid.py`)
 
@@ -145,7 +152,7 @@ LLM agents: `LLMMember(..., home=None)`; when `home` is set, `system()` adds "Yo
 | `roundsGrid(beta)` (study `rounds`, seeds 500-502) | foraging, blackboard, N 8, 50 turns, Haiku; arms: rounds (`d` 5), rounds + 4 squads at `beta` | 2 x 3 x 408 | $1-2 |
 | `followupQuick()` | the first cell of each grid at 3 turns (numpy cells at T = 60 s, N 8), fake client | none | none |
 
-`chooseHard(rows)` and `chooseBeta(rows)` implement the frozen rules (requirements FR-D2, FR-D5; `chooseBeta` considers `beta > 0` only); `chooseHard` returns `None` when no setting qualifies. The event-driven baseline for B-LLM is the Phase 10 main-grid foraging/blackboard/N 8 rows on seeds 500-502, read from `results/multiagent/llm/full/runs.csv` (no new call). `FOLLOWUP_PLAN` holds the requirements' analysis table as data, the rules, the seeds, models, settings and `PRICES`; `followupHash()` as `planHash`. `runFollowupCell(cell)` dispatches numpy round cells to `runNumpy` and LLM cells to `runLLMCell`.
+`chooseHard(rows)` and `chooseBeta(rows)` implement the frozen rules (requirements FR-D2, FR-D5; `chooseBeta` considers `beta > 0` only); `chooseHard` returns `None` when no setting qualifies. The event-driven baseline for B-LLM is the Phase 10 main-grid foraging/blackboard/N 8 rows on seeds 500-502, read from `results/multiagent/llm/full/runs.csv` (no new call). `FOLLOWUP_PLAN` holds the requirements' analysis table as data, the rules, the seeds, models, settings and `PRICES`; `followupHash()` as `planHash`. `runFollowupCell` is `llm_grid.runAnyCell` (numpy cells to `runNumpyCell`, LLM cells to `runLLMCell`). Helpers: `FW` (the Phase 10 foraging world), `BETAS`, `SEEDS`.
 
 ## 9. Demos and reports
 

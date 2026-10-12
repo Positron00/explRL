@@ -9,12 +9,12 @@ __all__ = ['CHANNELS', 'SIZES', 'TASKS', 'HAIKU', 'SONNET', 'SETTINGS', 'ANALYSI
            'mainGrid', 'sonnetGrid', 'numpyGrid', 'budgetGrid', 'framingGrid', 'memoryGrid', 'persistGrid', 'liarGrid',
            'pilotGrid', 'quickGrid', 'withClient', 'runAnyCell', 'estimateGrid']
 
-# %% ../nbs/llm_grid.ipynb #eb290d09
+# %% ../nbs/llm_grid.ipynb #783699b9
 import copy
 import hashlib
 import json
 
-from .llm_client import PRICES, TOKEN_PROFILE, estimateCost
+from .llm_budget import PRICES, TOKEN_PROFILE, estimateCost
 from .llm_compare import runNumpyCell
 from .llm_runs import LLMConfig, runLLMCell
 
