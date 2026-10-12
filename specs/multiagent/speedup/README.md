@@ -143,6 +143,12 @@ In Phase 10, Claude Sonnet 5.5 at `effort = low` gave far more wrong answers tha
 
 Measures: welfare, wrong answers, solve rate, output tokens per call; contrast: (Sonnet blackboard benefit minus Haiku's) at N = 4, now at matched effort, next to the low-effort result. Seeds 500-502 reuse the Phase 10 worlds, so effort low vs medium is paired for both models.
 
+## Gate record (task T10, 2026-10-12)
+
+- Offline tasks T1-T9 done: Phase 5-9 baselines identical (before and after the code changes); Phase 10 outputs regenerated once from the cache (no request; every earlier column identical; new reference hashes in Phase 10 `RUN.md`); Phase 8-9 team-rate reruns reproduce every saved column (1 680 and 800 rows, 0 mismatches); the full Phase 10 mode byte-identical at 1, 8 and 32 processes, pooled and grid by grid; full suite passes, and the new modules run offline without `anthropic`.
+- B-numpy ran before the freeze (offline, 17 s): the frozen bias rule picks `beta = inf` for B-LLM. Seeing that, and before any live call, the LLM squad sentence was made to follow the bias (strict "stay and work only there" at `beta = inf`, FR-B5); otherwise a chosen bias would not change what LLM agents are told.
+- **`FOLLOWUP_PLAN` frozen in commit `c64c868`, `followupHash()` = `b5bea39be001`**; prices re-checked on the pricing page the same day (unchanged).
+
 ## Order of work
 
 Details and checks in [tasks.md](tasks.md):
