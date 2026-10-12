@@ -108,7 +108,7 @@ def runGrid(cells, workers=None):
     return sorted((r for rows in out for r in rows), key=rowKey)
 ```
 
-`'spawn'` is used on every platform so runs match on macOS and Linux. `writeCSV` writes the union of keys as columns in sorted order, numbers with `repr`, `nan` and missing as empty; `readCSV` reverses it.
+`'spawn'` is used on every platform so runs match on macOS and Linux. Phase 9 added `runGrid(..., run=runCell)` (any importable runner) and made `confirm` select `study == prereg.get('study', 'main')`; Phase 8's `PREREG`, its hash and its results are unchanged. `writeCSV` writes the union of keys as columns in sorted order, numbers with `repr`, `nan` and missing as empty; `readCSV` reverses it.
 
 **PREREG (FR-13), frozen in T6:**
 

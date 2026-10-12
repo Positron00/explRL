@@ -41,10 +41,10 @@ class Liar(CommBandit):
         if info['kind'] != 'stay': return
         w, loc = self._world, obs['location']
         lie = -w.dangerCost if info['harvest'] > 0 else w.c
-        if isinstance(self.channel, Blackboard): self._report(loc, lie)              # write + log
+        if isinstance(self.channel, Blackboard): self.channel.write(self.id, loc, lie, self._t); self._log(loc, lie)
         elif isinstance(self.channel, MessageBus) and self.channel.due(self.id, self._t):
             own = [(np.mean(r), j) for j, r in enumerate(self.rates) if len(r)]
-            if own: self._send(min(own)[1], w.c)                       # worst own place, sold as the best
+            if own: j = min(own)[1]; self.channel.send(w, self.id, j, w.c, self._t); self._log(j, w.c)   # worst place, sold as best
 
 class FreeRider(CommBandit):
     def act(self, obs):                        # reported-positive locations only, best combined estimate, no bonus
@@ -111,7 +111,7 @@ class DefendedBandit(CommBandit):
         if self._trip == obs['location']: self._trip = None; self._onTrip = True; return obs['location']   # checking stay
         self._onTrip = False
         if self.q > 0 and self.rng.random() < self.q:
-            j = self._checkTarget(obs)         # highest reported value among locations not stayed at in the last Tmove
+            j = self._checkTarget()            # highest reported value among locations not stayed at in the last Tmove
             if j is not None and j != obs['location']:
                 self._trip, self._onTrip = j, True; self.deliberate += 1; return j
         return super().act(obs)
@@ -122,7 +122,7 @@ class DefendedBandit(CommBandit):
         if info['kind'] == 'stay' and self.defence != 'none': self._check(obs['location'], reward / info['dur'])
 ```
 
-`_check(j, r)`: for each other sender `s` with a current report at `j` (blackboard: faded `Ci[s, j] > 0.05`, report `Si[s, j] / Ci[s, j]`; messages: the latest stored report from `s` about `j` within the last `Tmove`), `error = |report - r|`; with `'trust'` update `tau[s]` by the C6 rule; with `'reputation'` and `'sanctions'` call `monitor.record(s, error, t)`. With `defence = 'none'` and `q = 0` no generator is drawn and no weight is applied, so choices equal `CommBandit`'s (AC-1). `DefendedBandit.event` stores each message twice: in `CommBandit`'s value store (read when `defence = 'none'`, which keeps AC-1 exact) and as `(sender, value, t)` per location (read by the defences). It also records the time of its last own stay per location (for `_checkTarget`) and, after `CommBandit.learn` has written or sent, logs that report through `ReportLog`.
+`_check(j, r)`: for each other sender `s` with a current report at `j` (blackboard: faded `Ci[s, j] > 0.05`, report `Si[s, j] / Ci[s, j]`; messages: the latest stored report from `s` about `j` within the last `Tmove`), `error = |report - r|`; with `'trust'` update `tau[s]` by the C6 rule; with `'reputation'` and `'sanctions'` call `monitor.record(s, error, t)`. With `defence = 'none'` and `q = 0` no generator is drawn and no weight is applied, so choices equal `CommBandit`'s (AC-1). `_setup(world)` (called at every event, effective once) creates `tau`, the per-location message store, the last-stay times and the observation store (`rates`), because a spot check on the first event skips `banditAgent.act`, which would otherwise create the store. `DefendedBandit.event` stores each message twice: in `CommBandit`'s value store (read when `defence = 'none'`, which keeps AC-1 exact) and as `(sender, value, t)` per location (read by the defences). It also records the time of its last own stay per location (for `_checkTarget`) and, after `CommBandit.learn` has written or sent, logs that report through `ReportLog`.
 
 | Setting | Default | Meaning |
 |---|---|---|
@@ -186,7 +186,7 @@ Fixed compute (`B = 15 360`), benchmark world, Phase 7 channel defaults, `theta`
 | `h3Grid('full')`, seeds 300-329 | channels (blackboard, messages) x N (8, 16, 32) x (clean, one liar), no defence = 360 |
 | `quick` (each grid), seeds 1000-1001, `B / 10` | attack: blackboard and messages x N 8 x (clean + each kind x 1); defence: blackboard x each defence x (clean, one liar), `q = 0.05`; monitor: blackboard x sanctions x `q` 0.05 x (clean, 25% liars); H3: both channels x N 8 x (clean, one liar) |
 
-Counts: `round(0.10 N)` and `round(0.25 N)` with a minimum of 1 (N = 16: 2 and 4; N = 64: 6 and 16). A cell is a plain dict with `runner='safety'`, `factor` = its grid, `level = f"{kind}x{nBad}|{defence}|q={q}"` and a `SafetyConfig.asDict()`; `runSafetyCell(cell)` runs it. Because `level` carries the attack and defence, Phase 8's `rowKey` keeps every row distinct and `runGrid`'s sort stays deterministic. A defence's cost without attack is read against the attack grid's clean, undefended run on the same seed, channel and size.
+Counts: `round(0.10 N)` and `round(0.25 N)` with a minimum of 1 (N = 16: 2 and 4; N = 64: 6 and 16). A cell is a plain dict with `runner='safety'`, `study` and `factor` = its grid, `level = f"{kind}x{nBad}|{defence}|q={q}"` and a `SafetyConfig.asDict()`; `runSafetyCell(cell)` runs it. Because `level` carries the attack and defence, Phase 8's `rowKey` keeps every row distinct and `runGrid`'s sort stays deterministic. A defence's cost without attack is read against the attack grid's clean, undefended run on the same seed, channel and size.
 
 ## 6. Report (`explRL/safety_report.py`, `explRL/safety_figures.py`)
 
@@ -212,8 +212,8 @@ Counts: `round(0.10 N)` and `round(0.25 N)` with a minimum of 1 (N = 16: 2 and 4
 | H3 | `slow` | `h3Grid('full')`, timed; `confirm(lossRows(rows), PREREG_H3)`; `h3.png` | `safety/h3/` |
 | Exploratory | `sweeps` | attack, defence and monitor grids, timed; the other figures | `safety/full/` |
 
-Long modes use `nbdev-test --cell-timeout 0`. `metrics.json`: mode, `PREREG_H3`, its hash, git commit, deviations, seeds, cells, workers, wall time, and per mode the H3 result or the exploratory summaries.
+Long modes use `nbdev-test --cell-timeout 0`. `metrics.json`: `mode`, `cells`, `workers`, `wallSeconds`, `seeds`, `preregHash`, `gitCommit`, `prereg` (`PREREG_H3`), `deviations`, `theta`, `figures`, `h3` (the `confirm` result in quick and h3 modes, else null) and `tables` (every summary table, keys joined with `/`).
 
 ## 8. Determinism and speed
 
-Every cell seeds its world, members, message generators (`seed + 2000`) and check generators (`seed + 3000`); rows are sorted by key, so the CSV does not depend on the number of workers. Pilot cost (seeds 1000-1011): about 1.7 CPU-seconds per run with private trust. Estimate: exploratory grids about 2 480 runs, roughly 70-90 CPU-minutes, about 10-12 minutes on 8 processes; H3 360 runs at sizes up to 32, about 1 minute. T5 measures the cost per event of `DefendedBandit` (the weighted read adds one `(n x L)` product per event).
+Every cell seeds its world, members, message generators (`seed + 2000`) and check generators (`seed + 3000`); rows are sorted by key, so the CSV does not depend on the number of workers. Pilot cost (seeds 1000-1011): about 1.7 CPU-seconds per run with private trust. Estimate: exploratory grids about 2 480 runs, roughly 70-90 CPU-minutes, about 10-12 minutes on 8 processes; H3 360 runs at sizes up to 32, about 1 minute. T5 measures the cost per event of `DefendedBandit` (the weighted read adds one `(n x L)` product per event). **Measured:** 64 agents with sanctions and `q = 0.05`, fixed compute: 63 µs per event; H3 (360 runs) 59 s; exploratory grids (2 480 runs) 570 s on 8 processes.
