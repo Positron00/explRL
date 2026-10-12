@@ -73,4 +73,4 @@ Clean runs with sanctions and `q = 0.05`, blackboard and messages, N = 16 and 64
 
 **Deviation from the draft rule, before freezing:** none of the drafted candidates (0.5-1.5) met the rule; at those values honest agents are sanctioned in every clean run, because harvest noise (0.45), crowding and patch moves make an honest report differ from a later check by up to about 2. The candidate list was extended to 3.0 with the rule unchanged; **`theta = 2.5`** is the smallest value with no false sanction in any clean run. Lies at patches and danger sites differ from a check by 3.45, so they still count as strikes; a liar's "c at an empty spot" (error 0.85) cannot be told from honest noise. H3 does not depend on `theta`. Liars on the message channel are revoked far less often (about 0.1-0.3), since few of their messages are checked.
 
-Pre-registration frozen: `PREREG_H3` hash `PREREG_HASH`, commit `PREREG_COMMIT`.
+Pre-registration frozen: `PREREG_H3` hash `a44617201f88`, commit `cae6b3a`.
