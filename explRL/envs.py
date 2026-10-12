@@ -7,17 +7,17 @@ Docs: https://Positron00.github.io/explRL/envs.html.md"""
 # %% auto #0
 __all__ = ['World', 'HeadingArena', 'ZoneArena']
 
-# %% ../nbs/envs.ipynb #8b4131ba
+# %% ../nbs/envs.ipynb #bd5ac214
 import numpy as np
 
 
-# %% ../nbs/envs.ipynb #4323480e
+# %% ../nbs/envs.ipynb #18b8b3e7
 class World:
     def __init__(self, size=None):
         self.size = size
 
 
-# %% ../nbs/envs.ipynb #f66b1919
+# %% ../nbs/envs.ipynb #5260d28b
 class HeadingArena(World):
     '''Circular arena with a goal heading and Eq. 19 reward.'''
     def __init__(self, goal: float = np.pi):
@@ -36,7 +36,7 @@ class HeadingArena(World):
         return new, self.reward(new)
 
 
-# %% ../nbs/envs.ipynb #778256f0
+# %% ../nbs/envs.ipynb #bc602599
 class ZoneArena(World):
     '''Arena with safe/danger zones on an N-step heading grid (degrees at centers).'''
     def __init__(self, N=32, symmetric=True, centers=(90, 270), width=90):

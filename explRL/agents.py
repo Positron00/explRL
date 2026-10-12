@@ -7,13 +7,13 @@ Docs: https://Positron00.github.io/explRL/agents.html.md"""
 # %% auto #0
 __all__ = ['Policy', 'flexiblePolicy', 'RL', 'Agent', 'Step', 'flexibleAgent', 'PolicyGradientRL']
 
-# %% ../nbs/agents.ipynb #765d827d
+# %% ../nbs/agents.ipynb #1e11dbbc
 import math
 from dataclasses import dataclass
 import numpy as np
 
 
-# %% ../nbs/agents.ipynb #d9145f09
+# %% ../nbs/agents.ipynb #63084a79
 class Policy:
     '''This Policy Class specifies a general architecture. '''
     def __init__(self):
@@ -21,7 +21,7 @@ class Policy:
         self.actions = None
         self.pi = None
 
-# %% ../nbs/agents.ipynb #2c018f0a
+# %% ../nbs/agents.ipynb #868fb191
 class flexiblePolicy(Policy):
     '''This flexiblePolicy Class specifies a fully flexible policy with a set of basis functions
     and a learnable set of weights. '''
@@ -32,7 +32,7 @@ class flexiblePolicy(Policy):
         self.wParams = wParams
         self.integ = float(integ)
 
-# %% ../nbs/agents.ipynb #b6dff47f
+# %% ../nbs/agents.ipynb #d3e73201
 class RL:
     '''This RL Class performs reinforcement learning: after taking an action, update parameters
     based on feedback from the environment.
@@ -46,7 +46,7 @@ class RL:
     def updateParams(self):
         raise NotImplementedError
 
-# %% ../nbs/agents.ipynb #4606cffb
+# %% ../nbs/agents.ipynb #30ec6c10
 class Agent:
     '''This Class specifies agents with a defined policy and reinforcement learning algorithm. '''
     def __init__(self,theta,goal,policy,rl,params):
@@ -61,7 +61,7 @@ class Agent:
     def samplePolicy(self):
         raise NotImplementedError("Override me")
 
-# %% ../nbs/agents.ipynb #c45802d2
+# %% ../nbs/agents.ipynb #8887301d
 @dataclass
 class Step:
     "One policy sample: a 1-sample fixation or a saccade lasting `dtS` samples."
@@ -75,7 +75,7 @@ class Step:
     dt: int           # duration in samples (1 or dtS)
 
 
-# %% ../nbs/agents.ipynb #eefb84e9
+# %% ../nbs/agents.ipynb #bb3e8606
 class flexibleAgent(Agent):
     "Agent whose fixations and saccades depend on heading through a `flexiblePolicy` (paper Algorithm 2)."
     def __init__(self, theta, goal, policy, rl, params, rng=None):
@@ -142,7 +142,7 @@ class flexibleAgent(Agent):
         return self.rng.random() < p
 
 
-# %% ../nbs/agents.ipynb #b88dd9a9
+# %% ../nbs/agents.ipynb #b4ffc57b
 class PolicyGradientRL(RL):
     "Online policy-gradient learning for `flexibleAgent` (paper Eqs. 13-18, Algorithm 1)."
     def __init__(self, policy, lr=1.0, eps=1e-12):

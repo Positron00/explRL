@@ -7,14 +7,14 @@ Docs: https://Positron00.github.io/explRL/members.html.md"""
 # %% auto #0
 __all__ = ['FlexibleMember', 'PrestructuredMember', 'CircuitMember']
 
-# %% ../nbs/members.ipynb #a5f6a026
+# %% ../nbs/members.ipynb #d4338555
 import math
 
 from .circuit import goalStats
 from .multi import Member, Outcome
 from .prestructured import wrap
 
-# %% ../nbs/members.ipynb #e6194452
+# %% ../nbs/members.ipynb #2de9f25a
 class FlexibleMember(Member):
     "One 1 ms fixation sample or one saccade of a `flexibleAgent` in a `HeadingArena` (time in samples)."
     timeUnit = 'sample'
@@ -32,7 +32,7 @@ class FlexibleMember(Member):
         return Outcome(step.dt, 'saccade' if step.saccade else 'fixation', new_theta, r,
                        (step.theta, step.saccade, step.dt, r))
 
-# %% ../nbs/members.ipynb #c642d895
+# %% ../nbs/members.ipynb #26b3cb9c
 class PrestructuredMember(Member):
     "One fixation, saccade and possible jump of a `prestructuredAgent` in a `HeadingArena` (seconds)."
     timeUnit = 's'
@@ -50,7 +50,7 @@ class PrestructuredMember(Member):
         ag.theta, ag.thetaC = wrap(thetaA1), ev.thetaC_next
         return Outcome(ev.fixDur + p.tS, 'event', ag.theta, r, row)
 
-# %% ../nbs/members.ipynb #33b17ab1
+# %% ../nbs/members.ipynb #bb118b0d
 class CircuitMember(Member):
     "One saccade (learning at each grid step), possible jump and fixation of a `circuitAgent` in a `ZoneArena`."
     timeUnit = 's'

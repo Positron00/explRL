@@ -31,7 +31,7 @@ version = {attr = "explRL.__version__"}
 include = ["explRL"]
 
 [tool.nbdev]
-tst_flags = "notest slow"
+tst_flags = "notest slow sweeps"
 lib_path = "explRL"
 nbs_path = "nbs"
 doc_path = "_docs"

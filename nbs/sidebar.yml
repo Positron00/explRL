@@ -29,3 +29,10 @@ website:
       - harness_runs.ipynb
       - demo_harness.ipynb
       - credit.ipynb
+      - bench_metrics.ipynb
+      - bench_stats.ipynb
+      - episodes.ipynb
+      - bench_grid.ipynb
+      - bench_report.ipynb
+      - bench_figures.ipynb
+      - demo_bench.ipynb

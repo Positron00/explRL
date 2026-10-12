@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/harness.html.md"""
 # %% auto #0
 __all__ = ['Blackboard', 'MessageBus', 'Lead']
 
-# %% ../nbs/harness.ipynb #4cbb2d3c
+# %% ../nbs/harness.ipynb #4cd03ab1
 from collections import defaultdict, deque
 
 import numpy as np
@@ -50,6 +50,16 @@ class Blackboard:
             self.count[loc] += 1
             self.tRef = t
         self.stats[i]['written'] += 1
+
+    def rebase(self, t):
+        "Move the time origin to t: entries keep their ages; later calls may start again from 0."
+        if self.K is None:
+            self._age(t)
+        else:
+            if t < self.tRef:
+                raise ValueError('time went backwards')
+            self.Tw = self.Tw - t
+        self.tRef = 0.0
 
     def _clean(self, S, C):
         S, C = S.copy(), C.copy()

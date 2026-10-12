@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/harness_runs.html.md"""
 __all__ = ['HarnessConfig', 'benchWorld', 'circuitWorld', 'worldTime', 'makeChannel', 'makeTeam', 'netHarvest', 'harnessMetrics',
            'runHarness', 'rangeCheck']
 
-# %% ../nbs/harness_runs.ipynb #43afeb19
+# %% ../nbs/harness_runs.ipynb #19fd1b6e
 from dataclasses import asdict, dataclass, field
 from typing import Optional
 
@@ -19,9 +19,9 @@ from .core import loadCircuitAgent
 from .harness import Blackboard, Lead, MessageBus
 from .harness_agents import CircuitCommMember, CommBandit, LeadFollower
 from .multi import runTeam, spawnRngs
-from .patchworld import TeamPatchWorld, ringLayout
+from .patchworld import TeamPatchWorld, ringLayout, torusLayout
 from .team_agents import randomAgent
-from .team_refs import (coverage, dangerShare, gini, idealFree, ifdDistance, ledgerArrays, occupancy,
+from .team_refs import (coverage, dangerShare, gini, idealFree, ifdDistanceTies, ledgerArrays, occupancy,
                         socialOptimum, timeToIFD, welfare, welfareLoss)
 
 
@@ -60,8 +60,9 @@ class HarnessConfig:
 
 
 def benchWorld(**overrides):
-    L, travel = overrides.pop('L', 64), overrides.pop('travelScale', 0.48)   # plain values, so configs stay JSON
-    kw = dict(layout=ringLayout(L, travelScale=travel), nPatches=16, nDanger=8, model='fixed',
+    L, travel, shape = overrides.pop('L', 64), overrides.pop('travelScale', 0.48), overrides.pop('shape', 'ring')
+    layout = ringLayout(L, travel) if shape == 'ring' else torusLayout(int(round(L ** 0.5)), travel)   # plain values
+    kw = dict(layout=layout, nPatches=16, nDanger=8, model='fixed',
               intake=(0.8, 1.6, 2.4, 3.2) * 4, Tmove=40.0, noise=0.45, dangerCost=2.6, c=0.85)
     kw.update(overrides)
     return TeamPatchWorld(**kw)
@@ -123,7 +124,7 @@ def harnessMetrics(cfg, world, hist, channel, members, N, T):
     if cfg.agent != 'circuit':
         times, counts = occupancy(L, N, world.nPatches, T)
         n_ifd, _ = idealFree(world, N)
-        d = ifdDistance(counts, n_ifd, N)
+        d = ifdDistanceTies(counts, n_ifd, world.intake, N)
         moves = [k * world.Tmove for k in range(1, int(T // world.Tmove) + 1) if k * world.Tmove < T] if world.Tmove else []
         _, y_so = socialOptimum(world, N)
         out.update(coverage=coverage(counts), dangerShare=dangerShare(L, world.danger, N, T),
@@ -141,7 +142,8 @@ def harnessMetrics(cfg, world, hist, channel, members, N, T):
         S, C = channel.table.view(-1, T)
         out['leadView'] = dict(S=S.tolist(), C=C.tolist())
     elif cfg.agent == 'circuit':
-        out['estimates'] = [goalStats(m.agent.policy.wG) for m in members]
+        out['estimates'] = [{**goalStats(m.agent.policy.wG), 'a': int(m.agent.a), 'c': int(m.agent.c),
+                             'nCirc': int(m.agent.params.nCirc)} for m in members]
     return out
 
 

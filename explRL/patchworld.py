@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/patchworld.html.md"""
 # %% auto #0
 __all__ = ['Layout', 'ringLayout', 'torusLayout', 'TeamPatchWorld']
 
-# %% ../nbs/patchworld.ipynb #2017328b
+# %% ../nbs/patchworld.ipynb #40714d8b
 from dataclasses import dataclass
 
 import numpy as np
@@ -44,7 +44,7 @@ def torusLayout(side=8, travelScale=0.5) -> Layout:
     return Layout('torus', pos, dist, dist * travelScale)
 
 
-# %% ../nbs/patchworld.ipynb #afd206fb
+# %% ../nbs/patchworld.ipynb #575dbc4e
 class TeamPatchWorld:
     def __init__(self, layout, nPatches=4, nDanger=4, model='fixed', intake=(0.5, 1.0, 1.5, 2.0),
                  K=100.0, g=0.2, Smin=1.0, c=1.0, tStay=1.0, dangerCost=1.0, Tmove=120.0, noise=0.0,

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/prestructured_train.html.md"""
 # %% auto #0
 __all__ = ['EventHistory', 'train_prestructured', 'relHeading', 'readout', 'heldGoal', 'runManyPrestructured']
 
-# %% ../nbs/prestructured_train.ipynb #a360efd6
+# %% ../nbs/prestructured_train.ipynb #f4377052
 from dataclasses import dataclass
 import numpy as np
 from .prestructured import angdiff
@@ -15,7 +15,7 @@ from .members import PrestructuredMember
 from .multi import runTeam
 
 
-# %% ../nbs/prestructured_train.ipynb #75ee42c1
+# %% ../nbs/prestructured_train.ipynb #fafd3e86
 @dataclass
 class EventHistory:
     "Per-event record of one run; headings are radians, times seconds."
@@ -29,7 +29,7 @@ class EventHistory:
     thetaG: np.ndarray     # goal heading after the update
 
 
-# %% ../nbs/prestructured_train.ipynb #a9e5f4c4
+# %% ../nbs/prestructured_train.ipynb #fbcf6a02
 def train_prestructured(agent, env, Ttot=None) -> EventHistory:
     "Run events (fixation + saccade) until simulated time reaches Ttot (default params.Ttot), as a one-member team."
     Ttot = agent.params.Ttot if Ttot is None else Ttot
@@ -40,7 +40,7 @@ def train_prestructured(agent, env, Ttot=None) -> EventHistory:
                         np.asarray(cols[5], dtype=bool), *(np.asarray(c) for c in cols[6:]))
 
 
-# %% ../nbs/prestructured_train.ipynb #1ead0106
+# %% ../nbs/prestructured_train.ipynb #9ba83e08
 def relHeading(thetaA, goal):
     "Arena heading minus goal, in degrees in [-180, 180); positive means clockwise of the goal."
     return np.rad2deg(angdiff(thetaA, goal))
@@ -58,7 +58,7 @@ def readout(history, goal, nBins=24) -> dict:
     return dict(centers=(edges[:-1] + edges[1:]) / 2, fixDur=fix, turnBias=bias, count=count)
 
 
-# %% ../nbs/prestructured_train.ipynb #7bf95c70
+# %% ../nbs/prestructured_train.ipynb #cd839cc9
 def heldGoal(history, thetaG0, times, tS):
     "Goal heading in effect at each time: thetaG0 until the first update, then held between updates (each at its event's end)."
     tUpd = history.t + history.fixDur + tS
@@ -66,7 +66,7 @@ def heldGoal(history, thetaG0, times, tS):
     return np.where(idx < 0, thetaG0, history.thetaG[np.clip(idx, 0, None)])
 
 
-# %% ../nbs/prestructured_train.ipynb #470a44c2
+# %% ../nbs/prestructured_train.ipynb #7965d926
 def runManyPrestructured(params, goal, nRuns, seed=0, Ttot=None, learn=True, thetaG0=None):
     "Independent runs (seed + i); each returns history, readout, starting goal heading and jump rate."
     from explRL.core import loadPrestructuredAgent, loadEnv
