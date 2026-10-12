@@ -45,7 +45,7 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 
 ## Live runs
 
-Live sections make API calls only with `EXPLRL_LLM_LIVE=1`; every request is checked against the $150 cap (`CAP` in the demo; shared ledger `results/multiagent/llm/spend.jsonl`) and cached (`results/multiagent/llm/cache/`). The long modes need `--cell-timeout 0`.
+Live sections make API calls only with `EXPLRL_LLM_LIVE=1`; every request is checked against the $150 cap (`CAP` in the demo; shared ledger `results/multiagent/llm/spend.jsonl`) and cached (`results/multiagent/llm/cache/`). The long modes need `--cell-timeout 0`. Since the [speedup work](../speedup/RUN.md), live workloads run through `llm_sched.runWorkload` at `LLM_WORKERS = 32` processes (one pool, longest runs first, a cap check with margins) and write `timing.jsonl`; outputs are byte-identical to before.
 
 | Command | What it runs | Measured |
 |---------|--------------|----------|
@@ -77,6 +77,7 @@ Run it on a clean worktree (`git worktree add --detach <dir> HEAD`): every `nbde
 ## Related
 
 - Phase 9 run guide: [../phase9/RUN.md](../phase9/RUN.md)
+- Speedup and follow-up runs: [../speedup/RUN.md](../speedup/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)
 - Demo notebook: [nbs/demo_llm.ipynb](../../../nbs/demo_llm.ipynb)
 - The plan's write-up (Phases 8-10, from saved results, no rerun): `nbdev-test --n-workers 0 nbs/demo_multiagent.ipynb` writes [results/multiagent/REPORT.md](../../../results/multiagent/REPORT.md) and `results/multiagent/report/*.png` (it skips if the saved results are missing)

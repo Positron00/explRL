@@ -35,13 +35,28 @@ Loss of honest agents' welfare as the share of liars grows. On the blackboard an
 
 ![llm](report/llm.png)
 
-Claude Haiku 5.5 teams of 1-8, 50 turns per agent, 5 seeds; 47988 API calls, $33.50 in all (cap $150); analysis plan hash `83df7591d1de`.
+Claude Haiku 5.5 teams of 1-8, 50 turns per agent, 5 seeds; 47988 API calls, $40.60 in all (cap $150); analysis plan hash `83df7591d1de`.
 
 - **Task board:** without a channel, welfare per agent-turn falls from 0.99 [0.84, 1.07] (alone) to 0.35 [0.30, 0.38] at N = 8 (duplicate work); the claim blackboard's benefit grows with size (+0.23, +0.46, +0.60 at N = 2, 4, 8).
 - **Text foraging:** no harness helps reliably; at N = 8 the blackboard costs -0.34 [-0.48, -0.13], with less exploration and lower belief diversity: the herding side of H2.
 - **Numpy predicts LLM?** Spearman rho over the 16 (harness, size) cells: board 0.75 [0.55, 0.93], foraging 0.02 [-0.47, 0.45].
 - **Stronger model (Claude Sonnet 5.5, board, N 1 and 4):** harness benefit minus Haiku's: blackboard -0.03 [-0.08, 0.01], messages -0.09 [-0.17, 0.04], lead -0.12 [-0.30, 0.01]: smaller at N = 4 but unclear overall, and confounded by Sonnet's many more wrong answers at low effort.
 - **Tokens as compute:** at an equal budget of 200 agent-turns, two agents did best; splitting further did not pay. Prompt-only changes (team or credit framing, persistent notes) did nothing clear; notes-only memory hurt.
+
+## 5. Team totals (post hoc)
+
+![team](report/team.png)
+
+Per-agent welfare must fall when patches have limited capacity; the team total shows whether more agents still add food. At fixed compute the two rank teams identically (the total is per-agent welfare times a constant). At fixed world time (Phase 8) the blackboard team's total grows from 164 [159, 169] with one agent to 4383 [4337, 4428] at N = 16 and 10545 [10400, 10687] at N = 64, against 7832 [7801, 7865] without a channel at N = 64. On the Phase 10 task board each added agent still adds value with the claim board (marginal gain 46.2 per added agent from 4 to 8) but much less without one (9.6).
+
+## 6. Follow-up runs after Phase 10 (exploratory)
+
+- **Hard board (D1):** paused. Claude Haiku 5.5 solved 91-98% of the puzzles it opened even at difficulty 10 and 12, so no level reached the planned 30-70% band; the puzzles are to be redesigned.
+- **Model size at matched effort (D2):** Sonnet's blackboard benefit minus Haiku's at N = 4: effort low -0.10 [-0.15, -0.02], effort medium -0.01 [-0.09, 0.15].
+- **Rounds and soft territories, numpy (B-numpy):** at N = 8, squads that stay home earn 0.115 [0.101, 0.128] more per agent-second than the event-driven team; synchronous rounds alone cost welfare at every size, and at 32-64 agents no squad arm comes back to the event-driven level.
+- **Rounds and squads, LLM (B-LLM, N = 8):** rounds minus event-driven -0.03 [-0.36, 0.37]; squads minus rounds -0.03 [-0.60, 0.48] (welfare per agent-turn).
+
+Details: `specs/multiagent/speedup/README.md`, `results/multiagent/followup/*/report.md`.
 
 ## Limitations
 

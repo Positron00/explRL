@@ -1,6 +1,6 @@
 # Plan: faster live runs and follow-up experiments (after Phase 10)
 
-Status: **plan accepted by the user (2026-10-12); spec drafted**, not implemented. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) (its frozen results are not changed; everything new here is exploratory and labelled so).
+Status: **implemented** (2026-10-12), except D1 main, paused by the user after its pilot (no puzzle level in the 30-70% band; to be redesigned). Results below (all exploratory); run guide: [RUN.md](RUN.md). Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) (its frozen results are not changed; everything new here is exploratory and labelled so).
 
 ## Files in this spec
 
@@ -11,7 +11,7 @@ Status: **plan accepted by the user (2026-10-12); spec drafted**, not implemente
 | [design-high-level.md](design-high-level.md) | Modules, data flow, main decisions, risks |
 | [design-low-level.md](design-low-level.md) | Signatures, algorithms, grids and costs, demos and reports |
 | [tasks.md](tasks.md) | Ordered tasks T1-T13 with "done when" checks |
-| RUN.md | Written in the last task |
+| [RUN.md](RUN.md) | Tests, workloads, artifacts, regression |
 
 ## Goal and parts
 
@@ -149,6 +149,19 @@ Measures: welfare, wrong answers, solve rate, output tokens per call; contrast: 
 - B-numpy ran before the freeze (offline, 17 s): the frozen bias rule picks `beta = inf` for B-LLM. Seeing that, and before any live call, the LLM squad sentence was made to follow the bias (strict "stay and work only there" at `beta = inf`, FR-B5); otherwise a chosen bias would not change what LLM agents are told.
 - **`FOLLOWUP_PLAN` frozen in commit `c64c868`, `followupHash()` = `b5bea39be001`**; prices re-checked on the pricing page the same day (unchanged).
 
+## D1 pilot and rate-limit probe (task T11, 2026-10-12)
+
+360 live calls (Haiku 5.5), $0.18, 243 s at 32 processes (only 12 runs, so 12 busy), 1.5 calls/s, mean 5.2 s per call (p90 9.5 s), **0 retries**: no sign of rate limits at this load; `LLM_WORKERS` stays at 32 for the main workload (30 runs, all concurrent).
+
+| Difficulty | `maxTokens` | Solve rate (solved / opened) | Wrong answers | `max_tokens` stops | Output tokens per call |
+|---|---|---|---|---|---|
+| 10 | 8 000 | 0.93 (41 / 44) | 1 | 1.1% | 1 040 |
+| 10 | 16 000 | 0.91 (39 / 43) | 3 | 0% | 1 089 |
+| 12 | 8 000 | 0.98 (44 / 45) | 0 | 0% | 743 |
+| 12 | 16 000 | 0.96 (43 / 45) | 1 | 0% | 771 |
+
+**No level qualified** (FR-D2: 30-70%): this puzzle family does not get hard enough for Claude Haiku 5.5, which solves almost everything it opens even at difficulty 12 (13 operations, answers below 204 800) and rarely answers wrongly. Per the frozen rule the user decided (2026-10-12): **D1 is paused; the puzzles are to be redesigned in a later spec revision** (for example multi-step subtasks, tighter expiry, or a task family with real failure rates). D2 and B-LLM run as planned.
+
 ## Order of work
 
 Details and checks in [tasks.md](tasks.md):
@@ -159,6 +172,28 @@ Details and checks in [tasks.md](tasks.md):
 4. Follow-up grids, reports, the quick demo and B-numpy; then `FOLLOWUP_PLAN` frozen and committed (T10, the gate).
 5. Live: D1 pilot and rate-limit probe (T11); D1 main, D2 and B-LLM in one workload (T12).
 6. Reports and docs, including `REPORT.md` with team totals (T13).
+
+## Results (2026-10-12; exploratory)
+
+**Part A (faster live runs).** Phase 10's full mode, from the cache, gives byte-identical outputs at 1, 8 and 32 processes, pooled and grid by grid. Live, the follow-up workload (5 448 calls, 30 runs) took 1 318 s at 32 processes, **4.1 calls/s against 1.3 for Phase 10's main runs**, with 0 retries; its wall time was set by the longest runs (200 sequential calls per 4-agent board run), as the plan's model predicts. (The per-model latency summary of this live run was overwritten by its cached rerun; the D1 pilot's is kept: Haiku board calls 5.2 s mean, 9.5 s p90.)
+
+**Part C (team totals).** Phase 10 outputs regenerated once from the cache with `teamWelfare` and `teamRate_k` (no request; earlier columns identical); Phase 8-9 reruns reproduce all 2 480 saved rows exactly. At fixed world time a Phase 8 blackboard team's total grows from 164 (one agent) to 4 383 (16) and 10 545 (64), against 7 832 without a channel at 64; on the Phase 10 board each agent added from 4 to 8 brings 46 more value with the claim board but only 10 without (`results/multiagent/REPORT.md`, section 5).
+
+**D1 (hard board).** Paused: no level qualified (solve rates 0.91-0.98 at difficulty 10 and 12; see the pilot above).
+
+**D2 (model size at matched effort; board, N = 4, seeds 500-502).** The blackboard's benefit: Haiku 0.45 (low effort) and 0.42 (medium); Sonnet 0.34 (low) and 0.42 (medium). Sonnet minus Haiku: **-0.10 [-0.15, -0.02] at low effort, -0.01 [-0.09, 0.15] at medium**. The smaller benefit for the stronger model seen in Phase 10 disappears once both reason at the same effort; Sonnet still answered wrongly more often (4.3 vs 0.8 wrong answers per run at medium; 10.6 vs 1.0 at low). So these runs give no evidence that the coordination harness becomes less useful with a stronger model (3 seeds, directional).
+
+**B-numpy (rounds and squads; N 8-64, 10 seeds, 17 s).** Synchronous rounds of 5 s cost welfare at every size (per agent-second: -0.017 at N = 8, -0.073 at N = 64): agents in a round do not see each other's same-round reports. Soft territories on top of rounds help small teams, more the stronger the home bias: at N = 8 from -0.017 (bias 0) to **+0.115 [0.101, 0.128] over the event-driven team at bias infinity** (squads that never leave home: 0.315 vs 0.200 per agent-second); at N = 16 only infinite bias gains (+0.042); at N = 32 and 64 no squad arm reaches the event-driven level. The frozen rule chose `beta = inf` for B-LLM.
+
+**B-LLM (rounds and strict squads; text foraging, blackboard, N = 8, Haiku, seeds 500-502).** Rounds minus event-driven: -0.03 [-0.36, 0.37] welfare per agent-turn; strict squads minus rounds: -0.03 [-0.60, 0.48]. LLM agents told to stay home did so (home share 1.00) and spent more of their turns exploring (+0.08 [0.02, 0.11]), but their welfare did not change measurably (wide intervals, 3 seeds). The numpy result (territories help at N = 8) does not carry over clearly to LLM agents. Wall time per run was not recorded per run (the timing records have no timestamps); the workload's wall time is above.
+
+Spend: $0.18 (pilot) + $7.01 (main) = **$7.19**; total for Phase 10 and the follow-ups **$40.60 of the $150 cap**.
+
+### The figures in plain language
+
+- **`followup/numpy/rounds.png`: does splitting agents into home areas help?** Each line is a team size; along the bottom, from left: the normal way of acting one after another, acting in rounds, then squads with a stronger and stronger pull toward their home area. For 8 agents (blue) the line climbs steadily: the more they stick to their own area, the better they do. For 32 and 64 agents the lines stay below the first point: big teams do best acting the normal way.
+- **`followup/full/effort.png`: does the bigger model need the shared board less?** The first four bars are how much the shared board helped each model at each effort setting; the last two are the difference between the models. At low effort the bigger model gained less (bar below zero); at medium effort the difference is about zero: the earlier gap came from the bigger model answering carelessly at low effort, not from needing less help.
+- **`followup/full/team_total.png` and `REPORT.md`'s `team.png`: does a bigger team still add up?** Lines show the whole team's harvest piling up over time, or the team's total by team size. Per-agent scores fall as teams grow because food is limited, but the team totals keep rising, much more steeply with a shared board.
 
 ## Decisions
 

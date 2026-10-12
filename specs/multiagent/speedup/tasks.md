@@ -1,6 +1,6 @@
 # Tasks: faster live runs and follow-up experiments
 
-Status: not started (spec drafted 2026-10-12).
+Status: done (2026-10-12) except D1 main (T12), paused by the user after the D1 pilot found no qualifying level; see the README.
 
 Rules for every task:
 
