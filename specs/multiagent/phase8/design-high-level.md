@@ -13,7 +13,7 @@ The plan named `explRL/bench.py` and a report generator. They are split to keep 
 | `nbs/bench_stats.ipynb` -> `explRL/bench_stats.py` | new | `bootCI`, `signFlipP`, `holm`, `cohenDz`, `scalingFit` |
 | `nbs/bench_grid.ipynb` -> `explRL/bench_grid.py` | new | `Cell`, `mainGrid`, `sideSweeps`, `runCell`, `runGrid`, `writeCSV`, `readCSV`, `PREREG`, `confirm` |
 | `nbs/episodes.ipynb` -> `explRL/episodes.py` | new | `LevelBandit`, `runEpisodes`, `episodeRow` |
-| `nbs/bench_report.ipynb` -> `explRL/bench_report.py` | new | summaries from rows (`byN`, `slopes`, `sweepTable`, `teamOptimal`, `studyB`) and the `report.md` text |
+| `nbs/bench_report.ipynb` -> `explRL/bench_report.py` | new | summaries from rows (`byN`, `perSize`, `slopes`, `sweepTable`, `circuitTable`, `teamOptimal`, `studyB`) and the `report.md` text |
 | `nbs/bench_figures.ipynb` -> `explRL/bench_figures.py` | new | figures (`mainFigures`, `sweepFigures`); split from `bench_report` to stay under 200 lines |
 | `nbs/demo_harness.ipynb` | changed | its IFD series uses `ifdDistanceTies` (FR-2) |
 | `nbs/demo_bench.ipynb` | new | quick grid (normal tests), main grid (`slow`), sweeps and studies (`sweeps`) |

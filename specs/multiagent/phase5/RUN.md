@@ -53,6 +53,7 @@ To regenerate the golden fixtures (only on purpose; the script refuses to overwr
 
 - Phase 6 team world: [phase6/RUN.md](../phase6/RUN.md)
 - Phase 7 harness: [phase7/RUN.md](../phase7/RUN.md)
+- Phase 8 benchmark: [phase8/RUN.md](../phase8/RUN.md)
 - Flexible-policy demo (Fig 2d-e): [specs/demo/RUN.md](../../demo/RUN.md)
 - Pre-structured setpoint policy (Fig 2h): [specs/prestructured/RUN.md](../../prestructured/RUN.md)
 - Circuit model (Figs 3-5): [specs/circuit/RUN.md](../../circuit/RUN.md)

@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/bench_metrics.html.md"""
 __all__ = ['NAN', 'SCALARS', 'periods', 'recovery', 'trueRates', 'beliefs', 'goalSpread', 'discoveryRows', 'discoveries',
            'freeRiding', 'findTime', 'overlap', 'followTime', 'benchMetrics']
 
-# %% ../nbs/bench_metrics.ipynb #264e428c
+# %% ../nbs/bench_metrics.ipynb #216e0e8b
 import numpy as np
 
 from .team_refs import idealFree, ifdDistanceTies, ledgerArrays, occupancy

@@ -1,6 +1,6 @@
 # Spec: Phase 8, benchmark and eval suite
 
-Status: **in progress** (2026-10-11). T1-T5, T7 and T6 (calibration, pre-registration frozen) done; the confirmatory run (T9) comes next. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phase 7: [../phase7/README.md](../phase7/README.md).
+Status: **implemented** (2026-10-11). Results below; how to run: [RUN.md](RUN.md). Part of the multi-agent plan: [../README.md](../README.md). Builds on Phase 7: [../phase7/README.md](../phase7/README.md).
 
 ## Goal
 
@@ -24,7 +24,7 @@ Phase 8 adds no new channels and no bad agents (Phase 9), and no language models
 | [design-high-level.md](design-high-level.md) | Modules, data flow, main decisions and rejected alternatives, risks |
 | [design-low-level.md](design-low-level.md) | Classes, signatures, metric and statistic formulas, grid definitions, defaults, demo layout |
 | [tasks.md](tasks.md) | Ordered tasks with "done when" checks |
-| RUN.md | Written in the last task (T11), same layout as the other RUN files |
+| [RUN.md](RUN.md) | How to run the tests, the benchmark modes and the regression checks |
 
 ## What Phase 7 gives us (the facts the design depends on)
 
@@ -76,3 +76,30 @@ AC-8 rule (smallest `delta` that `none` at N = 16 reaches in at least 25% of per
 `cLevel` (study B, `strategy` arm, N = 16, seeds 1000-1002, 12 episodes; episodes 4-11): at 0.03 the levels lock in (with `beta` 0 every agent ends on the same level, spread 0.00); at 0.3 agents keep switching (level stability 0.14 with `beta` 0, 0.34 with `beta` 1); at **0.1** they settle (stability 0.48 and 0.63) while still differing (last-episode spread 0.18 and 0.47). Kept at 0.1.
 
 Pre-registration frozen: `PREREG` hash `8a59293847ae`, commit `e98e238`.
+
+
+## Results (2026-10-11)
+
+### Confirmatory (T9; main grid, seeds 100-129, run once on the frozen `PREREG`)
+
+1 680 runs in 280 s on 8 processes. Each test: blackboard minus `none`, fixed compute, per-seed mean over the listed sizes, 30 seeds.
+
+| Test | Mean difference [95% CI] | dz | Holm p | Verdict |
+|---|---|---|---|---|
+| P: welfare per agent-second (sizes 2-64) | +0.091 [0.088, 0.093] | 10.9 | 0.0003 | **supported** |
+| H1: restricted mean recovery time, s (sizes 4-64) | -7.5 [-8.1, -7.0] | -5.0 | 0.0003 | **supported** (faster) |
+| H2: belief diversity (sizes 4-64) | -0.109 [-0.111, -0.108] | -25.1 | 0.0003 | **supported** (lower) |
+
+0.0003 is the smallest Holm-adjusted p the 10 000-flip test can give. The CSV re-analysis reproduces these numbers exactly. No deviations from the pre-registration.
+
+### Exploratory
+
+- **Scaling (welfare per agent-second; fixed compute / fixed world time):** with one or two agents all channels are equal. At fixed compute, independent bandits collapse as the team grows (`none`: 0.48 at N = 4 to 0.07 at N = 64; each agent's run is short and early exploration, which now pays the danger cost, dominates), while the blackboard holds up (0.48 to 0.27). At fixed world time the blackboard rises to 0.46 at N = 16 while `none` slowly declines (0.27 to 0.20). `messages` tracks `none` within 0.02 everywhere. The lead is worst at small sizes (up to 16 agents at fixed compute, up to 8 at fixed world time) and lies between `none` and the blackboard at larger sizes.
+- **Study A (team-optimal exploration):** best `cUCB` for the blackboard is 1.0, 0.5 and 2.0 at N = 4, 16, 64; for `none` 1.0, 0.5, 0.5. With 64 agents sharing a board, more exploration than the default pays (2.0: 0.298 vs 0.279); without sharing, less does (0.5: 0.129 vs 0.070).
+- **Reward schemes:** team reward breaks bandit learning at every size (negative welfare at N = 64); difference reward is equal to or slightly above individual at N = 4-16 (blackboard 0.500 vs 0.473 at N = 4) and mostly slightly below at 64.
+- **Evaporation:** the blackboard does best at `lam` 0.01-0.03 for 16-64 agents and collapses at 0.1 for large teams (N = 64: 0.042); the lead prefers little or no fading (`lam` 0.003 at N = 4, 0 at 16 and 64).
+- **Memory:** a window of one entry (`K = 1`) hurts bandit teams at N = 4 and 16 (blackboard, N = 4: 0.250 vs 0.473) but helps independent bandits at N = 64 (`none` 0.090 vs 0.070, `messages` 0.078 vs 0.065) and the lead at small sizes (N = 4: 0.387 vs 0.246); `K = 10` helps independent bandits at N = 16 (0.390 vs 0.349), because the world moves and old stays mislead.
+- **Communication range:** no effect on `messages` (all within 0.01).
+- **Torus layout:** slightly better for small teams, worse for the blackboard at N = 64 (0.203 vs 0.279).
+- **Circuit teams (zone ring, fixed world time):** channels do not help (`none` is best at N = 4 and 16) and, unlike bandits, they raise the spread of goal headings (N = 4: 1.13 rad without a channel, 1.46 with the blackboard).
+- **Study B (persistence and credit, 12 episodes, last 4):** at N = 64 the best fixed level is 2.0 (0.311 vs 0.275 at 1.0). Learning the level across episodes **with** discovery credit closes 45% of that gap (0.291); without credit it ends below the default (-29%, 0.264). Persisting the map as well hurts (-69% and -97%), as the negative control predicted. At N = 16 the default level is already best (no gap to close). Level stability is higher with credit (0.68 vs 0.23 at N = 64).

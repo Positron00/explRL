@@ -59,4 +59,5 @@ rc = rangeCheck({ch: HarnessConfig(channel=ch) for ch in ('none', 'blackboard', 
 ## Related
 
 - Phase 6 team world: [../phase6/RUN.md](../phase6/RUN.md)
+- Phase 8 benchmark: [../phase8/RUN.md](../phase8/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)

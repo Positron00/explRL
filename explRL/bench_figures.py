@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/bench_figures.html.md"""
 # %% auto #0
 __all__ = ['mainFigures', 'sweepFigures']
 
-# %% ../nbs/bench_figures.ipynb #6d89f02f
+# %% ../nbs/bench_figures.ipynb #467e7c0d
 import matplotlib.pyplot as plt
 import numpy as np
 

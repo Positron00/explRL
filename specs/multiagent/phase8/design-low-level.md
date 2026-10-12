@@ -193,7 +193,7 @@ for e in range(episodes):
 
 ## 6. Report (`explRL/bench_report.py`, `explRL/bench_figures.py`)
 
-`bench_report`: `byN`, `slopes`, `sweepTable`, `teamOptimal`, `studyB` (summaries from rows) and `report(meta, conf, slope, table, opt, sb) -> str`. `bench_figures`: `mainFigures(rows, conf, prereg)` (scaling, confirmatory, recovery, beliefs, secondary) and `sweepFigures(table, opt, sb)` (sweeps, study B; study A's numbers are the `cUCB` and `scheme` panels of `sweeps.png` and the report's tables):
+`bench_report`: `byN`, `perSize`, `slopes`, `sweepTable`, `circuitTable`, `teamOptimal`, `studyB` (summaries from rows) and `report(meta, conf, slope, table, opt, sb, sizes, circ) -> str`. `bench_figures`: `mainFigures(rows, conf, prereg)` (scaling, confirmatory, recovery, beliefs, secondary) and `sweepFigures(table, opt, sb)` (sweeps, study B; study A's numbers are the `cUCB` and `scheme` panels of `sweeps.png` and the report's tables):
 
 | Figure | Content |
 |---|---|

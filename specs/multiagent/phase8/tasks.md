@@ -1,6 +1,6 @@
 # Tasks: Phase 8, benchmark and eval suite
 
-Status: in progress. Done: T1, T2, T3, T4, T5, T7, T6.
+Status: **done** (2026-10-11). All tasks complete; results in [README.md](README.md).
 
 Tasks run in the order of the diagram below; T7 comes before T6 because T6 needs it (the numbers are kept, since the README and requirements refer to T6 as the gate).
 
