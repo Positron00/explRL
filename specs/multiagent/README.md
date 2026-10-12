@@ -1,6 +1,6 @@
 # Plan: multi-agent RL, harnesses and benchmarks (Phases 5-10)
 
-Status: **active plan** (2026-10-11, revised). **Phases 5 and 6 implemented** ([phase5/](phase5/README.md), [phase6/](phase6/README.md)); **Phase 7 implemented**, harness check passed ([phase7/](phase7/README.md)); **Phase 8 implemented**, its three pre-registered tests supported ([phase8/](phase8/README.md)); **Phase 9 implemented**, H3 supported ([phase9/](phase9/README.md)); **Phase 10 implemented**, LLM agents on text foraging and a task board, exploratory ([phase10/](phase10/README.md)); the plan's deliverable written ([REPORT](../../results/multiagent/REPORT.md), `nbs/demo_multiagent.ipynb`).
+Status: **active plan** (2026-10-11, revised). **Phases 5 and 6 implemented** ([phase5/](phase5/README.md), [phase6/](phase6/README.md)); **Phase 7 implemented**, harness check passed ([phase7/](phase7/README.md)); **Phase 8 implemented**, its three pre-registered tests supported ([phase8/](phase8/README.md)); **Phase 9 implemented**, H3 supported ([phase9/](phase9/README.md)); **Phase 10 implemented**, LLM agents on text foraging and a task board, exploratory ([phase10/](phase10/README.md)); the plan's deliverable written ([REPORT](../../results/multiagent/REPORT.md), `nbs/demo_multiagent.ipynb`). Next: [faster live runs and follow-up experiments](speedup/README.md) (accepted plan, spec drafted: faster scheduling, team-total metrics, synchronous rounds and soft-territory squads, a hard-board run, model size at matched effort).
 
 ## Why
 
