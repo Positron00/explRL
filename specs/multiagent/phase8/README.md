@@ -75,4 +75,4 @@ AC-8 rule (smallest `delta` that `none` at N = 16 reaches in at least 25% of per
 
 `cLevel` (study B, `strategy` arm, N = 16, seeds 1000-1002, 12 episodes; episodes 4-11): at 0.03 the levels lock in (with `beta` 0 every agent ends on the same level, spread 0.00); at 0.3 agents keep switching (level stability 0.14 with `beta` 0, 0.34 with `beta` 1); at **0.1** they settle (stability 0.48 and 0.63) while still differing (last-episode spread 0.18 and 0.47). Kept at 0.1.
 
-Pre-registration frozen: `PREREG` hash `PREREG_HASH`, commit `PREREG_COMMIT`.
+Pre-registration frozen: `PREREG` hash `8a59293847ae`, commit `e98e238`.
