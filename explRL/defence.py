@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/defence.html.md"""
 # %% auto #0
 __all__ = ['Monitor', 'DefendedBandit']
 
-# %% ../nbs/defence.ipynb #ad992b5e
+# %% ../nbs/defence.ipynb #67113c43
 from collections import deque
 
 import numpy as np

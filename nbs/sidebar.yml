@@ -36,3 +36,10 @@ website:
       - bench_report.ipynb
       - bench_figures.ipynb
       - demo_bench.ipynb
+      - adversary.ipynb
+      - defence.ipynb
+      - safety_runs.ipynb
+      - safety_grid.ipynb
+      - safety_report.ipynb
+      - safety_figures.ipynb
+      - demo_safety.ipynb

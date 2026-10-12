@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/team_agents.html.md"""
 # %% auto #0
 __all__ = ['PatchMember', 'randomAgent', 'banditAgent', 'CircuitPatchMember']
 
-# %% ../nbs/team_agents.ipynb #c1f0d7e8
+# %% ../nbs/team_agents.ipynb #90677d57
 from collections import deque
 
 import numpy as np
