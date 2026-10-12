@@ -1,4 +1,4 @@
-"""The Claude API client for Phase 10: one structured-output request per turn, an on-disk response cache (the only source of exact reruns), a spending cap shared across processes, and an offline `FakeClient`. Only this module imports `anthropic`, and only when a live client is built.
+"""The Claude API client for Phase 10: one structured-output request per turn, an on-disk response cache (the only source of exact reruns), a spending cap shared across processes, and the git-ignored `.env.local` loader (the offline `FakeClient` is in `llm_fake`). Only this module imports `anthropic`, and only when a live client is built.
 
 Docs: https://Positron00.github.io/explRL/llm_client.html.md"""
 
@@ -6,18 +6,17 @@ Docs: https://Positron00.github.io/explRL/llm_client.html.md"""
 
 # %% auto #0
 __all__ = ['PRICES', 'TOKEN_PROFILE', 'USAGE', 'BudgetExceeded', 'loadEnvFile', 'costOf', 'estimateCost', 'requestKey',
-           'LLMReply', 'ResponseCache', 'Budget', 'LLMClient', 'FakeClient']
+           'LLMReply', 'ResponseCache', 'Budget', 'LLMClient']
 
-# %% ../nbs/llm_client.ipynb #7971d2ec
+# %% ../nbs/llm_client.ipynb #6efe183d
 import fcntl
 import hashlib
 import json
 import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from types import SimpleNamespace
 
-PRICES = {   # $ per million tokens (Haiku: prompts up to 100K tokens), from the pricing page 2026-10-12; re-checked in T9
+PRICES = {   # $ per million tokens (Haiku: prompts up to 100K tokens), from the pricing page 2026-10-12 (pilot, T7)
     'claude-haiku-5-5': dict(input=0.10, output=0.50, cacheWrite=0.125, cacheRead=0.01, checked='2026-10-12'),
     'claude-sonnet-5-5': dict(input=2.00, output=10.00, cacheWrite=2.50, cacheRead=0.10, checked='2026-10-12'),
 }
@@ -189,27 +188,10 @@ class LLMClient:
             self.pending = 0.0
         reply = LLMReply.fromResponse(self.client.messages.create(**req), self.prices[self.model])
         self.calls += 1
+        if self.budget is not None:         # charge what this call cost
+            self.budget.add(reply.cost, self.model)
         if self.cache is not None:          # a concurrent identical request may have stored its reply first: use that
             reply = LLMReply(**self.cache.put(key, reply.asDict()))
-        if self.budget is not None:
-            self.budget.add(reply.cost, self.model)
         return reply
 
 
-class FakeClient:
-    """Offline stand-in with the `messages.create` surface: `script(request) -> dict(text, stop, refusal, usage)` or a
-    list of such dicts (or plain texts) used in turn. Usage defaults to a deterministic size estimate."""
-    def __init__(self, script):
-        self.script, self.requests = script, []
-        self.messages = SimpleNamespace(create=self._create)
-
-    def _create(self, **req):
-        self.requests.append(req)
-        r = self.script(req) if callable(self.script) else self.script[(len(self.requests) - 1) % len(self.script)]
-        r = dict(text=r) if isinstance(r, str) else dict(r)
-        text = r.get('text', '')
-        usage = {**dict(input_tokens=len(json.dumps(req)) // 4, cache_creation_input_tokens=0, cache_read_input_tokens=0,
-                        output_tokens=max(1, len(text) // 4)), **r.get('usage', {})}
-        details = SimpleNamespace(category=r.get('refusal')) if r.get('stop') == 'refusal' else None
-        return SimpleNamespace(content=[SimpleNamespace(type='text', text=text)], stop_reason=r.get('stop', 'end_turn'),
-                               stop_details=details, usage=SimpleNamespace(**usage))

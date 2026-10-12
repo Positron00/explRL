@@ -27,7 +27,8 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 
 | Command | What it checks | Time |
 |---------|----------------|------|
-| `nbdev-test --n-workers 0 nbs/llm_client.ipynb` | request shape, response cache (first writer wins), budget and run reservation, `.env.local` loader, imports without `anthropic`, no key-like strings (AC-2) | ~2 s |
+| `nbdev-test --n-workers 0 nbs/llm_client.ipynb` | request shape, response cache (first writer wins, charge of the call made), budget and run reservation, `.env.local` loader, imports without `anthropic`, no key-like strings (AC-2) | ~2 s |
+| `nbdev-test --n-workers 0 nbs/llm_fake.ipynb` | `FakeClient` scripts; `fakeReply` gives parseable actions for both tasks and beliefs | ~2 s |
 | `nbdev-test --n-workers 0 nbs/taskboard.ipynb` | puzzles and checker, schedule, scoring, penalties, reward schemes, social optimum (AC-4) | ~2 s |
 | `nbdev-test --n-workers 0 nbs/board_agents.ipynb` | claim board, lead, numpy board agent; channels cut duplicate work | ~3 s |
 | `nbdev-test --n-workers 0 nbs/llm_env.ipynb` | text foraging: rules, observation, parsing, same ledger as direct moves, channels (AC-3) | ~2 s |
@@ -39,6 +40,7 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 | `nbdev-test --n-workers 0 nbs/llm_report.ipynb` | summaries and report provenance | ~3 s |
 | `nbdev-test --n-workers 0 nbs/llm_figures.ipynb` | figures | ~3 s |
 | `nbdev-test --n-workers 0 nbs/demo_llm.ipynb` | quick demo with the fake client: every grid, all artifacts, under 30 s, same CSV for 1 and 8 workers, no key-like strings (AC-6) | ~3 s |
+| `nbdev-test --n-workers 0 nbs/demo_multiagent.ipynb` | the plan's write-up from saved results (skips if they are missing) | ~3 s |
 | `nbdev-test --n-workers 0` | full suite | ~1 min |
 
 ## Live runs
@@ -48,7 +50,7 @@ Live sections make API calls only with `EXPLRL_LLM_LIVE=1`; every request is che
 | Command | What it runs | Measured |
 |---------|--------------|----------|
 | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags llm_pilot nbs/demo_llm.ipynb` | the pilot (stage 1, then stages 1 and 2) | round 2: 695 calls, $1.04, about 15 min |
-| `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_llm.ipynb` | main, Sonnet, equal-budget, liar, framing, memory and persistence grids, then the numpy cells | 47 988 calls, $32.68, 10.6 h (8 processes) |
+| `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_llm.ipynb` | main, Sonnet, equal-budget, liar, framing, memory and persistence grids, then the numpy cells | 47 988 calls (45 809 live), $31.94 charged, 10.6 h (8 processes) |
 
 **Reruns are free and exact only with the cache.** With `results/multiagent/llm/cache/` present, rerunning either mode sends no request (the ledger does not grow), takes about 10 s for the full mode, and writes byte-identical `runs.csv` and `turns.jsonl` (AC-9, checked twice). Without the cache, live reruns differ (these models take no sampling parameters). The cache (about 50 000 small JSON files) is gitignored; keep a copy to reproduce the results. The results recorded in [README.md](README.md) are against the frozen `ANALYSIS_PLAN` (hash `83df7591d1de`, commit `ce9d661`).
 

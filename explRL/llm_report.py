@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/llm_report.html.md"""
 __all__ = ['NAN', 'mainTable', 'harnessBenefit', 'sizeContrast', 'armTable', 'budgetTable', 'interfaceTable', 'summaries',
            'writeReport']
 
-# %% ../nbs/llm_report.ipynb #2c60da11
+# %% ../nbs/llm_report.ipynb #0b189ae5
 import math
 
 import numpy as np
@@ -87,8 +87,8 @@ def armTable(rows):
     "Each arm's difference from its control cell, paired on seed (and episode), with bootstrap CIs."
     fr = lambda lv: _sel(rows, study='framing', level=lv)
     out = {f'framing {lv} - own': _stat(_paired(fr(lv), fr('own'), 'welfare')) for lv in ('team', 'credit')}
-    out.update({f'framing {lv} - own: exploreShare': _stat(_paired(fr(lv), fr('own'), 'exploreShare'))
-                for lv in ('team', 'credit')})
+    out.update({f'framing {lv} - own: {m}': _stat(_paired(fr(lv), fr('own'), m))
+                for m in ('exploreShare', 'reportShare', 'freeRiding') for lv in ('team', 'credit')})
     out.update({f'memory {m} - full': _stat(_paired(_sel(rows, study='memory', level=m), fr('own'), 'welfare'))
                 for m in ('last8', 'notes')})
     p = lambda lv: [r for r in _sel(rows, study='persist', level=lv) if int(_f(r['episode'])) == 3]
@@ -149,7 +149,8 @@ def writeReport(path, S, meta):
          f"- Prices ($ per million tokens, checked {meta['pricesChecked']}): " +
          '; '.join(f"{m}: in {p['input']}, out {p['output']}, cache read {p['cacheRead']}, cache write {p['cacheWrite']}"
                    for m, p in meta['prices'].items()),
-         f"- Total cost: ${meta['cost']:.2f} of the ${meta['cap']:.0f} cap; calls {meta['calls']}, cache hits "
+         f"- Cost: ${meta['cost']:.2f} for these runs' replies (a reply served from the cache counts at its original cost); "
+         f"${meta.get('spent', 0.0):.2f} charged in all (spend ledger) of the ${meta['cap']:.0f} cap; calls {meta['calls']}, cache hits "
          f"{meta['cacheHits']}; wall time {meta['wall']:.0f} s", '',
          '## Welfare per agent-turn (main grid, mean [95% CI])', '', '| task | channel | N | welfare | invalid share |',
          '|---|---|---|---|---|']

@@ -44,6 +44,7 @@ website:
       - safety_figures.ipynb
       - demo_safety.ipynb
       - llm_client.ipynb
+      - llm_fake.ipynb
       - taskboard.ipynb
       - board_agents.ipynb
       - llm_env.ipynb

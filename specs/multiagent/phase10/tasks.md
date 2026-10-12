@@ -1,6 +1,6 @@
 # Tasks: Phase 10, language-model agents (Claude API)
 
-Status: all tasks done (2026-10-12): credentials from the git-ignored `.env.local`; pilot in two rounds; main runs 47 988 calls, $32.68; cached reruns byte-identical; deliverable written. See the README.
+Status: all tasks done (2026-10-12): credentials from the git-ignored `.env.local`; pilot in two rounds; main runs 47 988 calls (45 809 live), $31.94 charged; cached reruns byte-identical; deliverable written. See the README.
 
 Rules for every task:
 
@@ -25,26 +25,26 @@ flowchart LR
 
 ## T2. Packaging and API client
 - **Files**: `pyproject.toml` (extra `llm`, test flags); new `nbs/llm_client.ipynb` (exports `explRL/llm_client.py`).
-- **What**: `PRICES`, `TOKEN_PROFILE` (provisional), `estimateCost`, `LLMReply`, `ResponseCache`, `Budget`, `BudgetExceeded`, `LLMClient`, `FakeClient` (section 2).
+- **What**: `PRICES`, `TOKEN_PROFILE` (provisional), `estimateCost`, `LLMReply`, `ResponseCache`, `Budget`, `BudgetExceeded`, `LLMClient`, `FakeClient` (section 2; `FakeClient` later moved to `llm_fake.py` with `fakeReply` to keep `llm_client` under 200 lines; `loadEnvFile` added for `.env.local`).
 - **Tests**: **AC-2**; the package imports without `anthropic` (run the notebook's tests in an environment without it, or with the import blocked); cache files and the spend ledger contain no key-like strings.
 
 ## T3. Task board
-- **Files**: new `nbs/taskboard.ipynb` (exports `explRL/taskboard.py`).
-- **What**: `makePuzzle`, `TaskBoardEnv` (with the three reward schemes), `ClaimBoard`, `BoardLead`, `TaskBoardSim`, `socialOptimum` (section 4).
+- **Files**: new `nbs/taskboard.ipynb`, `nbs/board_agents.ipynb` (export `explRL/taskboard.py`, `explRL/board_agents.py`).
+- **What**: `makePuzzle`, `TaskBoardEnv` (with the three reward schemes, `socialOptimum`, `duplicateTurns`), `TaskBoardSim`; `ClaimBoard`, `BoardLead`, `BoardBandit` (section 4).
 - **Tests**: **AC-4**; a puzzle's stated answer satisfies its checker at every difficulty; `TaskBoardSim` with solve rate 1 and one agent solves every task it opens.
 
 ## T4. Text foraging
-- **Files**: new `nbs/llm_env.ipynb` (exports `explRL/llm_env.py`).
-- **What**: `locationNames`, `TextForagingEnv`, the two schemas, `parseForage`, `parseBoard` (section 3).
+- **Files**: new `nbs/llm_env.ipynb`, `nbs/llm_board.ipynb` (export `explRL/llm_env.py`, `explRL/llm_board.py`).
+- **What**: `locationNames`, `TextForagingEnv`, `TextBoardEnv` (each with `rules`, `observe`, `parse`, `post`, `explored`, `summary`), the two schemas (section 3).
 - **Tests**: **AC-3**; the rules text is at least 512 tokens by a conservative character estimate (the prompt-cache minimum).
 
 ## T5. Agents
 - **Files**: new `nbs/llm_agent.ipynb` (exports `explRL/llm_agent.py`).
-- **What**: `LLMMember`, `ScriptedLiarText`, `elicitBeliefs`, `runTurns` (section 5).
+- **What**: `LLMMember`, `BoardLiar`, `ScriptedLiarText`, `elicitBeliefs`, `runTurns` (section 5).
 - **Tests**: **AC-5**; every agent makes exactly its turn budget; with the same `FakeClient` script, two runs give identical logs.
 
 ## T6. Runs, grids and the quick demo
-- **Files**: new `nbs/llm_runs.ipynb`, `nbs/llm_grid.ipynb`, `nbs/demo_llm.ipynb` (quick section), `nbs/sidebar.yml`.
+- **Files**: new `nbs/llm_runs.ipynb`, `nbs/llm_compare.ipynb`, `nbs/llm_grid.ipynb`, `nbs/demo_llm.ipynb` (quick section), `nbs/sidebar.yml`.
 - **What**: `LLMConfig`, `runLLM`, `runLLMCell`, `runNumpy`, `runNumpyCell`, `compareNumpy`, the grids, `numpyGrid`, `estimateGrid`, a provisional `ANALYSIS_PLAN` (sections 6, 7, 9).
 - **Tests**: **AC-6**; `estimateGrid` reproduces the section 7 call counts; `runNumpyCell` runs a numpy cell of each task.
 - **Done when**: tests pass; the estimated cost of every grid is printed with the provisional token profile.
@@ -57,7 +57,7 @@ flowchart LR
 - **Done when**: **AC-7**: the choices and measurements are recorded in the README; *(check)* marks removed; `ANALYSIS_PLAN` final; spec, code and README committed, with the commit and the plan hash written into the README.
 
 ## T8. Report
-- **Files**: new `nbs/llm_report.ipynb` (and a figures notebook if needed); `nbs/demo_llm.ipynb` (pilot and main sections).
+- **Files**: new `nbs/llm_report.ipynb`, `nbs/llm_figures.ipynb`; `nbs/demo_llm.ipynb` (pilot and main sections).
 - **What**: summaries, figures and `report.md` (FR-14, section 9).
 - **Tests**: the quick demo writes every artifact with fake data; the report shows the plan hash, the models, the prices with their date and the cost.
 
@@ -70,7 +70,7 @@ flowchart LR
   - rerun `--flags llm` with the cache present: no live request, zero cost, byte-identical outputs (**AC-9**);
   - run the full suite (with and without `anthropic` installed) and every baseline from T1 (**AC-1**);
   - write `specs/multiagent/phase10/RUN.md`; set this spec's status to implemented with the results and a plain-language figure guide; mark Phase 10 done in [../README.md](../README.md) with decisions Q6 and Q7, and write the plan's deliverable (`nbs/demo_multiagent.ipynb`, `results/multiagent/REPORT.md`; decision L20) from the saved Phase 8-10 results, without rerunning anything;
-  - link `nbs/demo_llm.ipynb` and `RUN.md` from `nbs/index.ipynb`, `README.md` and the other multi-agent `RUN.md` files.
+  - link `nbs/demo_llm.ipynb`, `RUN.md`, `nbs/demo_multiagent.ipynb` and `REPORT.md` from `nbs/index.ipynb`, `README.md` and the other multi-agent `RUN.md` files.
 - **Done when**: all checks pass and the docs are updated.
 
 ## Acceptance criteria to task map

@@ -2,25 +2,28 @@
 
 ## Components
 
-The plan named `explRL/llm_env.py` and `explRL/llm_agent.py`. The client, the task board, the text board, runs, the numpy comparison, reporting and figures get their own modules to keep each file under 200 lines.
+The plan named `explRL/llm_env.py` and `explRL/llm_agent.py`. The client, the offline stand-ins, the task board, the text board, runs, the numpy comparison, reporting and figures get their own modules to keep each file under 200 lines.
 
 | Module | New / changed | Contents |
 |---|---|---|
-| `nbs/llm_client.ipynb` -> `explRL/llm_client.py` | new | `LLMClient`, `LLMReply`, `ResponseCache`, `Budget`, `BudgetExceeded`, `PRICES`, `TOKEN_PROFILE`, `estimateCost`, `FakeClient` |
+| `nbs/llm_client.ipynb` -> `explRL/llm_client.py` | new | `LLMClient`, `LLMReply`, `ResponseCache`, `Budget`, `BudgetExceeded`, `PRICES`, `TOKEN_PROFILE`, `estimateCost`, `costOf`, `requestKey`, `loadEnvFile` |
+| `nbs/llm_fake.ipynb` -> `explRL/llm_fake.py` | new | `FakeClient`, `fakeReply` (offline stand-ins) |
 | `nbs/taskboard.ipynb` -> `explRL/taskboard.py` | new | `Puzzle`, `makePuzzle`, `TaskBoardEnv` (world protocol, rewards, references), `TaskBoardSim` (numpy solve-probability version) |
 | `nbs/board_agents.ipynb` -> `explRL/board_agents.py` | new | `ClaimBoard`, `BoardLead`, `BoardBandit` (the numpy board agent) |
 | `nbs/llm_env.ipynb` -> `explRL/llm_env.py` | new | `locationNames`, `TextForagingEnv` (rules, observation, parsing, reports), the two action schemas |
 | `nbs/llm_board.ipynb` -> `explRL/llm_board.py` | new | `TextBoardEnv`: the task board behind the same text interface |
 | `nbs/llm_agent.ipynb` -> `explRL/llm_agent.py` | new | `LLMMember` (prompt rendering, memory, reports, turn log), `elicitBeliefs`, `BoardLiar`, `ScriptedLiarText`, `runTurns` (turn-limited event loop) |
-| `nbs/llm_runs.ipynb` -> `explRL/llm_runs.py` | new | `LLMConfig`, `setup`, `taskMetrics`, `llmStats`, `runLLM`, `fakeReply`, `makeClient`, `cellRow`, `runLLMCell` |
+| `nbs/llm_runs.ipynb` -> `explRL/llm_runs.py` | new | `LLMConfig`, `setup`, `taskMetrics`, `llmStats`, `runLLM`, `makeClient`, `cellRow`, `runLLMCell` |
 | `nbs/llm_compare.ipynb` -> `explRL/llm_compare.py` | new | `runNumpy`, `runNumpyCell`, `rankAvg`, `spearman`, `compareNumpy` |
 | `nbs/llm_grid.ipynb` -> `explRL/llm_grid.py` | new | `SETTINGS`, `ANALYSIS_PLAN`, `planHash`, the grids, `numpyGrid`, `quickGrid`, `GRIDS`, `withClient`, `runAnyCell`, `estimateGrid` |
 | `nbs/llm_report.ipynb` -> `explRL/llm_report.py` | new | summaries and `report.md` |
 | `nbs/llm_figures.ipynb` -> `explRL/llm_figures.py` | new | the five figures |
 | `nbs/demo_llm.ipynb` | new | quick (fake client), pilot (`llm_pilot`), main grids and arms (`llm`) |
+| `nbs/demo_multiagent.ipynb` | new | the plan's write-up (decision L20): `results/multiagent/REPORT.md` and `results/multiagent/report/*.png` from the saved Phase 8-10 results |
+| `.gitignore` | changed | `.env.local`, `.env.*.local` |
 | `pyproject.toml` | changed | optional extra `llm = ['anthropic']`; `tst_flags` gains `llm llm_pilot` |
 
-Import rule: only `llm_client` imports `anthropic`, and only inside `LLMClient.__init__` when no transport is given, so `import explRL` and every offline test work without it. `taskboard` imports `multi`; `board_agents` imports `harness`, `multi`, `taskboard`, `team_agents`; `llm_env` imports `harness`, `board_agents`; `llm_board` imports `harness`, `board_agents`, `llm_env`; `llm_agent` imports `multi`, `harness`, `board_agents`, `adversary` (the liar rule); `llm_runs` imports `llm_client`, `llm_agent`, `llm_env`, `llm_board`, `taskboard`, `board_agents`, `harness`, `harness_runs`, `bench_metrics`, `bench_grid` (`rowKey`), `multi`, `team_refs`; `llm_compare` imports `llm_runs`, `llm_agent`, `board_agents`, `harness_runs`, `adversary`, `multi`; `llm_grid` imports `llm_runs`, `llm_compare`, `llm_client`; `llm_report` imports `bench_stats`, `llm_compare`; `llm_figures` imports `llm_report` and `matplotlib`. No module imports a demo.
+Import rule: only `llm_client` imports `anthropic`, and only inside `LLMClient.__init__` when no transport is given, so `import explRL` and every offline test work without it. `taskboard` imports `multi`; `board_agents` imports `harness`, `multi`, `taskboard`, `team_agents`; `llm_env` imports `harness`, `board_agents`; `llm_board` imports `harness`, `board_agents`, `llm_env`; `llm_agent` imports `multi`, `harness`, `board_agents`, `adversary` (the liar rule); `llm_fake` imports nothing from the package; `llm_runs` imports `llm_client`, `llm_fake`, `llm_agent`, `llm_env`, `llm_board`, `taskboard`, `board_agents`, `harness`, `harness_runs`, `bench_metrics`, `bench_grid` (`rowKey`), `multi`, `team_refs`; `llm_compare` imports `llm_runs`, `llm_agent`, `board_agents`, `harness_runs`, `adversary`, `multi`; `llm_grid` imports `llm_runs`, `llm_compare`, `llm_client`; `llm_report` imports `bench_stats`, `llm_compare`; `llm_figures` imports `llm_report` and `matplotlib`. No module imports a demo.
 
 ## Data flow
 
@@ -28,7 +31,7 @@ Import rule: only `llm_client` imports `anthropic`, and only inside `LLMClient._
 flowchart LR
   G[llm_grid: cells] --> P[bench_grid.runGrid<br/>run = runLLMCell, one process per episode]
   P --> R[runLLMCell -> runLLM]
-  R --> T[runTeam: event queue]
+  R --> T[runTurns: event queue, turn budgets]
   T -->|"event"| M[LLMMember]
   M -->|"render prompt"| C[LLMClient]
   C -->|"key = sha256(request)"| K[(ResponseCache)]
@@ -65,9 +68,9 @@ flowchart LR
 |---|---|---|
 | Costs higher than estimated (long prompts, thinking tokens) | Cap reached before the grids finish | Pilot measures tokens per turn; estimate checked per run before sending; grids ordered by priority (main text foraging and task board first); prompt caching; `effort = low` |
 | Rate limits | Slow runs, retries | SDK retries 429 and 5xx; concurrency configurable; the cache makes interrupted runs resumable at no cost |
-| The task board is too easy or too hard | No dynamic range | Pilot sets the difficulty for a 30-70% solo solve rate (plan Q7) |
+| The task board is too easy or too hard | No dynamic range | Pilot sets the difficulty for a 30-70% solo solve rate (plan Q7). Outcome: no level reached the band (Haiku 5.5 solves or runs out of tokens); difficulty 8 at solve rate 0.89, so the board tests duplicate work |
 | Invalid actions dominate | Measures the interface, not coordination | Structured outputs; invalid-action rate reported per cell; pilot tunes the prompt until it is low |
 | Live nondeterminism | Results not reproducible live | The response cache; 5 seeds; variance reported |
 | Model-size result underpowered (3 seeds) | Wide CIs | Stated as directional (plan part 2) |
-| Prices or model behaviour change | Estimates wrong | Prices dated in config and re-checked in T7 and T9; model IDs fixed in config |
-| An API key leaks | Security | Key only from the environment or SDK profile; never logged, cached or written; a test checks the cache and logs contain no key-like strings |
+| Prices or model behaviour change | Estimates wrong | Prices dated in config and re-checked in T7 (the main runs followed the same day); model IDs fixed in config |
+| An API key leaks | Security | Key only from the environment, the SDK profile or the git-ignored `.env.local`; never logged, cached or written; tests check the cache, the ledger and the quick outputs for key-like strings |

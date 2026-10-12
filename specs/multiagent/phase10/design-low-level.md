@@ -4,12 +4,12 @@ The pilot (task T7, 2026-10-12; results in the README) fixed the provisional set
 
 ## 1. Packaging
 
-`pyproject.toml`: `[project.optional-dependencies] llm = ['anthropic']` (`pip install -e ".[llm]"`); `tst_flags = "notest slow sweeps llm llm_pilot"`. `explRL/__init__.py` imports nothing from Phase 10, and `llm_client` imports `anthropic` only inside `LLMClient.__init__`, so the package and all offline tests work without it (AC-1).
+`pyproject.toml`: `[project.optional-dependencies] llm = ['anthropic']` (`pip install -e ".[llm]"`); `tst_flags = "notest slow sweeps llm llm_pilot"`. `explRL/__init__.py` imports nothing from Phase 10, and `llm_client` imports `anthropic` only inside `LLMClient.__init__`, so the package and all offline tests work without it (AC-1). `.gitignore` ignores `.env.local` (and `.env.*.local`), where the API key may be kept.
 
-## 2. API client (`explRL/llm_client.py`)
+## 2. API client (`explRL/llm_client.py`) and offline stand-ins (`explRL/llm_fake.py`)
 
 ```python
-PRICES = {   # $ per million tokens; checked 2026-10-06 (claude-api reference); re-checked in T7 and T9
+PRICES = {   # $ per million tokens, from the pricing page 2026-10-12 (pilot, T7); first set 2026-10-06
     'claude-haiku-5-5':  dict(input=0.10, output=0.50, cacheWrite=0.125, cacheRead=0.01, checked='2026-10-12'),  # prompts <= 100K
     'claude-sonnet-5-5': dict(input=2.00, output=10.00, cacheWrite=2.50, cacheRead=0.10, checked='2026-10-12'),  # reads 0.05x input
 }
@@ -41,18 +41,19 @@ class LLMClient:
         self.pending = 0.0
         resp = self.client.messages.create(**req)
         reply = LLMReply.fromResponse(resp, self.prices[self.model])
-        self.cache.put(key, reply.asDict())
-        self.budget.add(reply.cost)
-        return reply
+        self.budget.add(reply.cost)                            # what this call cost
+        return LLMReply(**self.cache.put(key, reply.asDict())) # the stored reply (first writer wins)
 ```
 
-`LLMReply.fromResponse`: `stopReason = resp.stop_reason`; when it is `'refusal'`, `refusal = resp.stop_details.category` and `parsed = None`; when `'max_tokens'`, `parsed = None`; otherwise `parsed = json.loads(first text block)` (`None` on a decode error). `usage` keeps `input_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`, `output_tokens` (thinking tokens are billed as output). `cost = sum(tokens x price) / 1e6`. A reply served from the cache keeps the cost of the call that produced it (so a rerun's rows are byte-identical) but is not charged to the budget; `cached` marks it for the caller only. `ResponseCache.put` stores a reply only if its key is absent (first writer wins, through a hard link) and returns the stored reply, which the live call then returns: two processes sending the same request at once both use one reply.
+`LLMReply.fromResponse`: `stopReason = resp.stop_reason`; when it is `'refusal'`, `refusal = resp.stop_details.category` and `parsed = None`; when `'max_tokens'`, `parsed = None`; otherwise `parsed = json.loads(first text block)` (`None` on a decode error). `usage` keeps `input_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`, `output_tokens` (thinking tokens are billed as output). `cost = sum(tokens x price) / 1e6`. A reply served from the cache keeps the cost of the call that produced it (so a rerun's rows are byte-identical) but is not charged to the budget; `cached` marks it for the caller only. `ResponseCache.put` stores a reply only if its key is absent (first writer wins, through a hard link) and returns the stored reply, which the live call then returns: two processes sending the same request at once both use one reply, and each is charged the cost of the call it actually made.
 
-`ResponseCache(dir)`: one JSON file per key (`dir/ab/cdef....json`), written atomically (temporary file, then rename); stores the reply dict only (no headers, no credentials). Default `results/multiagent/llm/cache/` (gitignored).
+`ResponseCache(dir)`: one JSON file per key (`dir/ab/cdef....json`), written through a temporary file and a hard link (atomic; an existing entry is never overwritten); stores the reply dict only (no headers, no credentials). Default `results/multiagent/llm/cache/` (gitignored).
 
 `Budget(cap, ledger)`: spend is appended to `ledger` (`results/multiagent/llm/spend.jsonl`) under an exclusive `fcntl` lock, so parallel processes share one cap; `check(need)` raises `BudgetExceeded` when the total has reached the cap or `need` exceeds what is left; `remaining()` is what is left. `estimateCost(model, task, agents, turns)` = agents x turns x (uncached input x input price + cache-read input x cache-read price + output x output price), from the per-task, per-model `TOKEN_PROFILE` measured in the pilot (Haiku board 208 / 1 771 / 901, Haiku foraging 840 / 1 824 / 433, Sonnet board 214 / 1 743 / 805). `runLLM` reserves its estimate (`client.reserve`); the client checks it at the run's first live call, so a run whose estimate exceeds what is left is refused before it sends anything, while a fully cached rerun is never refused.
 
-`FakeClient(script)`: same `messages.create` surface, returns scripted responses (`stop_reason`, text, refusal category, usage; `script` is a list or a function of the request), records the requests it received; used by every offline test and, with the deterministic `llm_runs.fakeReply` policy, by the quick demo.
+`loadEnvFile(path=None)`: copies `KEY=VALUE` lines of the git-ignored `.env.local` at the repo root into `os.environ` (no override of variables already set, empty values skipped) and returns the names, never the values; `makeClient` calls it for live clients only.
+
+`llm_fake.py`: `FakeClient(script)`: same `messages.create` surface, returns scripted responses (`stop_reason`, text, refusal category, usage; `script` is a list used in turn or a function of the request), records the requests it received; used by every offline test. `fakeReply(req)`: a deterministic policy computed from the request text (stay or go to the nearest location, open the first subtask or submit a hash-derived answer, beliefs from the stays in the history), used by the quick demo.
 
 ## 3. Text foraging (`explRL/llm_env.py`) and the text board (`explRL/llm_board.py`)
 
@@ -63,7 +64,7 @@ Both text tasks are adaptors with one interface, so `LLMMember` does not depend 
 `TextForagingEnv(world, names)`: holds a `TeamPatchWorld` (default `benchWorld()`); `rules()` is the static text (task, scoring, the 64 names in ring order, danger and moving-patch rules, what each turn shows, an example and the reply format) that goes in the cached system prompt (above the 512-token minimum at a conservative 5 characters per token); `observe(i, t, channel)` renders:
 
 ```
-Time 37.2 s. You are at Talo. Your last stay earned 0.42.
+Time 37.2 s. You are at Talo. Your last action earned 0.42.
 Travel times from Talo: Bemi 0.5 s, Cora 1.0 s, ... (all 64, nearest first)
 Board (teammates' reports, mean reward per second, weight fades with age): Vesu 0.85 (weight 1.6); ...
 ```
@@ -88,14 +89,14 @@ FORAGE_SCHEMA = {'type': 'object', 'additionalProperties': False,
 
 ## 4. Task board (`explRL/taskboard.py`, `explRL/board_agents.py`)
 
-`makePuzzle(rng, difficulty)`: draws `difficulty + 1` operations from `{+k, *k, ^k, %m}` with small constants, an answer range `[0, R)` with `R = 50 x 2^difficulty`, a hidden `x*` in the range, and `y = f(x*)`. Returns the text (`def f(x): return ((x * 7 + 3) ^ 21) % 97`, "find x in [0, 400) with f(x) == 42"), and a checker evaluating the same operations in Python (our code; model text is never executed). Any `x` in range with `f(x) == y` is correct.
+`makePuzzle(rng, difficulty)`: draws `difficulty + 1` operations from `{+k, *k, ^k, %m}` with small constants, an answer range `[0, R)` with `R = 50 x 2^difficulty`, a hidden `x*` in the range, and `y = f(x*)`. Constants: `+k` with k in 1-19, `*k` 2-9, `^k` 1-63, `%m` 50-199. `Puzzle.text()` renders `def f(x): return (((x * 7) + 3) ^ 21) % 97` and "Find an integer x with 0 <= x < 400 and f(x) == 42."; `Puzzle.check(x)` is the checker evaluating the same operations in Python (our code; model text is never executed). Any `x` in range with `f(x) == y` is correct.
 
 `TaskBoardEnv(seed, nAgents, difficulty, value=(1, 2, 3), life=30, penalty=0.5, scheme='individual')`: world protocol with time in turns (every action takes 1); keeps `2 nAgents + 2` subtasks open, named `T<k>` (each with a value and an expiry `life` turns after it appears; the initial ones have staggered ages so expiries spread over the first `life` turns; a new one appears when one expires or is solved); actions:
 
 | Action | Effect | Ledger row (Phase 6 format) |
 |---|---|---|
 | `open <task>` | shows the agent the subtask text from its next turn (switching cost) | `kind='travel'`, location = task |
-| `submit <answer>` (on its open task) | first correct answer: reward = value, task closes; later correct: 0; wrong: -penalty | `kind='stay'`, `patch` = task, `harvest` = value if first correct |
+| `submit <answer>` (on its open task) | first correct answer: reward = value, task closes; later correct: 0; wrong: -penalty | `kind='stay'`, location = task, `patch` = task and `harvest` = value if first correct (else no patch, 0) |
 | `wait` (or an unusable action) | nothing | `kind='stay'`, location -1 |
 
 Rewards: `scheme='individual'` (default; value for a first correct answer, `-penalty` for a wrong one), `'team'` (each solve's value and each penalty shared equally across the team), `'difference'` (equal to individual, because only the first correct answer scores). References: `socialOptimum(solveRate)` = the expected team value per turn from putting agents on the highest-value distinct open tasks (two turns per attempt), an upper bound (`soShare` uses `solveRate = 1` on the end-of-run board); `netByAgent()` = value solved minus penalties paid, per agent (welfare, independent of the reward scheme); `firstSolves()` for discoveries; `duplicateTurns()` = turns spent opening or answering a subtask that another agent solved (the duplicate-work measure); `counts` = solved, wrong, late correct answers, opens (solve rate = solved / opens). `TaskBoardSim(seed, nAgents, solveRate, ...)`: the same board for numpy agents, where `('submit', None)` succeeds with the pilot's solve rate.
@@ -125,7 +126,7 @@ class LLMMember(Member):
 
 The member runs for as many events as `runTurns` gives it (the turn budget lives in the loop, not the member). `system()` = `env.rules()` (which ends with the output instructions) + the framing sentence + the lessons (persistence arm); identical every turn, so it is cached. `history()`: `'full'`: one text block per past turn (compact: time, action, reward, own report, messages received), the first prefixed "Your past turns, oldest first:", with `cache_control` on the last; `'last8'`: the last 8 such blocks; `'notes'`: one block with the agent's latest `notes`. The turn log holds, per turn: agent, time, observation, response text, parsed action, valid, reward, report, explore, stop reason, refusal, usage, cost (no cache flag, so the log does not depend on the cache). Framing sentences (`{u}` is the task's unit, "food"): `own` "You are scored on the {u} you collect yourself." (control); `team` "You are scored on the team's total {u}, the sum over all teammates."; `credit` "You are scored on the {u} you collect yourself plus a share of the {u} others collect at locations you reported first."
 
-`ScriptedLiarText(task, channel, rng)`: no API calls. Text foraging: the Phase 9 `Liar` itself (it forages as a numpy bandit on the same world and reports `-dangerCost` where it harvested and `c` elsewhere). Task board: `BoardLiar`, a `BoardBandit` that knows each answer and gets it right with probability `solveRate` (0.5), but after every turn claims `solved` on a random open task it has not solved, or `working` on one it did not open.
+`ScriptedLiarText(task, channel, rng)`: no API calls. Text foraging: the Phase 9 `Liar` itself (it forages as a numpy bandit on the same world and reports `-dangerCost` where it harvested and `c` elsewhere). Task board: `BoardLiar`, a `BoardBandit` that knows each answer and gets it right with probability `solveRate` (0.5 among LLM agents; the board's `solveRate` in numpy cells), but after every turn claims `solved` on a random open task it has not solved, or `working` on one it did not open.
 
 `elicitBeliefs(member)` (text foraging only): one request (the same system prompt and history, then the question) with the schema `{'estimates': [{'location': name, 'value': number}]}` (structured outputs need fixed property names); unknown names and non-numbers are dropped; returns the `{'mean', 'n'}` lists Phase 8's `beliefs` takes (`n = 1` where an estimate was given).
 
@@ -143,7 +144,7 @@ class LLMConfig:
     B: int = 0                      # equal-budget total agent-turns (0 = off)
     model: str = 'claude-haiku-5-5'
     effort: str = 'low'
-    maxTokens: int = 8000           # pilot: 2000 cut off long puzzle reasoning
+    maxTokens: int = 2000           # the grids use SETTINGS['maxTokens'] = 8000 (pilot: 2000 cut off long puzzle reasoning)
     memory: str = 'full'
     framing: str = 'own'
     nLiar: int = 0
@@ -156,9 +157,9 @@ class LLMConfig:
 
 In the persistence arm, episode `e` of a run with seed `s` uses world seed `10 000 + 100 s + e` (as in Phase 8 study B); with `lessons`, each agent's system prompt in episode `e + 1` carries its last `notes` from episode `e` (no extra call).
 
-`setup(cfg, seed, numpy=False)` builds the world (text foraging: `benchWorld(**cfg.world)` reset with `seed`, names `locationNames(64, seed)`; task board: `TaskBoardEnv(seed, ...)`, or `TaskBoardSim` for numpy), the text adaptor and the channel (Phase 7 `makeChannel` for foraging; `ClaimBoard` / `MessageBus` / `BoardLead` for the board). `runLLM(cfg, seed, client)` reserves the run's estimate, builds the team (scripted liars in the first slots, seeded from `seed + 3000`), runs `runTurns`, elicits beliefs (foraging), and returns one row per episode and the turn log. Row: `episode`, `welfare` (net of danger or penalties, per agent-turn), `welfareHonest`, `tEnd`, `soShare` (foraging: net harvest / (`tEnd` x Phase 6 social-optimum yield); board: net / (turns x `socialOptimum(1)`)); foraging: `rmrt`, `reached`, `ifdMean`, `discoveries`, `freeRiding`, `diversity`, `beliefError`; board: `solved`, `opens`, `wrong`, `duplicates` (`duplicateTurns`), `discoveries`; LLM: `invalid`, `refusals`, `maxTokenStops`, `reportShare`, `exploreShare` and `exploreSpread` (mean and standard deviation across agents of the share of an agent's turns spent moving to a location (or opening a subtask) that no report or suggestion pointed to), `calls`, token totals (`inputTokens`, `cacheWriteTokens`, `cacheReadTokens`, `outputTokens`), `cost`, `promptCacheRead` (share of input tokens read from the prompt cache). With 50 turns a foraging run spans only about 60-150 s of world time, under two 40 s move periods, so `rmrt` is mostly undefined (censored) and the numpy teams are still exploring; the pilot reports this (task T7).
+`setup(cfg, seed, numpy=False)` builds the world (text foraging: `benchWorld(**cfg.world)` reset with `seed`, names `locationNames(64, seed)`; task board: `TaskBoardEnv(seed, ...)`, or `TaskBoardSim` for numpy), the text adaptor and the channel (Phase 7 `makeChannel` for foraging; `ClaimBoard` / `MessageBus` / `BoardLead` for the board). `runLLM(cfg, seed, client)` reserves the run's estimate, builds the team (scripted liars in the first slots, seeded from `seed + 3000`), runs `runTurns`, elicits beliefs (foraging), and returns one row per episode and the turn log. Row: `episode`, `welfare` (net of danger or penalties, per agent-turn), `welfareHonest`, `tEnd`, `soShare` (foraging: net harvest / (`tEnd` x Phase 6 social-optimum yield); board: net / (turns x `socialOptimum(1)`)); foraging: `rmrt`, `reached`, `ifdMean`, `discoveries`, `freeRiding`, `diversity`, `beliefError`; board: `solved`, `opens`, `wrong`, `duplicates` (`duplicateTurns`), `discoveries`; LLM: `invalid`, `refusals`, `maxTokenStops`, `reportShare`, `exploreShare` and `exploreSpread` (mean and standard deviation across agents of the share of an agent's turns spent moving to a location (or opening a subtask) that no report or suggestion pointed to), `calls`, token totals (`inputTokens`, `cacheWriteTokens`, `cacheReadTokens`, `outputTokens`), `cost`, `promptCacheRead` (share of input tokens read from the prompt cache). With 1 s stays, 50 turns spanned under two 40 s move periods (pilot round 1); the grids therefore use 5 s stays (`SETTINGS['forageWorld']`), so a run spans about 120-180 s; `rmrt` is defined but mostly near its 40 s censoring limit, and the numpy teams are still exploring at 50 turns.
 
-`makeClient(cfg, spec)`: `spec['kind']` is `'fake'` (default: `FakeClient(fakeReply)`, a deterministic policy computed from the request text) or `'live'`, which needs `EXPLRL_LLM_LIVE=1` and a cap (else `RuntimeError`); optional `cache` dir and `ledger` (with `cap`). `runLLMCell(cell)` constructs the client in the worker process (one client per process), calls `runLLM`, prefixes each row with the cell keys and the flattened config (`cellRow`: `runner`, `budget` = `'equal'` or `'turns'`, `world.*` columns), and writes the turn log to `cell['logDir']/<row key>.jsonl` (one line per call, with the row key).
+`makeClient(cfg, spec)`: `spec['kind']` is `'fake'` (default: `FakeClient(fakeReply)` from `llm_fake`) or `'live'`, which needs `EXPLRL_LLM_LIVE=1` and a cap (else `RuntimeError`) and first calls `loadEnvFile()`; optional `cache` dir and `ledger` (with `cap`). `runLLMCell(cell)` constructs the client in the worker process (one client per process), calls `runLLM`, prefixes each row with the cell keys and the flattened config (`cellRow`: `runner`, `budget` = `'equal'` or `'turns'`, `world.*` columns), and writes the turn log to `cell['logDir']/<row key>.jsonl` (one line per call, with the row key).
 
 `llm_compare.py`: `runNumpy(cfg, seed)` runs the matching numpy team (`makeTeam`'s `CommBandit` / `LeadFollower` on the same foraging world, or `BoardBandit`s on `TaskBoardSim`; liars `Liar` / `BoardLiar`) through `runTurns` with the same turn budget, and returns the row columns that apply (beliefs from the bandits' estimates); `runNumpyCell` wraps it for `runGrid`. `compareNumpy(llmRows, numpyRows, metric='welfare')`: per task, the cell means over the (channel, N) cells both have (16 in the main grid); Spearman's rho (`rankAvg`: ranks with average ties, then Pearson; numpy only); 95% bootstrap CI resampling the shared seeds jointly (both sides use the same seeds and worlds).
 
@@ -166,7 +167,7 @@ In the persistence arm, episode `e` of a run with seed `s` uses world seed `10 0
 
 | Grid | Cells | LLM calls (about) |
 |---|---|---|
-| `pilotGrid(1)`, `pilotGrid(2, d)` (seeds 1000-1004, 1010) | stage 1: board solo, difficulty 1-4 x 5 seeds x 30 turns; forage solo and N = 4 blackboard (seed 1010, 30 turns); stage 2 at the chosen difficulty `d`: Haiku effort medium (5 seeds), Sonnet solo (3 seeds) | 750 + 240 |
+| `pilotGrid(1, levels=...)`, `pilotGrid(2, d)` (seeds 1000-1004, 1010) | stage 1: board solo at the difficulty `levels` x 5 seeds x 30 turns (round 1: 1-4 at `maxTokens` 2000; round 2 and the default: 6 and 8 at `SETTINGS['maxTokens']`); forage solo and N = 4 blackboard (seed 1010, 30 turns); stage 2 at the chosen difficulty `d`: Haiku effort medium (5 seeds), Sonnet solo (3 seeds) | round 1 750 + 240, round 2 450 + 240 |
 | `mainGrid` (seeds 500-504) | 2 tasks x 4 channels x N (1, 2, 4, 8) x 50 turns | 30 000 + 300 belief calls (foraging) |
 | `sonnetGrid` (seeds 500-502) | board x 4 channels x N (1, 4) x 50 turns, Sonnet 5.5 | 3 000 |
 | `budgetGrid` (seeds 600-602) | forage x (none, blackboard) x N (1, 2, 4, 8) at B = 200 agent-turns | 4 800 |
@@ -179,7 +180,7 @@ In the persistence arm, episode `e` of a run with seed `s` uses world seed `10 0
 
 Calls in the table are turn calls; foraging runs add one belief call per LLM agent per episode (main 300, equal budget 90, liar 42, framing 36, memory 24, persistence 96). Cells are `dict(study, factor, level, N, seed, runner, cfg)` (`llmCell`); `level` names the task or arm level so that row keys are unique. `GRIDS` lists the main-run grids in priority order (main, Sonnet, budget, liar, framing, memory, persistence); `SETTINGS` holds the pilot's choices (effort low, `maxTokens` 8000, difficulty 8, the numpy board's solve rate 0.889, and the foraging world override `tStay = 5`), applied to every cell; `withClient(cells, spec, logDir)` attaches the client spec and the turn-log directory; `runAnyCell` dispatches to `runLLMCell` or `runNumpyCell`; `estimateGrid(cells)` gives turn calls, belief calls and expected cost per model.
 
-`ANALYSIS_PLAN` (frozen in T7: `frozen=True` and the pilot's `SETTINGS`) holds the requirements' analysis table as data (seeds per grid, metrics, analyses), the models, the settings and the price table; `planHash()` (12 hex digits of its sha256) goes into every report. The main section of the demo refuses to run until the plan is frozen.
+`ANALYSIS_PLAN` (frozen in T7: `frozen=True` and the pilot's `SETTINGS`) holds the requirements' analysis table as data (seeds per grid, metrics, analyses), the models, the settings and the price table (its metric `cacheHit` is reported per mode in `metrics.json`, not per row: rows must not depend on the cache); `planHash()` (12 hex digits of its sha256) goes into every report. The main section of the demo refuses to run until the plan is frozen.
 
 ## 8. Cost estimate (before the pilot; superseded)
 
@@ -190,7 +191,7 @@ Assumed per call (to be replaced by the pilot's `TOKEN_PROFILE`): 3 000 input to
 | Claude Haiku 5.5 | about 46 000 (all grids and the pilot) | 1 000 x $0.10 + 2 000 x $0.01 + 300 x $0.50, per million = about $0.00027 | about $13 |
 | Claude Sonnet 5.5 | about 3 100 | 1 000 x $2 + 2 000 x $0.20 + 500 x $10, per million = about $0.0074 | about $23 |
 
-After the pilot (measured token profile, `maxTokens` 8000, difficulty 8, 5 s stays) the main grids are estimated at about $43 (Haiku about $17, Sonnet about $26; `estimateGrid`), plus about $1.6 spent on the pilot. Before the pilot: about $36, or $50-70 with a factor-two margin for longer prompts and thinking; proposed cap $150 (decision L2). Wall time: about 3 s per call, sequential within an episode, 8 processes: about 5 hours for everything (rate limits permitting; the cache makes interrupted runs resumable).
+After the pilot (measured token profile, `maxTokens` 8000, difficulty 8, 5 s stays) the main grids are estimated at about $43 (Haiku about $17, Sonnet about $26; `estimateGrid`), plus about $1.6 spent on the pilot. Before the pilot: about $36, or $50-70 with a factor-two margin for longer prompts and thinking; proposed cap $150 (decision L2). Wall time: about 3 s per call, sequential within an episode, 8 processes: about 5 hours for everything (rate limits permitting; the cache makes interrupted runs resumable). Measured: 47 988 calls (45 809 live), $31.94 charged, 10.6 h (the small arm grids keep fewer than 8 processes busy, and difficulty-8 turns are long).
 
 ## 9. Demo (`nbs/demo_llm.ipynb`)
 
@@ -198,11 +199,11 @@ After the pilot (measured token profile, `maxTokens` 8000, difficulty 8, 5 s sta
 |---|---|---|---|
 | Quick | none | every grid's quick cells with `FakeClient` (pipeline check) | `llm/quick/` |
 | Pilot | `llm_pilot` | `pilotGrid(1)`, live; the difficulty with a solve rate (solved / opened) in 30-70%, closest to 50%, is chosen; then stages 1 and 2 (stage 1 from the cache); solve rates for effort medium and Sonnet, the token profile per (model, task), invalid-action and `max_tokens` rates printed | `llm/pilot/` |
-| Main and arms | `llm` | main, Sonnet, budget, framing, memory, persistence, liar grids and `numpyGrid`, live | `llm/full/` |
+| Main and arms | `llm` | main, Sonnet, budget, liar, framing, memory and persistence grids (`GRIDS` order), then `numpyGrid` for both tasks, live | `llm/full/` |
 
 Live sections check `EXPLRL_LLM_LIVE=1` first and skip otherwise; the cap ($150) is set in the demo and passed to every worker's `Budget`, with the shared ledger `llm/spend.jsonl` and cache `llm/cache/`. `run(mode, grids, spec)` runs the grids in order and stops at the first `BudgetExceeded`, recording which grids finished. `metrics.json`: mode, `ANALYSIS_PLAN` and its hash, git commit, models, effort, prices (with their date), cap, cost of these runs and total spend, calls and cache hits, wall time, grids done and where it stopped, the estimate per grid, and the summary tables. `turns.jsonl`: one line per call (row key, episode, agent, time, observation text, response text, parsed action, valid, reward, report, explore, stop reason, refusal, usage, cost). Cache hits are counted per mode (calls minus new ledger lines) and go to `metrics.json` only. The quick section also checks that it runs in under 30 s, writes every artifact, gives the same `runs.csv` with 1 worker and with `WORKERS` (up to 8), and contains no key-like strings.
 
-Report (`llm_report.py`): `summaries(rows, numpyRows)` gives the main table, the harness benefit per model, the model-size contrast per channel (verdict "shrinks" if the CI lies below 0, "grows" if above, else "unclear"), `compareNumpy`, the equal-budget table, the arms (framing team / credit minus own, on welfare and `exploreShare`; memory last8 / notes minus full, where full is the framing `own` cell on the same seeds; persistence lessons minus none at episode 4; liar honest loss per task and channel, and its blackboard-minus-messages difference, H3's sign being > 0) and the interface table; `writeReport` puts the provenance first. Figures (`llm_figures.py`): `welfare.png`, `model_size.png`, `tokens.png`, `numpy_vs_llm.png`, `arms.png`.
+Report (`llm_report.py`): `summaries(rows, numpyRows)` gives the main table, the harness benefit per model, the model-size contrast per channel (verdict "shrinks" if the CI lies below 0, "grows" if above, else "unclear"), `compareNumpy`, the equal-budget table, the arms (framing team / credit minus own, on welfare, `exploreShare`, `reportShare` and `freeRiding`; memory last8 / notes minus full, where full is the framing `own` cell on the same seeds; persistence lessons minus none at episode 4; liar honest loss per task and channel, and its blackboard-minus-messages difference, H3's sign being > 0) and the interface table; `writeReport` puts the provenance first. Figures (`llm_figures.py`): `welfare.png`, `model_size.png`, `tokens.png`, `numpy_vs_llm.png`, `arms.png`.
 
 ## 10. Determinism, secrets and speed
 
