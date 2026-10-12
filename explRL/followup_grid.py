@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/followup_grid.html.md"""
 __all__ = ['FW', 'BETAS', 'SEEDS', 'FOLLOWUP_PLAN', 'runFollowupCell', 'followupHash', 'hardPilotGrid', 'chooseHard', 'hardGrid',
            'effortGrid', 'roundsNumpyGrid', 'chooseBeta', 'roundsGrid', 'followupQuick']
 
-# %% ../nbs/followup_grid.ipynb #188e8d3f
+# %% ../nbs/followup_grid.ipynb #2b97122f
 import copy
 import hashlib
 import json
@@ -24,7 +24,7 @@ BETAS = (0.0, 0.25, 0.5, 1.0, 2.0, math.inf)
 SEEDS = dict(hardPilot=list(range(640, 643)), hard=list(range(643, 648)), effort=list(range(500, 503)),
              roundsNumpy=list(range(700, 710)), rounds=list(range(500, 503)))
 FOLLOWUP_PLAN = dict(
-    version=1, frozen=False, models=dict(main=HAIKU, sizeContrast=SONNET), settings=SETTINGS, prices=PRICES, seeds=SEEDS,
+    version=1, frozen=True, models=dict(main=HAIKU, sizeContrast=SONNET), settings=SETTINGS, prices=PRICES, seeds=SEEDS,
     rules=dict(
         hard='difficulty and maxTokens from hardPilot: solve rate (solved / opened) in [0.3, 0.7] and max_tokens stops '
              'under 5% of turn calls; closest to 0.5; ties to the smaller maxTokens; none -> stop, the user decides',
