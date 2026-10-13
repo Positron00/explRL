@@ -1,6 +1,6 @@
 # Spec: Phase 11, a distributed-information task board (and the road to RL training)
 
-Status: **implemented through the numpy sweep** (2026-10-12): settings fixed (gate 1); the live pilot and `CLUE_PLAN` freeze are next. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) and the [follow-ups](../speedup/README.md); replaces their paused hard-board run (D1).
+Status: **implemented; pilot done, `CLUE_PLAN` frozen** (2026-10-12; commit `20a60e8`, hash `050a825d7bae`); the main live runs are next. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) and the [follow-ups](../speedup/README.md); replaces their paused hard-board run (D1).
 
 ## Goal
 
@@ -75,3 +75,17 @@ The numpy sweep (22 400 runs, 242 s on 8 processes; `results/multiagent/clue/swe
 | 64 | 0.00 | 0.27 | 0.01 | 0.46 |
 
 Welfare per agent-turn at the chosen settings (rule agents, seeds 800-819). Without a channel nothing is solved once the clues are split (N >= 2): the board does force sharing. Two messages per share collapse as the team grows (a clue rarely reaches whoever needs it). The blackboard declines slowly, because more agents spread over more subtasks. The coordinator, which routes clues to the agents working on that subtask, holds up best. Incentives (`sweepIncentives`, N = 4, blackboard): team welfare 0.60 with `needed` sharing vs 0.00 with `never`. Under individual reward, every rule agent shared at least once, so the sharer vs non-sharer comparison is empty (mean sharer reward 24.1 over the run).
+
+## Pilot (T9, 2026-10-12) and the frozen plan
+
+Live, Haiku, 540 calls, $0.13, 378 s (6 runs at once: 1.4 calls/s, 0 retries); `results/multiagent/clue/pilot/`. **AC-9 met**: with every clue held (N = 1) Haiku solved 30 of the 30 subtasks it opened, with no invalid actions. Measured token profile (uncached input, cache read, output per call): (369, 1548, 364), now `TOKEN_PROFILE[('claude-haiku-5-5', 'clue')]`; output is far below the provisional 901, so the main scope is now estimated at about $3.5 (main $2.6, framing $0.7, liar $0.2).
+
+| channel | N | welfare | pooled share | shares per held clue | wrong | guesses |
+|---|---|---|---|---|---|---|
+| none | 1 | 0.97, 1.10 | 1.00, 0.89 | 0 | 0 | 0 |
+| blackboard | 4 | 0.49, 0.56 | 0.40, 0.45 | 0.42, 0.40 | 4, 4 | 6, 5 |
+| none | 4 | 0.15, 0.08 | 0.12, 0.06 | 0.93, 0.84 | 4, 12 | 12, 18 |
+
+(seeds 1100, 1101). With the blackboard, every solve used a shared clue; Haiku reached about 0.4 of the pooled bound against the rule agents' 0.57. With no channel, Haiku still "shared" about 40 times per run (the shares go nowhere and cost a turn), and its few solves came from guessing among the 2-15 candidates left by one clue: these count as assisted under the requirements' definition (the solver did not hold all clues), so `assisted` reads as "solved without holding every clue" in the no-channel cells.
+
+`CLUE_PLAN` was frozen and committed before any main-scope call: commit `20a60e8`, `clueHash()` = `050a825d7bae`.
