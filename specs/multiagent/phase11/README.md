@@ -1,6 +1,6 @@
 # Spec: Phase 11, a distributed-information task board (and the road to RL training)
 
-Status: **implemented; pilot done, `CLUE_PLAN` frozen** (2026-10-12; commit `20a60e8`, hash `050a825d7bae`); the main live runs are next. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) and the [follow-ups](../speedup/README.md); replaces their paused hard-board run (D1).
+Status: **implemented and run** (2026-10-12): sweep, pilot, `CLUE_PLAN` frozen (commit `20a60e8`, hash `050a825d7bae`), main live runs done ($3.56; cached rerun byte-identical). The optional effort and scale arms were not run. Run guide: [RUN.md](RUN.md). Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) and the [follow-ups](../speedup/README.md); replaces their paused hard-board run (D1).
 
 ## Goal
 
@@ -58,7 +58,7 @@ Make communication load-bearing. On the Phase 10 board Claude Haiku 5.5 solved 8
 | K8 | Rewards | Experiments use individual reward (the incentive problem is the point); the training package offers individual, team (each solve and penalty shared equally) and **credit** (the solver keeps `1 - c` of the value; `c` is split equally among the agents whose true shares first supplied clues the solver did not hold; false shares earn nothing; default `c = 0.5`) |
 | K9 | Seeds | Part B sweep 800-819; pilot 1100-1101; main 900-904; framing 910-912; liar 900-902 (its clean cells are the main grid's); matched effort 900-902; scale 920-922 |
 | K10 | Part E compute (P11-4) | **A rented GPU** (decided 2026-10-12, following the recommendation) for the next phase's RL training; nothing is trained in this phase |
-| K11 | Budget | Spent so far $40.60 of the $150 cap; this phase about $6-8 (up to about $16 with the optional arms); the follow-ups' scheduler and cap checks apply |
+| K11 | Budget | Spent so far $40.60 of the $150 cap; this phase about $6-8 (up to about $16 with the optional arms); the follow-ups' scheduler and cap checks apply. Actual: pilot $0.13, main $3.56; total spend $44.29 |
 
 ## Sweep results (T5, 2026-10-12)
 
@@ -89,3 +89,23 @@ Live, Haiku, 540 calls, $0.13, 378 s (6 runs at once: 1.4 calls/s, 0 retries); `
 (seeds 1100, 1101). With the blackboard, every solve used a shared clue; Haiku reached about 0.4 of the pooled bound against the rule agents' 0.57. With no channel, Haiku still "shared" about 40 times per run (the shares go nowhere and cost a turn), and its few solves came from guessing among the 2-15 candidates left by one clue: these count as assisted under the requirements' definition (the solver did not hold all clues), so `assisted` reads as "solved without holding every clue" in the no-channel cells.
 
 `CLUE_PLAN` was frozen and committed before any main-scope call: commit `20a60e8`, `clueHash()` = `050a825d7bae`.
+
+## Main results (T10, 2026-10-12; exploratory)
+
+Live, Claude Haiku 5.5: main (4 channels x N 2, 4, 8, seeds 900-904), framing (blackboard, N 4 and 8, seeds 910-912), liar (blackboard and messages, N = 4, seeds 900-902), plus the 60 rule-agent cells. 14 800 calls, $3.56, 1 348 s at 32 processes, 0 retries; total spend $44.29 of the $150 cap. A rerun from the response cache gives byte-identical `runs.csv` and `turns.jsonl` and makes no request. Full tables: `results/multiagent/clue/full/report.md`.
+
+| channel | N = 2 | N = 4 | N = 8 |
+|---|---|---|---|
+| none | 0.15 | 0.16 | 0.14 |
+| blackboard | 0.55 | 0.55 | 0.51 |
+| messages | 0.55 | 0.48 | 0.32 |
+| coordinator | 0.28 | 0.26 | 0.24 |
+
+Welfare per agent-turn (Haiku; means over 5 seeds).
+
+- **Sharing is load-bearing.** The blackboard adds 0.39 [0.37, 0.40] per agent-turn over no channel at N = 4 and holds to N = 8 (0.37 [0.33, 0.41]). It reaches 0.41-0.49 of the pooled bound, against the rule agents' 0.57. Without a channel Haiku still "shares" about once per held clue (the shares go nowhere and cost turns), and its solves come from guessing.
+- **Messages decay with team size** (benefit 0.40, 0.31, 0.19 at N = 2, 4, 8), as the rule agents predicted: two random recipients rarely include whoever needs the clue.
+- **The coordinator fails with LLM agents** (benefit 0.10-0.14), although it was the best channel for rule agents at scale. The cause is in the turn logs (N = 4): the coordinator routes a clue only to agents who have that subtask open when the clue is shared. Haiku's shares are untargeted, and it ignored the coordinator's suggestion in 100 of its 161 opens. So routed clues appeared in only 74 of 800 observations, and Haiku waited on 229 of its 800 turns. Rule agents follow the suggestion and share only for subtasks a teammate has open, so for them routing works. A coordinator that also posts its pooled clues, or LLM agents told to follow it, is the obvious next variant.
+- **Numpy predicts LLM:** Spearman rho 0.79 [0.74, 0.81] over the 12 (channel, N) cells; the coordinator cells are the main misses.
+- **Liar:** one scripted false-clue liar among 4 costs the honest agents 0.36 [0.23, 0.52] on the blackboard and 0.26 [0.21, 0.29] with messages. The blackboard-minus-messages difference, 0.10 [-0.07, 0.25], has H3's sign but its interval includes zero (3 seeds).
+- **Framing** (team vs own reward wording): no clear effect (welfare difference 0.00 at N = 4, 0.03 [0.00, 0.05] at N = 8).

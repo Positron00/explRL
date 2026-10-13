@@ -58,13 +58,26 @@ Per-agent welfare must fall when patches have limited capacity; the team total s
 
 Details: `specs/multiagent/speedup/README.md`, `results/multiagent/followup/*/report.md`.
 
+## 7. Phase 11: the clue board (exploratory)
+
+Each subtask's answer is fixed by two modular clues ("x mod 7 = 3") dealt to different agents, so nobody can solve it alone and sharing (which costs a turn) is load-bearing. Claude Haiku 5.5, 4 channels x N 2, 4, 8, seeds 900-904; plan frozen before the runs (`CLUE_PLAN`).
+
+- **Sharing is load-bearing for LLM teams too:** the blackboard adds 0.39 [0.37, 0.40] welfare per agent-turn over no channel at N = 4 (blackboard 0.55, none 0.16), and keeps it to N = 8 (0.37 [0.33, 0.41]).
+- **Messages decay with team size**, as for rule agents: benefit 0.40, 0.31, 0.19 at N = 2, 4, 8.
+- **The coordinator fails with LLM agents** (benefit 0.10 at N = 4), although it was the best channel for rule agents at scale: it routes a clue only to agents who have that subtask open when it is shared, and Haiku ignored its suggestion in 62% of its opens, so few shared clues reached anyone (routed clues showed in 74 of 800 observations at N = 4).
+- **Numpy predicts LLM** well here: Spearman rho 0.79 [0.74, 0.81] over the 12 (channel, N) cells; the coordinator cells are the main misses.
+- **Liar:** one false-clue liar among 4 costs the honest agents 0.36 [0.23, 0.52] on the blackboard and 0.26 [0.21, 0.29] with messages; the blackboard-minus-messages sign agrees with H3, but its interval includes zero (3 seeds).
+- **Framing** (team vs own reward wording) changed nothing clear.
+
+Details: `specs/multiagent/phase11/README.md`, `results/multiagent/clue/full/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).
-- The task board turned out easy for Claude Haiku 5.5 (solve rate 0.89 at the hardest usable difficulty), so it tests coordination against duplicate work, not division of hard labour.
+- The task board turned out easy for Claude Haiku 5.5 (solve rate 0.89 at the hardest usable difficulty), so it tests coordination against duplicate work, not division of hard labour (Phase 11 makes information the bottleneck instead).
 - The free-riding index does not flag free-riders as defined (Phase 9).
 
 ## Where to look
 
-- Phase specs and results: `specs/multiagent/phase5/` to `phase10/` (each with a plain-language figure guide).
+- Phase specs and results: `specs/multiagent/phase5/` to `phase11/` (each with a plain-language figure guide).
 - Full per-phase reports: `results/multiagent/bench/full/report.md`, `safety/h3/report.md`, `safety/full/report.md`, `llm/full/report.md`.
