@@ -1,6 +1,6 @@
 # Tasks: Phase 12, training agents to work together
 
-Status (2026-10-13): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression and push done, the Colab pilot next; T11-T13 to follow. T14 partly done (RUN.md, links, sidebar, REPORT.md section 8 for Track A).
+Status (2026-10-13): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression, push and the Colab pilot done (decision P12-9), the RL speed check next. T11: warm start done, warm-start check passed; `RL_PLAN` to be frozen after the speed check. T12-T13 to follow. T14 partly done (RUN.md, links, sidebar, REPORT.md section 8 for Track A).
 
 Rules for every task:
 
