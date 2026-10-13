@@ -113,9 +113,11 @@ def sftExamples(seeds, sizes=(1, 2, 4), turns=20, settings=CLUE_SETTINGS, boards
 def teacherNote(board, i, channel, reply) -> str
 def teacherReply(board, i, channel, rng) -> str     # notes first, then action, target, answer, clue
 @dataclass
-class SFTConfig: model; out; loraR=16; loraAlpha=32; dropout=0.05; lr=1e-4; epochs=1; batch=16; microBatch=4; maxLen=1536; maxSteps=0; device='auto'; seed=0
-def loadModel(model, device, dtype=None) -> (tokenizer, model); def loraConfig(r, alpha, dropout=0.0); def batchTensors(seqs, pad, device)
-def trainSFT(cfg, examples) -> path            # LoRA adapter (out/adapter); loss on the assistant tokens only; metrics.jsonl, config.json
+class SFTConfig: model; out; loraR=16; loraAlpha=32; dropout=0.05; lr=1e-4; epochs=1; batch=16; microBatch=4; maxLen=1536; maxSteps=0; device='auto'; seed=0; gradCkpt=True
+def loadModel(model, device, dtype=None) -> (tokenizer, model); def loraConfig(r, alpha, dropout=0.0)
+def saveMemory(model, gradCkpt=True)            # gradient checkpointing (non-reentrant)
+def trainSFT(cfg, examples) -> path            # LoRA adapter (out/adapter); loss over the reply tokens only, from replyLogps
+                                               # (only the reply positions' logits are computed); metrics.jsonl, config.json
 def mergeAdapter(model, adapter, out) -> path  # merged weights (the warm-start model; bf16, merged on cpu)
 def libVersions() -> dict                       # torch, transformers, peft, vllm versions (recorded in config.json)
 def warmCheck(policy, seeds=range(1200, 1220), turns=30, settings=CLUE_SETTINGS) -> dict  # solveRate, invalid, passed
@@ -141,7 +143,8 @@ class RLConfig:
     loraR: int = 16; loraAlpha: int = 32; maxNew: int = 160; temperature: float = 1.0; formatPenalty: float = 0.1
     trainSeed: int = 0; boardSeed0: int = 10_000; ckptEvery: int = 5; microBatch: int = 8; maxLen: int = 1536
     device: str = 'auto'; perRole: bool = False          # one adapter per agent slot (the optional ablation)
-def configHash(cfg) -> str                      # identity of a run: all but out, device, ckptEvery, microBatch, steps
+    gradCkpt: bool = True                                 # gradient checkpointing (memory; not part of the run's identity)
+def configHash(cfg) -> str                      # identity of a run: all but out, device, ckptEvery, microBatch, steps, gradCkpt
 def stepSeeds(cfg, s) -> list; def trainingReturns(ro, penalty) -> array
 def groupAdvantages(returns) -> array           # returns: (seeds x group x N) -> same shape
 def stepSamples(ro, adv) -> list                # slot, prompt, reply text, eos (not cut), advantage; nonzero advantage only

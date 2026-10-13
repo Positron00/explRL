@@ -76,6 +76,7 @@ flowchart LR
 | The prompt drifts from `LLMMember`'s | Evaluation not comparable with Phase 11 | Tested equality of prompts and of rows against `runClue` (AC-3) |
 | The model solves by trial and error | Scores without cooperation | Solo solves and wrong answers per solve reported for every model (FR-B5) |
 | Warm start fails at 3B | No competent start for RL | Notes-first replies; a 7-8B check (P12-2) |
+| Training runs out of GPU memory (found in the Mac debug run: full-vocabulary logits over 1 300-token prompts) | Runs fail | Loss over the reply positions only; gradient checkpointing (`gradCkpt`) |
 | Colab step time too long | Runs exceed a few hours | Pilot (AC-7) before `RL_PLAN` is frozen; fewer steps or rollouts |
 | vLLM and training share one GPU | Out of memory | vLLM given a fixed share of GPU memory; Hugging Face generation as fallback |
 | MPS lacks an operation or is slow | Mac debug or evaluation blocked | cpu fallback for debug; evaluation on Colab with the same code |

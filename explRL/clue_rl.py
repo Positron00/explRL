@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples',
            'microBatches', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #3e8c6214
+# %% ../nbs/clue_rl.ipynb #a0e549b7
 import hashlib
 import json
 import time
@@ -19,7 +19,7 @@ import numpy as np
 
 from .clue_grid import BOARD, CLUE_SETTINGS
 from .clue_roll import coopRows, rollout
-from .clue_sft import libVersions, loadModel, loraConfig
+from .clue_sft import libVersions, loadModel, loraConfig, saveMemory
 from .llm_runs import LLMConfig
 from .local_policy import LocalPolicy, pickDevice
 from .rl_torch import loadCheckpoint, replyLogps, saveCheckpoint
@@ -50,11 +50,12 @@ class RLConfig:
     maxLen: int = 1536
     device: str = 'auto'
     perRole: bool = False       # one adapter per agent slot (the optional ablation)
+    gradCkpt: bool = True       # gradient checkpointing (less memory, about a third more compute)
 
 
 def configHash(cfg):
     "Identity of a training run: everything but where it runs and how long (a run can be resumed and extended)."
-    d = {k: v for k, v in asdict(cfg).items() if k not in ('out', 'device', 'ckptEvery', 'microBatch', 'steps')}
+    d = {k: v for k, v in asdict(cfg).items() if k not in ('out', 'device', 'ckptEvery', 'microBatch', 'steps', 'gradCkpt')}
     return hashlib.sha256(json.dumps(d, sort_keys=True).encode()).hexdigest()[:12]
 
 
@@ -115,6 +116,7 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
     model = get_peft_model(base, loraConfig(cfg.loraR, cfg.loraAlpha), adapter_name=names[0])
     for n in names[1:]:
         model.add_adapter(n, loraConfig(cfg.loraR, cfg.loraAlpha))
+    saveMemory(model, cfg.gradCkpt)
     params = [p for n, p in model.named_parameters() if 'lora_' in n]
     for p in params:
         p.requires_grad_(True)

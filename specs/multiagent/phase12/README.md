@@ -1,6 +1,6 @@
 # Plan: Phase 12, training agents to work together (RL on the clue board)
 
-Status: **code implemented; runs in progress** (2026-10-13). Track A pilot done and `TRACKA_PLAN` frozen (commit `23ee080`, hash `45258d8a34da`); Track A main runs next, then the Mac debug run and Colab. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
+Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Next: Colab (pilot, warm start), which needs the code pushed to GitHub. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
 
 ## Files in this spec
 
@@ -196,3 +196,30 @@ Track A results; a package extra and a Colab notebook that train from a clean ru
 Live, Haiku, 480 calls, $0.11, 389 s; `results/multiagent/coop/pilot/`. **AC-8 met:** 3 invalid replies in 480 (0.6%). Each change reached the agents: with the follow hint (A1) Haiku opened the coordinator's suggestion in 21 of 22 opens (Phase 11: 61 of 161, 38%); with pooled clues passed on (A2), routed clues appeared in 90 of 120 observations (Phase 11: 74 of 800 at N = 4); the teammates line (A3) appeared in every observation. One board per variant (seed 1100), so the welfare figures (A1 0.14, A2 0.38, A3 blackboard 0.63, A3 coordinator 0.19) are not yet comparisons.
 
 `TRACKA_PLAN` was frozen and committed before any main-run call: commit `23ee080`, `coopHash(TRACKA_PLAN)` = `45258d8a34da`.
+
+## Track A results (T5, 2026-10-13; exploratory)
+
+Live, Claude Haiku 5.5, 9 600 calls, $2.17, 1 027 s at 32 processes; total API spend $46.55 of the $150 cap. A rerun from the cache gives byte-identical `runs.csv` and `turns.jsonl` and makes no request (AC-8). Full tables: `results/multiagent/coop/full/report.md`.
+
+| variant | channel | N = 4 | N = 8 |
+|---|---|---|---|
+| A1 follow the coordinator | coordinator | -0.13 [-0.16, -0.10] | -0.16 [-0.19, -0.13] |
+| A2 coordinator passes pooled clues | coordinator | +0.12 [+0.07, +0.16] | +0.07 [+0.02, +0.11] |
+| A3 show who works on what | blackboard | +0.03 [+0.01, +0.05] | +0.00 [-0.02, +0.03] |
+| A3 show who works on what | coordinator | -0.10 [-0.13, -0.07] | -0.02 [-0.06, +0.03] |
+
+Welfare per agent-turn minus the Phase 11 cell (same channel, N and seed; seeds 900-904; 95% bootstrap intervals).
+
+- **Telling Haiku to follow the coordinator makes the team worse.** Haiku then followed it 95-97% of the time (Phase 11: 27-38%), but welfare fell by 0.13-0.16. The turn logs (N = 4) show why: following meant opening subtasks it knew nothing about (half of its opens with no known clue, against 10% in Phase 11) and then waiting for clues that the coordinator does not pass on: waiting rose from 29% to 57% of turns, and sharing halved.
+- **Passing the pooled clues is what helps.** When the coordinator also hands over the clues it has collected for the subtask it suggests, welfare rises by 0.12 at N = 4 and 0.07 at N = 8, and many opens start with both clues known. The coordinator still trails the blackboard (by 0.17-0.20), so routing alone does not close the gap.
+- **Showing who works on what does little:** a small gain on the blackboard at N = 4, none at N = 8, and a loss with the coordinator at N = 4.
+- **Takeaway for Track B:** a coordinator's value lies in moving information, not in directing agents; obedience without information is harmful. The trained models are compared with these instruction-only results.
+
+## Mac debug run (T7-T9, AC-6, 2026-10-13)
+
+The whole training loop with `Qwen/Qwen2.5-0.5B-Instruct` on the Apple GPU (M4 Max), in a separate environment (`.venv-train`), 903 s:
+
+- **Warm start, 50 steps:** about 14 s per step (16 examples of about 1 300 tokens), peak GPU memory about 8 GB. The first attempt ran out of memory (more than 60 GB): the loss was computed over the logits of every prompt position (a 152 000-word vocabulary). Fixed for both trainers before any GPU spend: the loss now uses the reply positions only (`replyLogps`), with gradient checkpointing (`gradCkpt`, on by default).
+- **Warm-start check (3 boards, every clue held):** solve rate 0.45, invalid replies 1%. No pass is required at 0.5B; the 3B model must pass after its full warm start (about 875 steps).
+- **RL:** two steps (2 boards x 2 rollouts x 4 agents x 4 turns, about 70 s per step), resume at step 3, a checkpoint of another configuration refused. The KL at the first step is 6e-4 rather than exactly 0 (bf16 rounding on the Apple GPU; it is exactly 0 on cpu in float32).
+- **A warning sign, as planned:** the 0.5B model's few solves were nearly all by trial and error (solo share 0.83-1.0), the reward-hacking risk the plan names; the solo-solve figures are reported for every model.
