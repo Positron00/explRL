@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/coop_grid.html.md"""
 __all__ = ['MODELS', 'TRACKA', 'TRACKA_PLAN', 'LOCAL', 'MAIN_SEEDS', 'RL_PLAN', 'trackAGrid', 'trackAPilotGrid', 'trackAQuick',
            'evalCell', 'evalSuite', 'coopHash']
 
-# %% ../nbs/coop_grid.ipynb #4ff4df1e
+# %% ../nbs/coop_grid.ipynb #fd6a8db6
 import hashlib
 import json
 from dataclasses import asdict
@@ -45,7 +45,7 @@ def trackAQuick():
 
 
 TRACKA_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, settings=CLUE_SETTINGS, variants=[list(x) for x in TRACKA], prices=PRICES,
+    version=1, frozen=True, model=HAIKU, settings=CLUE_SETTINGS, variants=[list(x) for x in TRACKA], prices=PRICES,
     seeds=dict(pilot=[1100], main=[900, 904]), baseline='results/multiagent/clue/full (study clue, Phase 11)',
     analyses=dict(
         effect='per variant, channel, N: welfare minus the Phase 11 cell (same channel, N, seed), paired, bootstrap CI',
