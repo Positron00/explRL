@@ -44,8 +44,8 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/{tiny
 | T10 pilot | Colab | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb), run set-up, configuration and pilot; record step time, memory and GPU hours | measured: 0.58 GPU hours; RL 631 s per step at the first settings (decision P12-9) |
 | T11 warm start | Colab | the warm-start section; then download the zip (pack section) to `results/multiagent/rl/colab/` | $1-3 |
 | T11 warm-start check | Mac | `demo_rl` warm-check section (`--flags train`, from `.venv-train`) | measured: passed (solve rate 0.93, invalid 0), 661 s |
-| T10 RL speed check | Colab, start of session 2 (after Runtime -> Restart session; never rerun the pilot) | set-up, configuration, the RL speed-check cell; send the printout; the step count is set in `RL_PLAN`, which is then frozen, committed and pushed | about 15 minutes |
-| T12 RL runs | Colab | one session per scheme: set `SCHEME`, run the RL section; pack and download after the last | $8-18 |
+| T10 RL speed check | Colab, start of session 2 (after Runtime -> Restart session; never rerun the pilot) | set-up, configuration, the RL speed-check cell; send the printout; the step count is set in `RL_PLAN`, which is then frozen, committed and pushed | measured: 166 s per step, 50.3 GB; 60 steps chosen; `RL_PLAN` frozen at `d8467f2` (hash `708dfc435c1f`) |
+| T12 RL runs | Colab | one session per scheme: set `SCHEME`, run the RL section (about 2.8 hours each); pack and download after the last | about 8.4 GPU hours, roughly $10-15 |
 | T13 evaluation and report | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb`, with GPU hours and cost in `results/multiagent/rl/gpu.json` | API under $1 |
 
 API spend goes through the Phase 10 client and ledger (`results/multiagent/llm/`) under the $150 API cap; GPU spend has its own $150 cap (decision P12-1).
