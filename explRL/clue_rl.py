@@ -6,9 +6,9 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 
 # %% auto #0
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples',
-           'microBatches', 'trainRL']
+           'haltReason', 'microBatches', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #a0e549b7
+# %% ../nbs/clue_rl.ipynb #a150a96f
 import hashlib
 import json
 import time
@@ -22,7 +22,7 @@ from .clue_roll import coopRows, rollout
 from .clue_sft import libVersions, loadModel, loraConfig, saveMemory
 from .llm_runs import LLMConfig
 from .local_policy import LocalPolicy, pickDevice
-from .rl_torch import loadCheckpoint, replyLogps, saveCheckpoint
+from .rl_torch import loadCheckpoint, policyUpdate, saveCheckpoint
 
 
 @dataclass
@@ -51,6 +51,10 @@ class RLConfig:
     device: str = 'auto'
     perRole: bool = False       # one adapter per agent slot (the optional ablation)
     gradCkpt: bool = True       # gradient checkpointing (less memory, about a third more compute)
+    turnFraction: float = 0.25  # train on this share (seeded per step) of the turns with a nonzero advantage
+    haltInvalid: float = 0.10   # stopping rule: invalid-reply rate above this for haltRun steps in a row ...
+    haltRun: int = 3
+    haltKL: float = 0.5         # ... or the mean KL above this
 
 
 def configHash(cfg):
@@ -84,11 +88,26 @@ def groupAdvantages(returns):
     return np.where(sd > 1e-9, (R - mu) / (sd + 1e-6), 0.0)
 
 
-def stepSamples(ro, adv):
-    "One sample per text turn of every slot with a nonzero advantage: slot, prompt, reply text, cut or not, advantage."
-    return [dict(slot=i, system=p[0], blocks=p[1], reply=x['response'], eos=x['stop'] != 'max_tokens', adv=float(adv[b, i]))
-            for b in range(len(ro.boards)) for i, (recs, ps) in enumerate(zip(ro.logs[b], ro.prompts[b])) if adv[b, i] != 0
-            for x, p in zip(recs, ps)]
+def stepSamples(ro, adv, fraction=1.0, rng=None):
+    """One sample per text turn of every slot with a nonzero advantage (slot, prompt, reply text, cut or not, advantage);
+    with fraction < 1, a random share of them (an unbiased, cheaper estimate of the same gradient)."""
+    out = [dict(slot=i, system=p[0], blocks=p[1], reply=x['response'], eos=x['stop'] != 'max_tokens', adv=float(adv[b, i]))
+           for b in range(len(ro.boards)) for i, (recs, ps) in enumerate(zip(ro.logs[b], ro.prompts[b])) if adv[b, i] != 0
+           for x, p in zip(recs, ps)]
+    if fraction >= 1 or not out:
+        return out
+    keep = sorted((rng or np.random.default_rng(0)).choice(len(out), max(1, round(fraction * len(out))), replace=False))
+    return [out[k] for k in keep]
+
+
+def haltReason(history, cfg):
+    "The stopping rule: invalid replies above haltInvalid for haltRun steps in a row, or the mean KL above haltKL."
+    last = history[-cfg.haltRun:]
+    if len(last) == cfg.haltRun and all(h['invalid'] > cfg.haltInvalid for h in last):
+        return f"invalid replies above {cfg.haltInvalid:g} for {cfg.haltRun} steps (steps {last[0]['step']}-{last[-1]['step']})"
+    if history and history[-1]['kl'] > cfg.haltKL:
+        return f"mean KL {history[-1]['kl']:.3f} above {cfg.haltKL:g} at step {history[-1]['step']}"
+    return None
 
 
 def microBatches(samples, cfg):
@@ -122,6 +141,10 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
         p.requires_grad_(True)
     opt = torch.optim.AdamW(params, lr=cfg.lr)
     start = loadCheckpoint(model, opt, out, configHash(cfg), names)
+    if (out / 'halted.json').exists():                       # stopped by the stopping rule: never silently resumed
+        print('halted:', json.loads((out / 'halted.json').read_text())['reason'])
+        return str(out / 'final')
+    history = [h for h in map(json.loads, open(out / 'metrics.jsonl')) if h['step'] <= start] if (out / 'metrics.jsonl').exists() else []
     vllm = dev == 'cuda' and LocalPolicy(cfg.model, device=dev, engine='auto', tokenizer=tok).engine == 'vllm'
     first = LocalPolicy(cfg.model, device=dev, maxNew=cfg.maxNew, temperature=cfg.temperature, seed=cfg.trainSeed,
                         engine='vllm' if vllm else 'hf', hf=None if vllm else model, tokenizer=tok, adapterName=names[0])
@@ -143,41 +166,31 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
             ro = rollout(lcfg, stepSeeds(cfg, s), pol, keepPrompts=True)
             R = trainingReturns(ro, cfg.formatPenalty)
             adv = groupAdvantages(R.reshape(cfg.seedsPerStep, cfg.group, cfg.N)).reshape(R.shape)
-            samples, t1 = stepSamples(ro, adv), time.time()
+            signal = stepSamples(ro, adv)
+            samples = stepSamples(ro, adv, cfg.turnFraction, np.random.default_rng([cfg.trainSeed, s]))
+            t1 = time.time()
             model.train()
-            stats = dict(loss=0.0, kl=0.0, tokens=0)
-            for chunk in microBatches(samples, cfg):
-                if cfg.perRole:
-                    model.set_adapter(names[chunk[0]['slot']])
-                with torch.no_grad(), model.disable_adapter():
-                    ref = replyLogps(model, tok, chunk, cfg.maxLen, dev)
-                lps = replyLogps(model, tok, chunk, cfg.maxLen, dev)
-                loss = 0.0
-                for x, lp, rf in zip(chunk, lps, ref):
-                    d = rf - lp
-                    k3 = (torch.exp(d) - d - 1).mean()
-                    loss = loss - x['adv'] * lp.mean() + cfg.kl * k3
-                    stats['kl'] += k3.item() / len(samples)
-                    stats['tokens'] += len(lp)
-                (loss / len(samples)).backward()
-                stats['loss'] += loss.item() / len(samples)
-            if samples:
-                torch.nn.utils.clip_grad_norm_(params, 1.0)
-                opt.step()
-            opt.zero_grad()
+            stats = policyUpdate(model, tok, opt, params, samples, microBatches(samples, cfg), names, cfg.perRole, cfg.kl,
+                                 cfg.maxLen, dev)
             rows = coopRows(lcfg, ro)
-            log.write(json.dumps(dict(step=s + 1, rolloutSeconds=round(t1 - t0, 2), updateSeconds=round(time.time() - t1, 2),
-                                      meanReturn=float(R.mean()), welfare=float(np.mean([r['welfare'] for r in rows])),
-                                      sharePerHeld=float(np.mean([r['sharePerHeld'] for r in rows])),
-                                      invalid=sum(r['invalid'] for r in rows) / max(sum(r['calls'] for r in rows), 1),
-                                      soloShare=_mean([r['soloShare'] for r in rows]),
-                                      samples=len(samples), **stats)) + '\n')
+            m = dict(step=s + 1, rolloutSeconds=round(t1 - t0, 2), updateSeconds=round(time.time() - t1, 2),
+                     meanReturn=float(R.mean()), welfare=float(np.mean([r['welfare'] for r in rows])),
+                     sharePerHeld=float(np.mean([r['sharePerHeld'] for r in rows])),
+                     invalid=sum(r['invalid'] for r in rows) / max(sum(r['calls'] for r in rows), 1),
+                     soloShare=_mean([r['soloShare'] for r in rows]), signalTurns=len(signal), samples=len(samples), **stats)
+            log.write(json.dumps(m) + '\n')
             log.flush()
-            if (s + 1) % cfg.ckptEvery == 0 or s + 1 == cfg.steps:
+            history.append(m)
+            reason = haltReason(history, cfg)
+            if (s + 1) % cfg.ckptEvery == 0 or s + 1 == cfg.steps or reason:
                 saveCheckpoint(model, opt, s + 1, out, configHash(cfg))
                 (out / 'turns').mkdir(exist_ok=True)       # this step's turns, to read what the agents do
                 (out / 'turns' / f'step-{s + 1:04d}.jsonl').write_text(''.join(
                     json.dumps(dict(board=b, seed=ro.seeds[b], **x), sort_keys=True) + '\n'
                     for b in range(len(ro.boards)) for lg in ro.logs[b] for x in lg))
+            if reason:
+                (out / 'halted.json').write_text(json.dumps(dict(step=s + 1, reason=reason)) + '\n')
+                print('halted:', reason)
+                break
     model.save_pretrained(out / 'final')
     return str(out / 'final')

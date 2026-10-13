@@ -41,9 +41,10 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/{tiny
 | T4 freeze | Mac | set `TRACKA_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit; record the commit and hash in the README | none |
 | T5 Track A main (9 600 calls) | Mac | the same command, `--cell-timeout 0` | measured: $2.17, 1 027 s at 32 processes |
 | T7-T9 debug (0.5B) | Mac | from `.venv-train`: `nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (debug section; the later sections need the Colab results) | measured: 903 s, peak GPU memory about 8 GB |
-| T10 pilot | Colab | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb), run set-up, configuration and pilot; record step time, memory and GPU hours | $1-3 |
+| T10 pilot | Colab | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb), run set-up, configuration and pilot; record step time, memory and GPU hours | measured: 0.58 GPU hours; RL 631 s per step at the first settings (decision P12-9) |
 | T11 warm start | Colab | the warm-start section; then download the zip (pack section) to `results/multiagent/rl/colab/` | $1-3 |
-| T11 warm-start check, freeze | Mac | `demo_rl` warm-check section (`--flags train`); if it passes, set `RL_PLAN['frozen'] = True`, export, commit, record the hash | none |
+| T11 warm-start check | Mac | `demo_rl` warm-check section (`--flags train`, from `.venv-train`) | none |
+| T10 RL speed check | Colab, start of session 2 | set-up, configuration, the RL speed-check cell; send the printout; the step count is set in `RL_PLAN`, which is then frozen, committed and pushed | about 15 minutes |
 | T12 RL runs | Colab | one session per scheme: set `SCHEME`, run the RL section; pack and download after the last | $8-18 |
 | T13 evaluation and report | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb`, with GPU hours and cost in `results/multiagent/rl/gpu.json` | API under $1 |
 

@@ -1,6 +1,6 @@
 # Plan: Phase 12, training agents to work together (RL on the clue board)
 
-Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Next: Colab (pilot, warm start), which needs the code pushed to GitHub. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
+Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start running; next the warm-start check on the Mac and the RL speed check. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
 
 ## Files in this spec
 
@@ -185,6 +185,7 @@ Expected GPU spend about $20-50, well inside the cap, which leaves room for reru
 | P12-5 | Shared adapter vs per-role adapters | **Shared** in the main runs; per-role as an ablation |
 | P12-6 | Use Haiku's logs as training data? | **No** (terms of use); the teacher's moves only |
 | P12-7 | Where the GPU runs happen | **A standalone Google Colab notebook** (the user; an A100 runtime on a paid plan), runnable on any Linux GPU machine |
+| P12-9 | RL run length after the Colab pilot (631 s per step, 7 hours per run) | **Keep the steps, make each step cheaper** (the user, 2026-10-13): train on a quarter of each step's turns with a nonzero advantage (an unbiased estimate of the same gradient), gradient checkpointing off on the A100, a stopping rule (invalid replies above 10% for 3 steps in a row, or KL above 0.5), and 40 steps, or 60 if the RL speed check fits them in a few hours. Rejected: fewer boards per step and fewer steps (too little signal per scheme) |
 | P12-8 | What runs on the Mac | **Debugging with a 0.5B model, the warm-start check, evaluation, cross-play and reports** (the user); PyTorch on the Apple GPU, same code as Colab |
 
 ## Deliverables
@@ -223,3 +224,7 @@ The whole training loop with `Qwen/Qwen2.5-0.5B-Instruct` on the Apple GPU (M4 M
 - **Warm-start check (3 boards, every clue held):** solve rate 0.45, invalid replies 1%. No pass is required at 0.5B; the 3B model must pass after its full warm start (about 875 steps).
 - **RL:** two steps (2 boards x 2 rollouts x 4 agents x 4 turns, about 70 s per step), resume at step 3, a checkpoint of another configuration refused. The KL at the first step is 6e-4 rather than exactly 0 (bf16 rounding on the Apple GPU; it is exactly 0 on cpu in float32).
 - **A warning sign, as planned:** the 0.5B model's few solves were nearly all by trial and error (solo share 0.83-1.0), the reward-hacking risk the plan names; the solo-solve figures are reported for every model.
+
+## Colab pilot (T10, 2026-10-13)
+
+A100, `Qwen/Qwen2.5-3B-Instruct`, 0.58 GPU hours: warm start 6.5 s per step (875 steps for the full warm start, about 1.6 hours); RL 631 s per step at the planned size (8 boards x 4 rollouts x 4 agents x 10 turns, every turn trained on, gradient checkpointing on), so 7 hours per 40-step run, against the plan's 1.5-2; peak GPU memory 11.9 GB. The update over about 1.8 million tokens per step is most of it (the warm start trains about 3 200 tokens per second). Decision P12-9: keep the steps, train on a quarter of each step's turns, gradient checkpointing off, and a stopping rule; the RL speed check at the start of session 2 fixes the step count before `RL_PLAN` is frozen.

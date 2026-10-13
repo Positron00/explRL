@@ -144,14 +144,19 @@ class RLConfig:
     trainSeed: int = 0; boardSeed0: int = 10_000; ckptEvery: int = 5; microBatch: int = 8; maxLen: int = 1536
     device: str = 'auto'; perRole: bool = False          # one adapter per agent slot (the optional ablation)
     gradCkpt: bool = True                                 # gradient checkpointing (memory; not part of the run's identity)
+    turnFraction: float = 0.25                            # share of the nonzero-advantage turns trained on (P12-9)
+    haltInvalid: float = 0.10; haltRun: int = 3; haltKL: float = 0.5     # the stopping rule (FR-D5)
 def configHash(cfg) -> str                      # identity of a run: all but out, device, ckptEvery, microBatch, steps, gradCkpt
 def stepSeeds(cfg, s) -> list; def trainingReturns(ro, penalty) -> array
 def groupAdvantages(returns) -> array           # returns: (seeds x group x N) -> same shape
-def stepSamples(ro, adv) -> list                # slot, prompt, reply text, eos (not cut), advantage; nonzero advantage only
+def stepSamples(ro, adv, fraction=1.0, rng=None) -> list   # slot, prompt, reply text, eos, advantage; nonzero advantage only;
+                                                # fraction < 1: a seeded random share (rng = default_rng([trainSeed, step]))
+def haltReason(history, cfg) -> str | None     # the stopping rule over the metrics so far
 def microBatches(samples, cfg) -> list          # per-role: one slot per chunk
 def adapterNames(cfg) -> list                    # ['default'], or ['slot0', ...] per role
 def trainRL(cfg, settings=CLUE_SETTINGS) -> path
-# rl_torch: replyLogps(model, tok, samples, maxLen, device); saveCheckpoint(model, opt, step, out, config);
+# rl_torch: replyLogps(model, tok, samples, maxLen, device); policyUpdate(model, tok, opt, params, samples, chunks, names,
+#           perRole, kl, maxLen, device) -> loss, kl, tokens; saveCheckpoint(model, opt, step, out, config);
 #           loadCheckpoint(model, opt, out, config, names) -> step
 ```
 
@@ -159,15 +164,16 @@ def trainRL(cfg, settings=CLUE_SETTINGS) -> path
 1. Board seeds `boardSeed0 + s * seedsPerStep + j` (`j < seedsPerStep`), each repeated `group` times.
 2. `rollout` with the current policy (vLLM with the latest adapter on cuda; the training model itself on mps or cpu) and the configured reward scheme (`cfg.world['scheme']` of the rollout's `LLMConfig`, built from `RLConfig` and `CLUE_SETTINGS`).
 3. Training returns: the rollout returns minus `formatPenalty` per invalid turn of the slot.
-4. Advantages per (seed, slot) over the group: `(R - mean) / (std + 1e-6)`, zero when all equal.
+4. Advantages per (seed, slot) over the group: `(R - mean) / (std + 1e-6)`, zero when all equal. Of the turns with a nonzero advantage, a seeded random share `turnFraction` is trained on (`stepSamples(ro, adv, turnFraction, default_rng([trainSeed, s]))`): the same expected gradient at a quarter of the update's cost.
 5. One optimizer step (AdamW, gradient clipping 1.0, gradient accumulation over micro-batches) on the mean over samples of `-A * mean_t log pi(y_t) + kl * mean_t k3_t`. Here `k3_t = exp(d_t) - d_t - 1` with `d_t = log pi_ref(y_t) - log pi(y_t)`, and `pi_ref` is the same model with the RL adapter disabled (`peft` `disable_adapter`). Turns with zero advantage are skipped. `replyLogps` left-pads the batch so the replies end together and asks the model only for the reply positions' logits (`logits_to_keep`), with position ids from the attention mask.
-6. Append to `metrics.jsonl`: step, seconds (rollout and update), mean training return, welfare per agent-turn, shares per held clue, invalid rate, solo share, mean KL, loss, samples, tokens. At checkpoint steps, also write that step's turn logs to `out/turns/step-<step>.jsonl` (with board index and seed), for reading what the agents do.
+6. Append to `metrics.jsonl`: step, seconds (rollout and update), mean training return, welfare per agent-turn, shares per held clue, invalid rate, solo share, turns with signal (`signalTurns`), turns trained on (`samples`), mean KL, loss, tokens.
+7. The stopping rule (`haltReason` over the metrics so far, including those before a resume): invalid replies above `haltInvalid` for `haltRun` steps in a row, or the mean KL above `haltKL`. Then a checkpoint, `halted.json` (step, reason), and the loop ends; a later call returns at once instead of resuming. At checkpoint steps, also write that step's turn logs to `out/turns/step-<step>.jsonl` (with board index and seed), for reading what the agents do.
 
-**Outputs** of a run: `config.json` (configuration, hash, library versions), `metrics.jsonl`, `turns/`, `ckpt-<step>/`, `live/` (the adapter vLLM reads during the run), `final/` (the trained adapter).
+**Outputs** of a run: `config.json` (configuration, hash, library versions), `metrics.jsonl`, `turns/`, `ckpt-<step>/`, `live/` (the adapter vLLM reads during the run), `final/` (the trained adapter), `halted.json` (only if the stopping rule fired).
 
 **Checkpoints** go to `out/ckpt-<step>/` every `ckptEvery` steps and at the end: adapter, optimizer state, `state.json` (step, config hash). `trainRL` resumes from the newest checkpoint whose config hash matches, and refuses one that does not; the step count is not part of the hash, so a run can be extended. Sampling seeds depend only on the step (the policies' call counter is set to `step x 100 000` before each rollout), so a resumed run continues as the uninterrupted one would, up to GPU non-determinism.
 
-**Defaults:** 40 steps x 8 seeds x 4 rollouts x 4 agents x 10 turns = 51 200 training turns per run, the Colab estimate of 2-3 minutes per step. They are fixed in `RL_PLAN` after the pilot (AC-7). The training seed sets the adapter initialisation and the sampling; the board seeds are the same for every scheme and training seed.
+**Defaults:** 40 steps x 8 seeds x 4 rollouts x 4 agents x 10 turns = 51 200 played turns per run, of which a quarter of those with signal are trained on. The Colab pilot (full turns, gradient checkpointing on) measured 631 s per step; with `turnFraction` 0.25 and gradient checkpointing off (`RL_PLAN` sets `gradCkpt` False), about 150 s per step is expected. The step count (40, or 60 if the speed check allows) is fixed in `RL_PLAN` after the RL speed check (P12-9, AC-7). The training seed sets the adapter initialisation and the sampling; the board seeds are the same for every scheme and training seed.
 
 **Per-role adapters (`perRole=True`, optional ablation):** one adapter per slot (`slot0` ... `slot3`), each starting with no change to the model (LoRA's B matrices start at zero); generation uses each slot's adapter (a `LoRARequest` per slot with vLLM, `set_adapter` per slot batch otherwise); each turn's loss updates its slot's adapter; advantages unchanged. Run under the credit reward only, after the main runs, if the GPU cap allows.
 
@@ -216,7 +222,7 @@ That is about 31 000 local turns and 3 200 Haiku calls (about $0.8). On the Mac 
 | Notebook | Sections (flags) | Outputs |
 |---|---|---|
 | `demo_coop` | setup as `demo_clue` (`run(mode, grids, spec, workers)`); quick: one cell of each variant with the fake client, identical at 1 and 8 processes, key scan; pilot (`llm`): invalid rate; main (`llm`): asserts `TRACKA_PLAN` frozen, `_live` copies | `results/multiagent/coop/{quick,pilot,full}/` |
-| `colab_clue_rl` | set-up (GPU check, `pip install`, Drive mount, `OUT`); config (models and `RL_PLAN` defaults); pilot (`gpu`): 20 warm-start steps and 3 RL steps on the 3B model, step time and peak memory; warm start (`gpu`): `sftExamples`, `trainSFT` (the adapter only); RL run (`gpu`): asserts `RL_PLAN` frozen, merges the warm-start model once, `SCHEME` set at the top, one scheme per session, resumes; pack (`gpu`): zip of adapters, metrics and configurations (no merged weights, no checkpoints) | Drive: `explRL_rl/{pilot,warm,warm_model,runs/<scheme>}/`, `explRL_rl/explRL_rl.zip` |
+| `colab_clue_rl` | set-up (GPU check, `pip install`, Drive mount, `OUT`); config (models and `RL_PLAN` defaults); pilot (`gpu`): 20 warm-start steps and 3 RL steps on the 3B model, step time and peak memory; warm start (`gpu`): `sftExamples`, `trainSFT` (the adapter only); RL speed check (`gpu`, session 2): 3 steps with `RL_PLAN`'s settings from the warm-start model, steady-state seconds per step (without step 1's vLLM start-up), projected hours, peak memory; RL run (`gpu`): asserts `RL_PLAN` frozen, merges the warm-start model once, `SCHEME` set at the top, one scheme per session, resumes; pack (`gpu`): zip of adapters, metrics and configurations (no merged weights, no checkpoints) | Drive: `explRL_rl/{pilot,warm,warm_model,runs/<scheme>}/`, `explRL_rl/explRL_rl.zip` |
 | `demo_rl` | quick (normal tests): scripted-policy rollout, rows and report on synthetic data; debug (`train`): 0.5B on mps, 50 warm-start steps, `warmCheck` on 3 boards, 2 RL steps, resume at step 3, refusal of another configuration (AC-6); warm check (`train`): rebuilds the 3B warm-start model by merging the downloaded adapter into the base model (needed anyway as the untrained baseline), then `warmCheck`; evaluation (`train`, cross-play needs `EXPLRL_LLM_LIVE=1`): one model at a time, `runEval` with cached local replies; report (GPU hours from `results/multiagent/rl/gpu.json`) | `results/multiagent/rl/{quick,debug,warm,eval,cache,colab}/` |
 
 ## 11. Packaging

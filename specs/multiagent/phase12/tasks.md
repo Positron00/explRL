@@ -92,12 +92,12 @@ Track A (T2-T5) and the Track B code (T6-T9) can proceed side by side; Track A's
   - Run the full suite with and without `anthropic` and `torch`, plus the Phase 5-9 baselines and the Phase 10, follow-up and Phase 11 cached reruns.
   - Push the code, so Colab installs it from GitHub.
   - Run the notebook's pilot on a Colab A100 with the 3B model; record step time, peak memory and the GPU hours used.
-  - If a main run would exceed a few hours, cut steps or rollouts in `RL_PLAN`.
+  - If a main run would exceed a few hours, cut steps or rollouts in `RL_PLAN`. Done (pilot: 631 s per step, 7 hours per run): decision P12-9, train on a quarter of the turns, gradient checkpointing off, the stopping rule; the step count follows from the RL speed check at the start of session 2.
 - **Done when**: **AC-1**, **AC-7**.
 
 ## T11. Warm start (Colab) and freezing the RL plan
 - **What**:
-  - Run the notebook's warm-start section on Colab (`sftExamples`, `trainSFT`, `mergeAdapter`) and download the warm-start model to the Mac.
+  - Run the notebook's warm-start section on Colab (`sftExamples`, `trainSFT`) and download the adapter to the Mac; at the start of the next session, the RL speed check fixes the step count (40, or 60 if it fits a few hours).
   - Run `warmCheck` on the Mac (**AC-9**). If it fails, stop and ask the user (the 7-8B check of P12-2, or a change of plan).
   - Freeze `RL_PLAN` with the measured settings, commit, and record the commit and hash in the README (gate B).
 - **Done when**: **AC-9**; gate B.
