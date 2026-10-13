@@ -9,7 +9,7 @@ __all__ = ['CHANNELS', 'CLUE_SETTINGS', 'BOARD', 'CLUE_PLAN', 'CLUE_GRIDS', 'CLU
            'chooseClueSettings', 'sweepIncentives', 'cluePilotGrid', 'clueMainGrid', 'clueNumpyGrid', 'clueFramingGrid',
            'clueLiarGrid', 'clueEffortGrid', 'clueScaleGrid', 'clueQuick']
 
-# %% ../nbs/clue_grid.ipynb #58ddb6da
+# %% ../nbs/clue_grid.ipynb #aa73e47a
 import hashlib
 import json
 
@@ -24,7 +24,7 @@ CLUE_SETTINGS = dict(m=2, r=1, R=30, guess=0.0, value=(1, 2, 3), life=30, penalt
                      effort='low', maxTokens=8000)
 BOARD = ('m', 'r', 'R', 'value', 'life', 'penalty')
 CLUE_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES,
+    version=1, frozen=True, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES,
     seeds=dict(sweep=[800, 819], pilot=[1100, 1101], main=[900, 904], framing=[910, 912], liar=[900, 902],
                effort=[900, 902], scale=[920, 922]),
     analyses=dict(
