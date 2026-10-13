@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_train.html.md"""
 # %% auto #0
 __all__ = ['BOARD', 'ClueEpisodes', 'exportTrajectories', 'readTrajectories', 'teacherAction']
 
-# %% ../nbs/clue_train.ipynb #d970bbf1
+# %% ../nbs/clue_train.ipynb #f91c2144
 import heapq
 import json
 from pathlib import Path
@@ -22,32 +22,58 @@ from .multi import spawnRngs
 BOARD = ('m', 'r', 'R', 'value', 'life', 'penalty')
 
 
-def _channel(name, N, seed):
-    return dict(none=None, blackboard=ClueBoard(), hierarchical=ClueLead(N),
+def _channel(name, N, seed, passPooled=False):
+    return dict(none=None, blackboard=ClueBoard(), hierarchical=ClueLead(N, passPooled),
                 messages=ClueMessages(N, 2, spawnRngs(seed + 2000, N)))[name]
 
 
 class ClueEpisodes:
     """A batch of clue boards stepped one agent-turn at a time (event order per board), for rollouts with a shared
-    policy: `reset()` and `step()` return, per board, whose turn it is and that agent's text observation."""
-    def __init__(self, batch, nAgents, settings=None, scheme='individual', turns=40, seed=0, channel='blackboard'):
+    policy: `reset()` and `step()` return, per board, whose turn it is and that agent's text observation.
+    `seeds`: a board seed per batch entry (repeats allowed; default seed + b); `scripted`: {slot: factory(channel, rng)}
+    for members that act on the board directly (liars; rngs as runClue's); `text`: TextClueEnv options."""
+    def __init__(self, batch, nAgents, settings=None, scheme='individual', turns=40, seed=0, channel='blackboard',
+                 seeds=None, scripted=None, text=None, passPooled=False):
         self.batch, self.N, self.turns, self.seed, self.channelName = int(batch), int(nAgents), int(turns), int(seed), channel
         self.settings, self.scheme = {k: v for k, v in (settings or {}).items() if k in BOARD}, scheme
+        self.seeds = [int(s) for s in seeds] if seeds is not None else [self.seed + b for b in range(self.batch)]
+        if len(self.seeds) != self.batch:
+            raise ValueError('one seed per board')
+        self.scripted, self.text, self.passPooled = dict(scripted or {}), dict(text or {}), bool(passPooled)
 
     def reset(self):
-        self.boards = [ClueBoardEnv(self.seed + b, self.N, scheme=self.scheme, **self.settings) for b in range(self.batch)]
-        self.channels = [_channel(self.channelName, self.N, self.seed + b) for b in range(self.batch)]
-        self.envs = [TextClueEnv(bd) for bd in self.boards]
+        self.boards = [ClueBoardEnv(s, self.N, scheme=self.scheme, **self.settings) for s in self.seeds]
+        self.channels = [_channel(self.channelName, self.N, s, self.passPooled) for s in self.seeds]
+        self.envs = [TextClueEnv(bd, **self.text) for bd in self.boards]
+        self.members = [self._members(b) for b in range(self.batch)]
         self.queues = [[(0.0, i) for i in range(self.N)] for _ in range(self.batch)]
-        self.done = [[0] * self.N for _ in range(self.batch)]
+        self.done, self.obs, self.last = [[0] * self.N for _ in range(self.batch)], [None] * self.batch, [None] * self.batch
         return [self._next(b) for b in range(self.batch)]
 
+    def _members(self, b):
+        slots = sorted(self.scripted)
+        out = {}
+        for slot, rng in zip(slots, spawnRngs(self.seeds[b] + 3000, len(slots)) if slots else []):
+            out[slot] = self.scripted[slot](self.channels[b], rng)
+            out[slot].id = slot
+        return out
+
+    def _requeue(self, b, i, t):
+        self.done[b][i] += 1
+        if self.done[b][i] < self.turns:
+            heapq.heappush(self.queues[b], (t, i))
+
     def _next(self, b):
-        "(agent, observation) of board b's next turn, or None when the board is done."
-        if not self.queues[b]:
+        "(agent, observation) of board b's next text turn (scripted turns run on the way), or None when done."
+        q = self.queues[b]
+        while q and q[0][1] in self.members[b]:
+            t, i = heapq.heappop(q)
+            self._requeue(b, i, t + self.members[b][i].event(self.boards[b], t).dt)
+        if not q:
             return None
-        t, i = self.queues[b][0]
-        return i, self.envs[b].observe(i, t, self.channels[b])
+        t, i = q[0]
+        self.obs[b] = self.envs[b].observe(i, t, self.channels[b])
+        return i, self.obs[b]
 
     def step(self, replies):
         "replies: per board, the acting agent's JSON reply (dict) or None. -> (next, rewards [(agent, r)], done flags)."
@@ -57,13 +83,15 @@ class ClueEpisodes:
                 rewards.append(None)
                 continue
             t, i = heapq.heappop(self.queues[b])
-            action, report, valid = self.envs[b].parse(reply, i)
+            env = self.envs[b]
+            action, report, valid = env.parse(reply, i)
             r, dt, _, info = self.boards[b].apply(i, action, t)
-            self.envs[b].post(i, report, t, self.channels[b], info)
+            env.post(i, report, t, self.channels[b], info)
+            self.last[b] = dict(agent=i, t=t, obs=self.obs[b], action=action, report=report, valid=valid, reward=r,
+                                info=info, explore=bool(env.explored(i, action, info)),
+                                summary=env.summary(i, t, action, r, report, info))
             rewards.append((i, r))
-            self.done[b][i] += 1
-            if self.done[b][i] < self.turns:
-                heapq.heappush(self.queues[b], (t + dt, i))
+            self._requeue(b, i, t + dt)
         return [self._next(b) for b in range(self.batch)], rewards, [not q for q in self.queues]
 
 
@@ -92,9 +120,9 @@ def readTrajectories(path):
     return [json.loads(x) for x in Path(path).read_text().splitlines()]
 
 
-def teacherAction(board, i, channel, rng=None):
+def teacherAction(board, i, channel, rng=None, share='needed'):
     "The rule agent's choice for agent i now, rendered as the JSON reply the text interface parses (SFT targets)."
-    agent = RuleAgent(channel, rng if rng is not None else np.random.default_rng(i), 'needed', 0.0)
+    agent = RuleAgent(channel, rng if rng is not None else np.random.default_rng(i), share, 0.0)
     agent.id = i
     kind, arg = agent.choose(board, board.tWorld)
     reply = dict(action=kind, target='', answer=0, clue='', notes='teacher')

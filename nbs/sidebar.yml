@@ -73,4 +73,17 @@ website:
       - clue_train.ipynb
       - clue_report.ipynb
       - demo_clue.ipynb
+      - clue_policy.ipynb
+      - local_policy.ipynb
+      - tiny_model.ipynb
+      - clue_roll.ipynb
+      - clue_sft.ipynb
+      - clue_rl.ipynb
+      - rl_torch.ipynb
+      - coop_grid.ipynb
+      - coop_report.ipynb
+      - rl_report.ipynb
+      - demo_coop.ipynb
+      - colab_clue_rl.ipynb
+      - demo_rl.ipynb
       - demo_multiagent.ipynb

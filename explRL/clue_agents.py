@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_agents.html.md"""
 # %% auto #0
 __all__ = ['ClueBoard', 'ClueMessages', 'ClueLead', 'known', 'candidates', 'RuleAgent', 'ClueLiar']
 
-# %% ../nbs/clue_agents.ipynb #b4bed4b9
+# %% ../nbs/clue_agents.ipynb #ff0ab44a
 from collections import defaultdict
 
 from .multi import Outcome
@@ -58,12 +58,14 @@ class ClueMessages:
 
 class ClueLead:
     "Numpy coordinator: routes each shared clue to every agent with that subtask open; suggests subtasks."
-    def __init__(self, n):
-        self.routed, self.pooled = [[] for _ in range(n)], defaultdict(dict)
+    def __init__(self, n, passPooled=False):
+        "passPooled: with each suggestion, also pass the suggested subtask's pooled clues (Track A, A2)."
+        self.routed, self.pooled, self.author = [[] for _ in range(n)], defaultdict(dict), defaultdict(dict)
+        self.passPooled = bool(passPooled)
         self.assigned, self.stats = [None] * n, defaultdict(lambda: dict(written=0, sent=0, received=0))
 
     def post(self, i, k, clue, t, board):
-        self.pooled[k][clue[0]] = clue[2]
+        self.pooled[k][clue[0]], self.author[k][clue[0]] = clue[2], i
         self.stats[i]['written'] += 1
         for a, o in enumerate(board.opened):
             if a != i and o == k:
@@ -76,6 +78,12 @@ class ClueLead:
         free = [k for k in board.open if k not in taken] or list(board.open)
         k = max(free, key=lambda k: (len(self.pooled.get(k, {})), board.tasks[k].value, -k))
         self.assigned[i] = k
+        if self.passPooled:
+            have = {(x[1], x[2][0]) for x in self.routed[i]}
+            for j, r in sorted(self.pooled.get(k, {}).items()):
+                if (k, j) not in have:
+                    self.routed[i].append((self.author[k][j], k, (j, board.tasks[k].task.primes[j], r), board.tWorld))
+                    self.stats[i]['received'] += 1
         return k
 
 

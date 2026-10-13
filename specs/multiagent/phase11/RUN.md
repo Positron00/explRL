@@ -46,6 +46,7 @@ Phase 10 and follow-up full workloads rerun from the response cache only (fake c
 
 ## Related
 
+- Phase 12 (training agents to work together): [../phase12/RUN.md](../phase12/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)
 - Demo notebook: [nbs/demo_clue.ipynb](../../../nbs/demo_clue.ipynb)
 - Training package: [nbs/clue_train.ipynb](../../../nbs/clue_train.ipynb)

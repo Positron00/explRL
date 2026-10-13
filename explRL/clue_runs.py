@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'BOARD_KEYS', 'clueSetup', 'clueMetrics', 'runClueNumpy', 'runClue', 'runClueAny']
 
-# %% ../nbs/clue_runs.ipynb #3c682d48
+# %% ../nbs/clue_runs.ipynb #a3d35e1d
 import numpy as np
 
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent
@@ -28,7 +28,7 @@ BOARD_KEYS = ('m', 'r', 'R', 'value', 'life', 'penalty')
 def clueSetup(cfg, seed):
     "The board (settings from cfg.world) and the channel for one run."
     b = ClueBoardEnv(seed, cfg.N, **{k: v for k, v in cfg.world.items() if k in BOARD_KEYS})
-    ch = dict(none=None, blackboard=ClueBoard(), hierarchical=ClueLead(cfg.N),
+    ch = dict(none=None, blackboard=ClueBoard(), hierarchical=ClueLead(cfg.N, cfg.world.get('passPooled', False)),
               messages=ClueMessages(cfg.N, 2, spawnRngs(seed + 2000, cfg.N)))[cfg.channel]
     return b, ch
 
@@ -79,7 +79,7 @@ def runClue(cfg, seed, client):
     T, nLLM = cfg.turnsPerAgent(), cfg.N - cfg.nLiar
     client.reserve(estimateCost(cfg.model, 'clue', nLLM, T))
     b, ch = clueSetup(cfg, seed)
-    env = TextClueEnv(b)
+    env = TextClueEnv(b, cfg.world.get('hint'), cfg.world.get('showOpen', False))
     liars = [ClueLiar(ch, r) for r in spawnRngs(seed + 3000, cfg.nLiar)]
     llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing) for _ in range(nLLM)]
     hist = runTurns(liars + llm, b, T)

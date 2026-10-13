@@ -1,0 +1,70 @@
+# Running Phase 12 (training agents to work together)
+
+Plan, decisions and results: [README.md](README.md). Builds on Phase 11: [../phase11/RUN.md](../phase11/RUN.md).
+
+Status 2026-10-13: the code is implemented and tested offline; no Phase 12 run has been made yet. Measured times and costs are added here as the runs happen.
+
+## Prerequisites
+
+- **Offline tests and Track A:** as Phase 11 (`pip install -e ".[dev]"`, `nbdev-export`; for Track A's live runs also `pip install -e ".[llm]"` and the API key in the environment or the git-ignored `.env.local`).
+- **Model work on the Mac:** `pip install -e ".[train]"` (PyTorch, Transformers, PEFT; no vLLM on macOS) and about 30 GB of free disk (the 3B model is about 6 GB, the 0.5B about 1 GB, plus PyTorch and the merged warm-start model).
+- **Colab:** an A100 runtime (paid plan); the notebook installs the package from GitHub, so push the code first.
+
+## Tests
+
+From the repo root (`.venv/bin` first on `PATH`), one notebook per command; none needs a network, a key, `anthropic` or `torch`:
+
+| Command | What it checks | Time |
+|---------|----------------|------|
+| `nbdev-test --n-workers 0 nbs/clue_text.ipynb` | Track A options in the rules and observations; pooled clues passed with a suggestion (AC-2) | ~1 s |
+| `nbdev-test --n-workers 0 nbs/clue_runs.ipynb` | Track A options from `cfg.world`; rows without them unchanged (AC-2) | ~1 s |
+| `nbdev-test --n-workers 0 nbs/clue_train.ipynb` | episodes with explicit seeds and scripted slots, the teacher | ~1 s |
+| `nbdev-test --n-workers 0 nbs/clue_policy.ipynb` | prompts equal `LLMMember`'s (notes and full memory), reply parsing, policies | ~1 s |
+| `nbdev-test --n-workers 0 nbs/clue_roll.ipynb` | rollout rows and turn logs equal `runClue`'s for the same replies (every channel, liars, options); batching; pending credit; `coopMetrics` (AC-3) | ~2 s |
+| `nbdev-test --n-workers 0 nbs/local_policy.ipynb` | device choice, cache keys, prompt encoding, cache replay and independent samples with stubs | ~1 s |
+| `nbdev-test --n-workers 0 nbs/clue_sft.ipynb` | warm-start examples: replies parse, notes list the candidates, replaying them reproduces the teacher; the warm-start check (AC-4) | ~3 s |
+| `nbdev-test --n-workers 0 nbs/clue_rl.ipynb` | group advantages, format penalty, samples, seeds, run identity, per-role micro-batches (AC-5) | ~1 s |
+| `nbdev-test --n-workers 0 nbs/coop_grid.ipynb` | Track A grids and call counts; the evaluation suite's turn counts; plan hashes | ~1 s |
+| `nbdev-test --n-workers 0 nbs/coop_report.ipynb` | Track A summaries on synthetic rows; log-based metrics agree with the board's | ~2 s |
+| `nbdev-test --n-workers 0 nbs/rl_report.ipynb` | Track B summaries on synthetic rows with known differences; report and figures | ~2 s |
+| `nbdev-test --n-workers 0 nbs/demo_coop.ipynb` | quick: every Track A variant with the fake client, identical at 1 and 8 processes, key scan | ~3 s |
+| `nbdev-test --n-workers 0 nbs/demo_rl.ipynb` | quick: the evaluation and report pipeline with scripted policies | ~3 s |
+| `nbdev-test --n-workers 0` | full suite (also without `anthropic`; the project venv has no `torch`) | ~2 min |
+
+With the `[train]` extra, `nbdev-test --n-workers 0 --flags train nbs/{tiny_model,local_policy,clue_sft,clue_rl}.ipynb` runs the model code on a tiny random model (no download, under a minute): generation on cpu and the Apple GPU, a warm start whose loss falls, RL steps with per-role adapters, resume and refusal.
+
+## Runs, in order
+
+| Step | Where | Command | Cost |
+|------|-------|---------|------|
+| T4 Track A pilot (480 calls) | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --flags llm nbs/demo_coop.ipynb` (the pilot section runs; the main section stops until `TRACKA_PLAN` is frozen) | about $0.12 |
+| T4 freeze | Mac | set `TRACKA_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit; record the commit and hash in the README | none |
+| T5 Track A main (9 600 calls) | Mac | the same command, `--cell-timeout 0` | about $2.3 |
+| T7-T9 debug (0.5B) | Mac | `nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (debug section; the later sections need the Colab results) | none |
+| T10 pilot | Colab | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb), run set-up, configuration and pilot; record step time, memory and GPU hours | $1-3 |
+| T11 warm start | Colab | the warm-start section; then download the zip (pack section) to `results/multiagent/rl/colab/` | $1-3 |
+| T11 warm-start check, freeze | Mac | `demo_rl` warm-check section (`--flags train`); if it passes, set `RL_PLAN['frozen'] = True`, export, commit, record the hash | none |
+| T12 RL runs | Colab | one session per scheme: set `SCHEME`, run the RL section; pack and download after the last | $8-18 |
+| T13 evaluation and report | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb`, with GPU hours and cost in `results/multiagent/rl/gpu.json` | API under $1 |
+
+API spend goes through the Phase 10 client and ledger (`results/multiagent/llm/`) under the $150 API cap; GPU spend has its own $150 cap (decision P12-1).
+
+## Artifacts
+
+- `results/multiagent/coop/{quick,pilot,full}/` (Track A): `runs.csv`, `turns.jsonl`, `timing.jsonl`, `metrics.json` (and `_live` copies after the live run), `report.md`, `coopA.png`.
+- `results/multiagent/rl/` (Track B): `colab/` (the unpacked Colab zip: warm-start adapter, RL adapters, training metrics and configurations), `debug/`, `warm/check.json`, `eval/` (`runs.csv`, `turns/`, `report.md`, `coop_main.png`, `coop_info.png`, `coop_gen.png`, `coop_curves.png`), `cache/` (local replies), `gpu.json`.
+- Google Drive `MyDrive/explRL_rl/`: everything Colab writes, including checkpoints and the merged warm-start model (kept there, not downloaded).
+
+## Regression
+
+```sh
+tools/phase9_baseline.sh "$WORKTREE" /tmp/explRL_p9   # on a worktree of the code: identical to results/multiagent/baseline_phase9
+```
+
+Phase 10, follow-up and Phase 11 full workloads rerun from the response cache only give byte-identical `runs.csv` and `turns.jsonl` (checked 2026-10-13 against the T1 reference hashes, with the Track A options in place).
+
+## Related
+
+- Phase 11 run guide: [../phase11/RUN.md](../phase11/RUN.md)
+- Multi-agent plan: [../README.md](../README.md)
+- Notebooks: [nbs/demo_coop.ipynb](../../../nbs/demo_coop.ipynb), [nbs/colab_clue_rl.ipynb](../../../nbs/colab_clue_rl.ipynb), [nbs/demo_rl.ipynb](../../../nbs/demo_rl.ipynb)

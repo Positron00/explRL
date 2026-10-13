@@ -24,6 +24,7 @@ explRL = "explRL._modidx:d"
 [project.optional-dependencies]
 dev = ['nbdev', 'fastcore', 'matplotlib']
 llm = ['anthropic']
+train = ['torch', 'transformers', 'peft', 'accelerate', 'tokenizers', 'vllm; sys_platform == "linux"']
 
 [tool.setuptools.dynamic]
 version = {attr = "explRL.__version__"}
@@ -32,7 +33,7 @@ version = {attr = "explRL.__version__"}
 include = ["explRL"]
 
 [tool.nbdev]
-tst_flags = "notest slow sweeps llm llm_pilot"
+tst_flags = "notest slow sweeps llm llm_pilot gpu train"
 lib_path = "explRL"
 nbs_path = "nbs"
 doc_path = "_docs"

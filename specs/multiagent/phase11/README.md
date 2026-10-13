@@ -86,7 +86,7 @@ Live, Haiku, 540 calls, $0.13, 378 s (6 runs at once: 1.4 calls/s, 0 retries); `
 | blackboard | 4 | 0.49, 0.56 | 0.40, 0.45 | 0.42, 0.40 | 4, 4 | 6, 5 |
 | none | 4 | 0.15, 0.08 | 0.12, 0.06 | 0.93, 0.84 | 4, 12 | 12, 18 |
 
-(seeds 1100, 1101). With the blackboard, every solve used a shared clue; Haiku reached about 0.4 of the pooled bound against the rule agents' 0.57. With no channel, Haiku still "shared" about 40 times per run (the shares go nowhere and cost a turn), and its few solves came from guessing among the 2-15 candidates left by one clue: these count as assisted under the requirements' definition (the solver did not hold all clues), so `assisted` reads as "solved without holding every clue" in the no-channel cells.
+(seeds 1100, 1101). With the blackboard, every solve used a shared clue; Haiku reached about 0.4 of the pooled bound against the rule agents' 0.57. With no channel, Haiku still "shared" about 40 times per run (the shares go nowhere and cost a turn), and its few solves came from guessing among the 2-10 candidates left by one clue: these count as assisted under the requirements' definition (the solver did not hold all clues), so `assisted` reads as "solved without holding every clue" in the no-channel cells.
 
 `CLUE_PLAN` was frozen and committed before any main-scope call: commit `20a60e8`, `clueHash()` = `050a825d7bae`.
 
