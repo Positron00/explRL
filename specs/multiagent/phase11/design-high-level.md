@@ -4,7 +4,8 @@
 
 | Module | New / changed | Contents |
 |---|---|---|
-| `nbs/clueboard.ipynb` -> `explRL/clueboard.py` | new | `PRIMES`, `CLUE_PAIRS`, `ClueTask`, `makeClueTask`, `ClueBoardEnv` (world protocol, dealing, share and solve logs, rewards, `pooledBound`) |
+| `nbs/cluetask.ipynb` -> `explRL/cluetask.py` | new | `PRIMES`, `CLUE_PAIRS`, `primeSets`, `ClueTask`, `makeClueTask` (the clues; split from the board to keep modules under 200 lines) |
+| `nbs/clueboard.ipynb` -> `explRL/clueboard.py` | new | `Subtask`, `ClueBoardEnv` (world protocol, dealing, share and solve logs, rewards, `pooledBound`) |
 | `nbs/clue_agents.ipynb` -> `explRL/clue_agents.py` | new | `ClueBoard`, `ClueMessages`, `ClueLead` (channels carrying clues; `known(i, board)` per agent), `candidates`, `RuleAgent`, `ClueLiar` |
 | `nbs/clue_text.ipynb` -> `explRL/clue_text.py` | new | `CLUE_SCHEMA`, `TextClueEnv` (rules, observation, parsing, posting shares, history lines) |
 | `nbs/clue_runs.ipynb` -> `explRL/clue_runs.py` | new | `clueSetup`, `clueMetrics`, `runClue`, `runClueNumpy`, `runClueAny` (dispatch for `runWorkload`) |
@@ -12,10 +13,13 @@
 | `nbs/clue_train.ipynb` -> `explRL/clue_train.py` | new | `ClueEpisodes`, `exportTrajectories`, `teacherAction` (Part D) |
 | `nbs/clue_report.ipynb` -> `explRL/clue_report.py` | new | summaries, `report.md`, figures |
 | `nbs/llm_budget.ipynb` -> `explRL/llm_budget.py` | changed | `TOKEN_PROFILE` entries for the `'clue'` task (provisional, then measured in the pilot) |
+| `nbs/llm_runs.ipynb` -> `explRL/llm_runs.py` | changed | `runLLMCell(cell, run=None)`: optional run function (default `runLLM`) |
+| `nbs/llm_fake.ipynb` -> `explRL/llm_fake.py` | changed | `fakeReply`: a clue-board branch that sometimes shares an own clue |
+| `nbs/bench_grid.ipynb` -> `explRL/bench_grid.py` | changed | `writeCSV` writes tuple values as `a|b|c` (earlier outputs unchanged) |
 | `nbs/demo_clue.ipynb` | new | quick (fake), sweep (`slow`), pilot and main (`llm`) |
 | `nbs/sidebar.yml` | changed | the new notebooks |
 
-Import rule: `clueboard` imports only `multi` (seeded generators); `clue_agents` imports `clueboard`, `team_agents` (`PatchMember`) and `multi`; `clue_text` imports `clueboard`, `clue_agents`; `clue_runs` imports `clueboard`, `clue_agents`, `clue_text`, `llm_agent` (`LLMMember`, `runTurns`), `llm_runs` (`LLMConfig`, `cellRow`, `llmStats`, `makeClient`), `llm_budget`, `team_time`, `bench_grid` (`rowKey`), `llm_grid` (`runAnyCell` for non-clue cells); `clue_grid` imports `clue_runs`, `llm_grid` (`llmCell`), `llm_budget`, `bench_grid` (`runGrid`); `clue_train` imports `clueboard`, `clue_agents`, `clue_text`; `clue_report` imports `llm_report`, `llm_figures`, `llm_compare` (`spearman`). Only `llm_client` imports `anthropic` (unchanged). No module imports a demo. Phase 10 and follow-up modules are not changed except the token profile.
+Import rule: `cluetask` imports nothing from the package; `clueboard` imports `cluetask` and `multi` (seeded generators); `clue_agents` imports `team_agents` (`PatchMember`) and `multi` (it reads the board through its methods); `clue_text` imports `clue_agents`; `clue_runs` imports `clueboard`, `clue_agents`, `clue_text`, `llm_agent` (`LLMMember`, `runTurns`), `llm_runs` (`LLMConfig`, `cellRow`, `llmStats`, `runLLMCell`), `llm_budget`, `team_time`, `team_refs`, `multi`, `llm_grid` (`runAnyCell` for non-clue cells); `clue_grid` imports `cluetask`, `llm_grid` (`llmCell`), `llm_budget`; `clue_train` imports `clueboard`, `clue_agents`, `clue_text`, `multi`; `clue_report` imports `llm_report`, `llm_figures`, `llm_compare` (`compareNumpy`). Only `llm_client` imports `anthropic` (unchanged). No module imports a demo. Phase 10 and follow-up modules are not changed except the token profile, `runLLMCell`'s optional run function, the fake client's clue branch and the CSV writer's tuple format (all backward compatible: earlier outputs are byte-identical).
 
 ## Data flow
 

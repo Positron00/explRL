@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'DELTA', 'LLMConfig', 'setup', 'taskMetrics', 'llmStats', 'runLLM', 'makeClient', 'cellRow', 'runLLMCell']
 
-# %% ../nbs/llm_runs.ipynb #00f8b734
+# %% ../nbs/llm_runs.ipynb #6d374185
 import json
 import os
 import time
@@ -174,13 +174,13 @@ def cellRow(cell, cfg, r):
     return {**row, **r}
 
 
-def runLLMCell(cell):
-    "Run one LLM cell in this process (one client per process); the turn log goes to `cell['logDir']` if given."
+def runLLMCell(cell, run=None):
+    "Run one LLM cell in this process (one client per process; `run` defaults to runLLM); the turn log goes to `cell['logDir']`."
     cfg = LLMConfig.fromDict(cell['cfg'])
     client = makeClient(cfg, cell.get('client'))
     client.tag = rowKey(cellRow(cell, cfg, dict(episode=0)))        # timing records only
     t0 = time.perf_counter()
-    rows, log = runLLM(cfg, cell['seed'], client)
+    rows, log = (run or runLLM)(cfg, cell['seed'], client)
     wall = dict(key=client.tag, kind='run', seconds=round(time.perf_counter() - t0, 3), calls=len(client.timing))
     rows = [cellRow(cell, cfg, r) for r in rows]
     if cell.get('logDir'):

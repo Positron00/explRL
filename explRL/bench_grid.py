@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/bench_grid.html.md"""
 __all__ = ['CHANNELS', 'SIZES', 'PREREG', 'SWEEPS', 'STUDY_B', 'STR_COLS', 'preregHash', 'cell', 'mainGrid', 'sideSweeps',
            'runCell', 'rowKey', 'runGrid', 'writeCSV', 'readCSV', 'confirm']
 
-# %% ../nbs/bench_grid.ipynb #e7cdf86a
+# %% ../nbs/bench_grid.ipynb #b9ded481
 import csv
 import hashlib
 import json
@@ -114,6 +114,8 @@ STR_COLS = {'study', 'factor', 'level', 'channel', 'agent', 'budget', 'arm'}
 def _fmt(v):
     if isinstance(v, str):
         return v
+    if isinstance(v, (tuple, list)):            # e.g. the clue board's subtask values
+        return '|'.join(map(str, v))
     v = float(v)
     return '' if math.isnan(v) else repr(v)
 

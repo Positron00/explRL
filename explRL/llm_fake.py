@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_fake.html.md"""
 # %% auto #0
 __all__ = ['FakeClient', 'fakeReply']
 
-# %% ../nbs/llm_fake.ipynb #1dae75cb
+# %% ../nbs/llm_fake.ipynb #d59d5c3a
 import hashlib
 import json
 import re
@@ -44,6 +44,9 @@ def fakeReply(req):
     if 'estimates' in req['output_config']['format']['schema']['properties']:
         seen = re.findall(r'stayed at (\w+), earned (-?\d+\.\d+)', ' '.join(b['text'] for b in blocks))
         return json.dumps(dict(estimates=[dict(location=n, value=float(v)) for n, v in seen]))
+    own = re.search(r'Your own clues: T(\d+): (x mod \d+ = \d+)', o)
+    if own and h % 3 == 0:                                  # the clue board: sometimes share an own clue
+        return json.dumps(dict(action='share', target=f'T{own.group(1)}', answer=0, clue=own.group(2), notes=f'h{h % 7}'))
     if 'You are at' in o:
         here, near = re.search(r'You are at (\w+)', o).group(1), re.search(r': (\w+) [\d.]+ s', o).group(1)
         go = h % 3 == 0

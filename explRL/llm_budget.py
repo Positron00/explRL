@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_budget.html.md"""
 # %% auto #0
 __all__ = ['PRICES', 'TOKEN_PROFILE', 'USAGE', 'BudgetExceeded', 'costOf', 'estimateCost', 'maxCallCost', 'Budget']
 
-# %% ../nbs/llm_budget.ipynb #8d95cf80
+# %% ../nbs/llm_budget.ipynb #d252f4d1
 import fcntl
 import json
 from pathlib import Path
@@ -19,6 +19,7 @@ PRICES = {   # $ per million tokens (Haiku: prompts up to 100K tokens), from the
 TOKEN_PROFILE = {   # per call: (uncached input, cache-read input, output) tokens, measured in the pilot (T7, 2026-10-12)
     ('claude-haiku-5-5', 'forage'): (840, 1824, 433), ('claude-haiku-5-5', 'board'): (208, 1771, 901),
     ('claude-sonnet-5-5', 'forage'): (840, 1824, 433), ('claude-sonnet-5-5', 'board'): (214, 1743, 805),   # forage: unused
+    ('claude-haiku-5-5', 'clue'): (208, 1771, 901), ('claude-sonnet-5-5', 'clue'): (214, 1743, 805),   # clue: provisional (board's)
 }
 USAGE = ('input_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens', 'output_tokens')
 

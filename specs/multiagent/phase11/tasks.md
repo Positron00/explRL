@@ -24,8 +24,8 @@ flowchart LR
 - **Done when**: the baseline matches `results/multiagent/baseline_phase9/sha256.txt`; the reference hashes are written down.
 
 ## T2. Clues and the board
-- **Files**: new `nbs/clueboard.ipynb` (sections 1, 2).
-- **What**: `PRIMES`, `CLUE_PAIRS`, `ClueTask`, `makeClueTask`, `ClueBoardEnv` (dealing, actions, share and solve logs, `netRows`, `holders`, `pooledBound`, rewards).
+- **Files**: new `nbs/cluetask.ipynb` (section 1), new `nbs/clueboard.ipynb` (section 2).
+- **What**: `PRIMES`, `CLUE_PAIRS`, `primeSets`, `ClueTask`, `makeClueTask`, `ClueBoardEnv` (dealing, actions, share and solve logs, `netRows`, `holders`, `pooledBound`, rewards).
 - **Tests**: **AC-2**, **AC-3**.
 
 ## T3. Channels and rule agents
@@ -44,7 +44,7 @@ flowchart LR
 - **Done when**: **AC-8**; settings fixed (gate 1). If no setting qualifies, stop and report to the user.
 
 ## T6. Text interface and LLM runs
-- **Files**: new `nbs/clue_text.ipynb` (section 4); `nbs/clue_runs.ipynb` (`runClue`, the LLM path of `runClueAny`).
+- **Files**: new `nbs/clue_text.ipynb` (section 4); `nbs/clue_runs.ipynb` (`runClue`, the LLM path of `runClueAny`); `nbs/llm_runs.ipynb` (`runLLMCell(cell, run=None)`); `nbs/llm_fake.ipynb` (clue branch).
 - **What**: `CLUE_SCHEMA`, `TextClueEnv`; `runClue` with the fake client.
 - **Tests**: **AC-5**; the rules text is above 512 tokens; a fake-client team with all clues known solves; turn logs and timing written as Phase 10.
 

@@ -1,6 +1,6 @@
 # Spec: Phase 11, a distributed-information task board (and the road to RL training)
 
-Status: **draft spec** (2026-10-12), not implemented. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) and the [follow-ups](../speedup/README.md); replaces their paused hard-board run (D1).
+Status: **implemented through the numpy sweep** (2026-10-12): settings fixed (gate 1); the live pilot and `CLUE_PLAN` freeze are next. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 10](../phase10/README.md) and the [follow-ups](../speedup/README.md); replaces their paused hard-board run (D1).
 
 ## Goal
 
@@ -59,3 +59,19 @@ Make communication load-bearing. On the Phase 10 board Claude Haiku 5.5 solved 8
 | K9 | Seeds | Part B sweep 800-819; pilot 1100-1101; main 900-904; framing 910-912; liar 900-902 (its clean cells are the main grid's); matched effort 900-902; scale 920-922 |
 | K10 | Part E compute (P11-4) | **A rented GPU** (decided 2026-10-12, following the recommendation) for the next phase's RL training; nothing is trained in this phase |
 | K11 | Budget | Spent so far $40.60 of the $150 cap; this phase about $6-8 (up to about $16 with the optional arms); the follow-ups' scheduler and cap checks apply |
+
+## Sweep results (T5, 2026-10-12)
+
+The numpy sweep (22 400 runs, 242 s on 8 processes; `results/multiagent/clue/sweep/runs.csv`) ran rule agents over every setting. At N = 4 with `needed` sharing, every setting met both conditions of the frozen rule (FR-B3): the blackboard reached 0.39-0.58 of the pooled bound and no channel 0.00-0.06 (only guessing scores without clues). The rule picks the largest gap: **m = 2, r = 1, R = 30, guess = 0** (blackboard 0.57 of the bound vs 0.00; R = 60 ties and loses on the smaller-R tie-break). This is now `CLUE_SETTINGS`.
+
+| N | none | blackboard | messages | hierarchical |
+|---|---|---|---|---|
+| 1 | 1.15 | 1.15 | 1.15 | 1.12 |
+| 2 | 0.00 | 0.76 | 0.76 | 0.75 |
+| 4 | 0.00 | 0.60 | 0.46 | 0.55 |
+| 8 | 0.00 | 0.53 | 0.13 | 0.50 |
+| 16 | 0.00 | 0.44 | 0.04 | 0.48 |
+| 32 | 0.00 | 0.35 | 0.02 | 0.46 |
+| 64 | 0.00 | 0.27 | 0.01 | 0.46 |
+
+Welfare per agent-turn at the chosen settings (rule agents, seeds 800-819). Without a channel nothing is solved once the clues are split (N >= 2): the board does force sharing. Two messages per share collapse as the team grows (a clue rarely reaches whoever needs it). The blackboard declines slowly, because more agents spread over more subtasks. The coordinator, which routes clues to the agents working on that subtask, holds up best. Incentives (`sweepIncentives`, N = 4, blackboard): team welfare 0.60 with `needed` sharing vs 0.00 with `never`. Under individual reward, every rule agent shared at least once, so the sharer vs non-sharer comparison is empty (mean sharer reward 24.1 over the run).

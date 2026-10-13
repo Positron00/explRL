@@ -64,4 +64,13 @@ website:
       - followup_grid.ipynb
       - followup_report.ipynb
       - demo_followup.ipynb
+      - cluetask.ipynb
+      - clueboard.ipynb
+      - clue_agents.ipynb
+      - clue_text.ipynb
+      - clue_runs.ipynb
+      - clue_grid.ipynb
+      - clue_train.ipynb
+      - clue_report.ipynb
+      - demo_clue.ipynb
       - demo_multiagent.ipynb
