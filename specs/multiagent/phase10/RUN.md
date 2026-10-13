@@ -78,6 +78,7 @@ Run it on a clean worktree (`git worktree add --detach <dir> HEAD`): every `nbde
 
 - Phase 9 run guide: [../phase9/RUN.md](../phase9/RUN.md)
 - Speedup and follow-up runs: [../speedup/RUN.md](../speedup/RUN.md)
+- Phase 11 (clue board): [../phase11/RUN.md](../phase11/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)
 - Demo notebook: [nbs/demo_llm.ipynb](../../../nbs/demo_llm.ipynb)
-- The plan's write-up (Phases 8-10, from saved results, no rerun): `nbdev-test --n-workers 0 nbs/demo_multiagent.ipynb` writes [results/multiagent/REPORT.md](../../../results/multiagent/REPORT.md) and `results/multiagent/report/*.png` (it skips if the saved results are missing)
+- The plan's write-up (Phases 8-11, from saved results, no rerun): `nbdev-test --n-workers 0 nbs/demo_multiagent.ipynb` writes [results/multiagent/REPORT.md](../../../results/multiagent/REPORT.md) and `results/multiagent/report/*.png` (it skips if the saved results are missing)

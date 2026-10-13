@@ -207,4 +207,4 @@ Written in Phase 10's last task (decision L20): a short write-up notebook (`nbs/
 
 ## Order and rough effort
 
-5 (1-2 days) -> 6 (2-3 days, prototype first) -> 7 (2 days) -> 8 (3-4 days, including the pre-registered grid and studies A and B) -> 9 (2-3 days, including the pre-registered H3 run and the defence grids) -> 10 (3-4 days plus API time, including the task board and the pilot). About 14-19 working days in total.
+5 (1-2 days) -> 6 (2-3 days, prototype first) -> 7 (2 days) -> 8 (3-4 days, including the pre-registered grid and studies A and B) -> 9 (2-3 days, including the pre-registered H3 run and the defence grids) -> 10 (3-4 days plus API time, including the task board and the pilot) -> follow-ups (1-2 days) -> 11 (1-2 days plus about $4 of API time). About 17-23 working days in total.

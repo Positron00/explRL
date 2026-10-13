@@ -15,7 +15,7 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 | `nbdev-test --n-workers 0 nbs/cluetask.ipynb` | clues: unique answer, every clue needed, feasible prime sets (AC-2) | ~1 s |
 | `nbdev-test --n-workers 0 nbs/clueboard.ipynb` | dealing guarantee, actions, share and solve logs, false residues, reward schemes (AC-3) | ~1 s |
 | `nbdev-test --n-workers 0 nbs/clue_agents.ipynb` | channels, `known`, rule agents and the liar (AC-4) | ~1 s |
-| `nbdev-test --n-workers 0 nbs/clue_text.ipynb` | rules text, observation, parsing, posting (AC-5) | ~1 s |
+| `nbdev-test --n-workers 0 nbs/clue_text.ipynb` | rules text, observation, parsing, posting (AC-5); a scripted client that reads only the observation solves a board it holds all clues of | ~1 s |
 | `nbdev-test --n-workers 0 nbs/clue_runs.ipynb` | metrics on hand-made runs, numpy and fake-client runs, determinism | ~1 s |
 | `nbdev-test --n-workers 0 nbs/clue_grid.ipynb` | grid sizes and call counts, the frozen settings rule, `CLUE_PLAN` | ~1 s |
 | `nbdev-test --n-workers 0 nbs/clue_train.ipynb` | batched episodes, exports round-trip, teacher solves (AC-7) | ~1 s |

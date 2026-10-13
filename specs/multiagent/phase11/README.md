@@ -8,7 +8,7 @@ Make communication load-bearing. On the Phase 10 board Claude Haiku 5.5 solved 8
 
 1. **The clue board** (Part A): subtasks fixed by modular clues ("x mod 3 = 2", ...), dealt to different agents; a **share** action; the four Phase 7 channels carrying clues; information-pooling metrics.
 2. **Numpy check first** (Part B): rule-based agents at 1-64 agents confirm the board's dynamic range and fix its settings before any API spend.
-3. **Live runs with Claude Haiku 5.5** (Part C, about $6-8): pilot, main grid (4 channels x N 2, 4, 8 x 5 seeds), a framing arm (scored on own result vs team total) and a false-clue liar; optional arms specified but off by default (model size at matched effort, 16 agents).
+3. **Live runs with Claude Haiku 5.5** (Part C, planned about $6-8; spent $3.69 with the pilot): pilot, main grid (4 channels x N 2, 4, 8 x 5 seeds), a framing arm (scored on own result vs team total) and a false-clue liar; optional arms specified but off by default (model size at matched effort, 16 agents).
 4. **Ready to train on** (Part D): individual, team and credit rewards, batched episodes, trajectory exports including chat format, and a scripted teacher policy for warm-starting.
 5. **RL training** (Part E) is the next phase, not this one (decision K10).
 
@@ -32,7 +32,7 @@ Make communication load-bearing. On the Phase 10 board Claude Haiku 5.5 solved 8
 | [design-high-level.md](design-high-level.md) | Modules, data flow, main decisions and rejected alternatives, risks |
 | [design-low-level.md](design-low-level.md) | Clue generation and dealing, the board, channels, agents, text interface, runs, grids, costs, training packaging, demo |
 | [tasks.md](tasks.md) | Ordered tasks with "done when" checks and the gates |
-| RUN.md | Written in the last task |
+| [RUN.md](RUN.md) | Commands, timings, artifacts and regression checks (written in the last task) |
 
 ## What earlier phases give us
 
@@ -50,9 +50,9 @@ Make communication load-bearing. On the Phase 10 board Claude Haiku 5.5 solved 8
 |----|----------|--------|
 | K1 | Clue type (P11-1) | **Modular clues** (decided 2026-10-12, following the plan's recommendation): a hidden `x` in `[0, R)` and `m` clues "x mod p = r" for distinct small primes whose product is at least `R`, so all `m` clues determine `x` (Chinese remainder theorem) and `m - 1` leave several candidates. Exact, seedable, combinable mentally; checked by our code |
 | K2 | Dealing | Each clue goes to `r` agents (redundancy), spread so that no agent holds all clues of a subtask whenever that is possible (`r x m <= N x (m - 1)`; otherwise some agents necessarily hold all, which the sweep records); with fewer agents, agents hold several; a solo agent holds all (the information-free baseline). Clues are dealt when a subtask appears |
-| K3 | Settings | Fixed by the Part B numpy sweep with a frozen rule (requirements FR-B2), then checked by the live pilot: Haiku must solve at least 80% of subtasks for which it knows all clues, with under 5% invalid actions; otherwise the user decides before the main runs |
+| K3 | Settings | Fixed by the Part B numpy sweep with a frozen rule (requirements FR-B3), then checked by the live pilot: Haiku must solve at least 80% of subtasks for which it knows all clues, with under 5% invalid actions; otherwise the user decides before the main runs |
 | K4 | Share action | `share`: post one clue you know (held, or seen through your channel: relaying is allowed) for an open subtask to the channel; costs the turn (as `open`); sharing is voluntary, as in Phase 10. A share of a clue that anyone already shared counts as redundant. The share carries the residue posted, so a scripted liar can post a false one (the board flags it) |
-| K5 | Channels | `none`; `blackboard` (all shared clues per subtask, visible to all); `messages` (a share goes to 2 random teammates); `hierarchical` (a numpy coordinator routes each shared clue to every agent with that subtask open, and suggests the open subtask with the most pooled clues) |
+| K5 | Channels | `none`; `blackboard` (all shared clues per subtask, visible to all); `messages` (a share goes to 2 random teammates); `hierarchical` (a numpy coordinator routes each shared clue to every agent with that subtask open at the time, and suggests the open subtask with the most pooled clues not assigned to another agent) |
 | K6 | Live scope (P11-2) | **Main grid, framing arm and liar arm** (decided 2026-10-12): about 15 000 Haiku calls, $6-8. The matched-effort arm (Haiku and Sonnet at medium effort, about $6-8) and the 16-agent scale arm (about $2) are specified and off unless the user asks |
 | K7 | Analysis (P11-3) | **Exploratory with a frozen analysis plan** (decided 2026-10-12, as Phase 10): `CLUE_PLAN` frozen and committed before the main live runs, its hash in every report; no new confirmatory test |
 | K8 | Rewards | Experiments use individual reward (the incentive problem is the point); the training package offers individual, team (each solve and penalty shared equally) and **credit** (the solver keeps `1 - c` of the value; `c` is split equally among the agents whose true shares first supplied clues the solver did not hold; false shares earn nothing; default `c = 0.5`) |
@@ -109,3 +109,19 @@ Welfare per agent-turn (Haiku; means over 5 seeds).
 - **Numpy predicts LLM:** Spearman rho 0.79 [0.74, 0.81] over the 12 (channel, N) cells; the coordinator cells are the main misses.
 - **Liar:** one scripted false-clue liar among 4 costs the honest agents 0.36 [0.23, 0.52] on the blackboard and 0.26 [0.21, 0.29] with messages. The blackboard-minus-messages difference, 0.10 [-0.07, 0.25], has H3's sign but its interval includes zero (3 seeds).
 - **Framing** (team vs own reward wording): no clear effect (welfare difference 0.00 at N = 4, 0.03 [0.00, 0.05] at N = 8).
+
+### The figures in plain language
+
+Figures in `results/multiagent/clue/full/`; error bars are 95% bootstrap intervals over seeds.
+
+- **`clue_welfare.png`: does a team do better with a way to share clues?** Each line is one way of sharing (none, a shared board, messages to two teammates, a coordinator). Left: how much each agent earned per turn, for teams of 2, 4 and 8. Right: the whole team's earnings. Without sharing (grey) agents can only guess, so they earn little at any size. The shared board (blue) stays high as the team grows, so the team total climbs steeply. Messages (orange) start as good as the board with 2 agents, then fall: with more teammates, two random recipients rarely include the one who needs the clue. The coordinator (green) is only a little better than no sharing (see the main results for why).
+- **`clue_info.png`: how do the agents use information?** Left: shares per clue held (1 means every clue was posted once). Without a channel Haiku posts almost every clue, although nobody can read it; with the board it posts fewer than half. Middle: the share of solves made by an agent that did not hold every clue itself. It is 1 everywhere, because with two clues per subtask, each dealt to one agent, nobody ever holds both; without a channel those solves are lucky guesses. Right: turns from the first post of a missing clue to the solve that used it: two to five turns with a channel, seven to eleven without (where the "use" is a guess that happened to fit).
+- **`clue_numpy.png`: can cheap rule agents predict the LLM agents?** Each dot is one (sharing method, team size) cell (bigger dots, bigger teams): across is the rule agents' earnings, up is Haiku's. Most dots line up (rank correlation 0.79). The green coordinator dots sit far below the line: the rule agents follow the coordinator, Haiku mostly does not.
+- **`clue_arms.png`: do the wording and a liar matter?** Each dot is a difference with its uncertainty bar; bars crossing the vertical line show no clear effect. Telling agents they are scored on the team total changed nothing clear. One lying teammate cost the honest agents about a third of a point per turn on the board and a quarter with messages. The liar hurt more on the board (as hypothesis H3 predicts), but that difference's bar crosses zero.
+
+## Implementation notes
+
+- **Module split.** To stay under 200 lines per file, clue generation is in `cluetask.py` and the board in `clueboard.py` (design-high-level).
+- **Relaying.** LLM agents may share any clue they know (held or seen); rule agents share only clues they hold.
+- **Shared code changed, earlier results unchanged.** `runLLMCell` takes an optional run function (the clue runs reuse it); the fake client sometimes shares a clue on the clue board; the CSV writer writes a tuple setting as `1|2|3`. Phase 5-9 baselines and Phase 10 and follow-up outputs are byte-identical (T8).
+- **Assisted solves at the chosen settings.** With m = 2 and r = 1 no agent ever holds both clues of a subtask (N >= 2), so every team solve counts as assisted; the metric only separates settings where agents can hold every clue.

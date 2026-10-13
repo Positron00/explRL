@@ -1,6 +1,6 @@
 # Tasks: Phase 11, the clue board
 
-Status: not started (spec drafted 2026-10-12).
+Status: done (2026-10-12): T1-T12 complete; optional arms not run (K6).
 
 Rules for every task:
 
@@ -70,7 +70,7 @@ flowchart LR
 ## T12. Training package (offline; can run alongside T7-T10)
 - **Files**: new `nbs/clue_train.ipynb` (section 7).
 - **What**: `ClueEpisodes`, `exportTrajectories`, `teacherAction`.
-- **Tests**: **AC-7**; exports from the quick demo's turn log round-trip.
+- **Tests**: **AC-7**; exports from a fake-client run's turn log round-trip.
 
 ## Acceptance criteria to task map
 

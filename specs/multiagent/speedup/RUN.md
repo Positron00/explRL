@@ -48,5 +48,6 @@ tools/phase9_baseline.sh "$WORKTREE" /tmp/explRL_p9   # on a clean worktree: ide
 ## Related
 
 - Phase 10 run guide: [../phase10/RUN.md](../phase10/RUN.md)
+- Phase 11 (clue board): [../phase11/RUN.md](../phase11/RUN.md)
 - Multi-agent plan: [../README.md](../README.md)
 - Demo notebook: [nbs/demo_followup.ipynb](../../../nbs/demo_followup.ipynb)
