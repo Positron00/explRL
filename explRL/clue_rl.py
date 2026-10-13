@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples',
            'microBatches', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #5fb632ff
+# %% ../nbs/clue_rl.ipynb #3e8c6214
 import hashlib
 import json
 import time
@@ -19,7 +19,7 @@ import numpy as np
 
 from .clue_grid import BOARD, CLUE_SETTINGS
 from .clue_roll import coopRows, rollout
-from .clue_sft import loadModel, loraConfig
+from .clue_sft import libVersions, loadModel, loraConfig
 from .llm_runs import LLMConfig
 from .local_policy import LocalPolicy, pickDevice
 from .rl_torch import loadCheckpoint, replyLogps, saveCheckpoint
@@ -108,7 +108,7 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
     from peft import get_peft_model
     out, dev = Path(cfg.out), pickDevice(cfg.device)
     out.mkdir(parents=True, exist_ok=True)
-    (out / 'config.json').write_text(json.dumps(dict(asdict(cfg), hash=configHash(cfg)), indent=1) + '\n')
+    (out / 'config.json').write_text(json.dumps(dict(asdict(cfg), hash=configHash(cfg), versions=libVersions()), indent=1) + '\n')
     torch.manual_seed(cfg.trainSeed)
     tok, base = loadModel(cfg.model, dev)
     names = adapterNames(cfg)
@@ -173,5 +173,9 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
             log.flush()
             if (s + 1) % cfg.ckptEvery == 0 or s + 1 == cfg.steps:
                 saveCheckpoint(model, opt, s + 1, out, configHash(cfg))
+                (out / 'turns').mkdir(exist_ok=True)       # this step's turns, to read what the agents do
+                (out / 'turns' / f'step-{s + 1:04d}.jsonl').write_text(''.join(
+                    json.dumps(dict(board=b, seed=ro.seeds[b], **x), sort_keys=True) + '\n'
+                    for b in range(len(ro.boards)) for lg in ro.logs[b] for x in lg))
     model.save_pretrained(out / 'final')
     return str(out / 'final')

@@ -19,7 +19,7 @@
 | `nbs/coop_report.ipynb` -> `explRL/coop_report.py` | new | Track A: `logMetrics` (follow share and solo solves from turn logs), `trackASummaries`, `writeTrackA`, `figTrackA` |
 | `nbs/rl_report.ipynb` -> `explRL/rl_report.py` | new | Track B: `rlSummaries`, `writeRL`, `writeRLFigures` (split from `coop_report` to keep both under 200 lines) |
 | `nbs/demo_coop.ipynb` | new | Track A: quick (fake client), pilot and main (`llm`) |
-| `nbs/demo_rl.ipynb` | new | Mac: quick offline checks; debug run (0.5B), warm-start check, evaluation, cross-play, report (`train`) |
+| `nbs/demo_rl.ipynb` | new | Mac: quick offline checks; debug run (0.5B), warm-start check, evaluation, cross-play, report (`train`; run from the separate training environment) |
 | `nbs/colab_clue_rl.ipynb` | new | Colab: set-up, pilot, warm start, three RL runs (`gpu`) |
 | `nbs/demo_multiagent.ipynb` | changed | section 8 of `REPORT.md` (Phase 12) |
 | `pyproject.toml` | changed | `[train]` extra; test flags `gpu` and `train` |

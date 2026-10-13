@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/coop_grid.html.md"""
 __all__ = ['MODELS', 'TRACKA', 'TRACKA_PLAN', 'LOCAL', 'MAIN_SEEDS', 'RL_PLAN', 'trackAGrid', 'trackAPilotGrid', 'trackAQuick',
            'evalCell', 'evalSuite', 'coopHash']
 
-# %% ../nbs/coop_grid.ipynb #45eec889
+# %% ../nbs/coop_grid.ipynb #4ff4df1e
 import hashlib
 import json
 from dataclasses import asdict
@@ -57,7 +57,7 @@ TRACKA_PLAN = dict(
 LOCAL = ('untrained', 'warm', 'individual', 'team', 'credit')      # the models evaluated (main boards: all five)
 MAIN_SEEDS = list(range(900, 905)) + list(range(930, 940))
 RL_PLAN = dict(
-    version=1, frozen=False, models=MODELS, settings=CLUE_SETTINGS, schemes=['individual', 'team', 'credit'],
+    version=1, frozen=False, models=MODELS, settings=CLUE_SETTINGS, schemes=['individual', 'team', 'credit'], prices=PRICES,
     sft={k: v for k, v in asdict(SFTConfig('', '')).items() if k not in ('model', 'out', 'device')},
     sftData=dict(seeds=[20000, 20099], sizes=[1, 2, 4], turns=20),
     warmCheck=dict(seeds=[1200, 1219], turns=30, solveRate=0.8, invalid=0.05),

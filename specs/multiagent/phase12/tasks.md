@@ -1,6 +1,6 @@
 # Tasks: Phase 12, training agents to work together
 
-Status: not started (spec drafted 2026-10-13).
+Status (2026-10-13): code written and tested offline for T1-T3 and T6-T10 (T1 references recorded: baselines identical, reference hashes written down). No runs yet (the user asked to wait until disk space is cleared): T4, T5, the runs of T7-T9 (the 0.5B debug run), the push and Colab pilot of T10, and T11-T13. T14 partly done (RUN.md, links, sidebar).
 
 Rules for every task:
 
@@ -70,7 +70,7 @@ Track A (T2-T5) and the Track B code (T6-T9) can proceed side by side; Track A's
 ## T7. Local models on the Mac
 - **Files**: new `nbs/local_policy.ipynb` (section 4); new `nbs/tiny_model.ipynb`; `pyproject.toml` (`[train]` extra, `gpu` and `train` flags); `nbs/demo_rl.ipynb` (quick and debug sections).
 - **What**:
-  - Install the `[train]` extra in the Mac venv.
+  - Install the `[train]` extra in a separate Mac environment (`.venv-train`), keeping the project environment without `torch` (AC-1).
   - Choose a candidate model family: open weights, a licence that allows research fine-tuning, a chat template, about 3B and 0.5B sizes.
   - Run the 0.5B model as `LocalPolicy` on mps through `rollout`.
   - Measure the batched generation speed of the 0.5B model and, once downloaded, the 3B model, to confirm the Mac evaluation estimate (section 8).

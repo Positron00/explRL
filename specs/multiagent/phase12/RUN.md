@@ -7,7 +7,7 @@ Status 2026-10-13: the code is implemented and tested offline; no Phase 12 run h
 ## Prerequisites
 
 - **Offline tests and Track A:** as Phase 11 (`pip install -e ".[dev]"`, `nbdev-export`; for Track A's live runs also `pip install -e ".[llm]"` and the API key in the environment or the git-ignored `.env.local`).
-- **Model work on the Mac:** `pip install -e ".[train]"` (PyTorch, Transformers, PEFT; no vLLM on macOS) and about 30 GB of free disk (the 3B model is about 6 GB, the 0.5B about 1 GB, plus PyTorch and the merged warm-start model).
+- **Model work on the Mac:** a separate environment, so the project's stays without `torch` and the offline suite keeps proving that (AC-1): `python -m venv .venv-train && .venv-train/bin/pip install -e ".[train,dev,llm]"` (PyTorch, Transformers, PEFT; no vLLM on macOS); run the `train` sections with `.venv-train/bin` first on `PATH`. About 30 GB of free disk (the 3B model is about 6 GB, the 0.5B about 1 GB, plus PyTorch and the merged warm-start model).
 - **Colab:** an A100 runtime (paid plan); the notebook installs the package from GitHub, so push the code first.
 
 ## Tests
@@ -31,7 +31,7 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command; none
 | `nbdev-test --n-workers 0 nbs/demo_rl.ipynb` | quick: the evaluation and report pipeline with scripted policies | ~3 s |
 | `nbdev-test --n-workers 0` | full suite (also without `anthropic`; the project venv has no `torch`) | ~2 min |
 
-With the `[train]` extra, `nbdev-test --n-workers 0 --flags train nbs/{tiny_model,local_policy,clue_sft,clue_rl}.ipynb` runs the model code on a tiny random model (no download, under a minute): generation on cpu and the Apple GPU, a warm start whose loss falls, RL steps with per-role adapters, resume and refusal.
+From the training environment, `nbdev-test --n-workers 0 --flags train nbs/{tiny_model,local_policy,clue_sft,clue_rl}.ipynb` runs the model code on a tiny random model (no download, under a minute): generation on cpu and the Apple GPU, a warm start whose loss falls, RL steps with per-role adapters, resume and refusal.
 
 ## Runs, in order
 
@@ -52,7 +52,7 @@ API spend goes through the Phase 10 client and ledger (`results/multiagent/llm/`
 ## Artifacts
 
 - `results/multiagent/coop/{quick,pilot,full}/` (Track A): `runs.csv`, `turns.jsonl`, `timing.jsonl`, `metrics.json` (and `_live` copies after the live run), `report.md`, `coopA.png`.
-- `results/multiagent/rl/` (Track B): `colab/` (the unpacked Colab zip: warm-start adapter, RL adapters, training metrics and configurations), `debug/`, `warm/check.json`, `eval/` (`runs.csv`, `turns/`, `report.md`, `coop_main.png`, `coop_info.png`, `coop_gen.png`, `coop_curves.png`), `cache/` (local replies), `gpu.json`.
+- `results/multiagent/rl/` (Track B): `colab/` (the unpacked Colab zip: warm-start adapter, RL adapters, training metrics, configurations with library versions, turn logs of the checkpoint steps), `debug/`, `warm/check.json`, `eval/` (`runs.csv`, `turns/`, `report.md`, `coop_main.png`, `coop_info.png`, `coop_gen.png`, `coop_curves.png`), `cache/` (local replies), `gpu.json`.
 - Google Drive `MyDrive/explRL_rl/`: everything Colab writes, including checkpoints and the merged warm-start model (kept there, not downloaded).
 
 ## Regression
