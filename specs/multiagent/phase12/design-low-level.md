@@ -232,7 +232,7 @@ That is about 31 000 local turns and 3 200 Haiku calls (about $0.8). On the Mac 
 `pyproject.toml`:
 - **Extra:** `train = ['torch', 'transformers', 'peft', 'accelerate', 'tokenizers', 'vllm; sys_platform == "linux"']`.
 - **Test flags:** `tst_flags` gains `gpu` and `train`.
-- **Colab install:** `pip install "explRL[train] @ git+https://github.com/Positron00/explRL"`.
+- **Colab install:** `pip install "explRL[train] @ git+https://github.com/Positron00/explRL"`, after upgrading Colab's preinstalled `torchao` to 0.16 or later (PEFT needs it; found in session 2).
 - **Mac:** the extra goes into a separate environment (for example `python -m venv .venv-train && .venv-train/bin/pip install -e ".[train,dev,llm]"`), so the project environment stays without `torch` and the offline suite keeps proving that (AC-1).
 
 ## 12. Determinism, cost, secrets
