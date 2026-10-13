@@ -231,6 +231,7 @@ A100, `Qwen/Qwen2.5-3B-Instruct`, 0.58 GPU hours: warm start 6.5 s per step (875
 
 ## Colab session 1 and the warm-start check (T10-T11, 2026-10-13)
 
+- **GPU and cost:** one A100-SXM4-80GB; peak memory about 20 GB of 80; about 2.1 GPU hours in all (pilot 0.58, warm start 1.4, set-up), roughly $2-4 (the user: under $20), far inside the $150 GPU cap. With 80 GB, gradient checkpointing off has ample room.
 - **Warm start (Colab A100):** 875 steps (about 14 000 teacher turns), 1.4 hours, 5.8 s per step; the loss fell from 1.31 to about 0.005 (the model reproduces the teacher's replies almost exactly).
 - **Pilot RL, per step** (the first settings: every turn trained on, gradient checkpointing on): rollout 296 s in step 1 (vLLM's start-up), then about 59 s; update about 490 s every step. The update is the bottleneck, as estimated; training on a quarter of the turns with checkpointing off should bring a step to about 155-185 s (40 steps in about 2 hours), to be confirmed by the RL speed check.
 - **Warm-start check (Mac, AC-9): passed.** On 20 boards where one agent holds every clue (seeds 1200-1219, 30 turns), the 3B warm-start model solved 192 of the 206 subtasks it opened (93%), with no invalid replies (bar: 80%, under 5%). Run time 661 s, including merging the adapter into the base model.
