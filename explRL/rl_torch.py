@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl_torch.html.md"""
 # %% auto #0
 __all__ = ['replyLogps', 'saveMemory', 'policyUpdate', 'saveCheckpoint', 'loadCheckpoint']
 
-# %% ../nbs/rl_torch.ipynb #2dbdedec
+# %% ../nbs/rl_torch.ipynb #bd254040
 import json
 from pathlib import Path
 
@@ -41,6 +41,7 @@ def policyUpdate(model, tok, opt, params, samples, chunks, names, perRole, kl, m
     """One policy-gradient step over `samples` (in micro-batches `chunks`): mean over samples of -A * mean log pi(reply)
     + kl * mean k3 to the same model with its adapters off; gradient clipping 1.0. -> loss, KL, tokens. If the step runs
     out of GPU memory without gradient checkpointing, checkpointing is switched on and the step is redone."""
+    import gc
     import torch
     oom = getattr(torch, 'OutOfMemoryError', torch.cuda.OutOfMemoryError)
     try:
@@ -48,11 +49,13 @@ def policyUpdate(model, tok, opt, params, samples, chunks, names, perRole, kl, m
     except oom:
         if getattr(model, 'is_gradient_checkpointing', True):
             raise
-        opt.zero_grad()
-        torch.cuda.empty_cache() if torch.cuda.is_available() else None
-        saveMemory(model, True)
-        print('out of GPU memory: gradient checkpointing switched on; the step is redone')
-        return _update(model, tok, opt, params, samples, chunks, names, perRole, kl, maxLen, device)
+    # retried outside the except block: inside it, the traceback keeps the failed attempt's tensors alive
+    opt.zero_grad(set_to_none=True)
+    gc.collect()
+    torch.cuda.empty_cache() if torch.cuda.is_available() else None
+    saveMemory(model, True)
+    print('out of GPU memory: gradient checkpointing switched on; the step is redone')
+    return _update(model, tok, opt, params, samples, chunks, names, perRole, kl, maxLen, device)
 
 
 def _update(model, tok, opt, params, samples, chunks, names, perRole, kl, maxLen, device):
