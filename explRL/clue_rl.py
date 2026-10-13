@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples',
            'haltReason', 'microBatches', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #48faa2dc
+# %% ../nbs/clue_rl.ipynb #8895e594
 import hashlib
 import json
 import time
@@ -22,7 +22,7 @@ from .clue_roll import coopRows, rollout
 from .clue_sft import libVersions, loadModel, loraConfig
 from .llm_runs import LLMConfig
 from .local_policy import LocalPolicy, pickDevice
-from .rl_torch import loadCheckpoint, policyUpdate, saveCheckpoint, saveMemory
+from .rl_torch import freeGPU, loadCheckpoint, policyUpdate, saveCheckpoint, saveMemory
 
 
 @dataclass
@@ -193,4 +193,6 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
                 print('halted:', reason)
                 break
     model.save_pretrained(out / 'final')
+    del model, base, opt, params
+    freeGPU(*views)                                          # vLLM runs in its own process: free its memory too
     return str(out / 'final')

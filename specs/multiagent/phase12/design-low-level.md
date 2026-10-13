@@ -157,7 +157,9 @@ def adapterNames(cfg) -> list                    # ['default'], or ['slot0', ...
 def trainRL(cfg, settings=CLUE_SETTINGS) -> path
 # rl_torch: replyLogps(model, tok, samples, maxLen, device); policyUpdate(model, tok, opt, params, samples, chunks, names,
 #           perRole, kl, maxLen, device) -> loss, kl, tokens (out of GPU memory without checkpointing: switch it on, redo
-#           the step); saveMemory(model, gradCkpt); saveCheckpoint(model, opt, step, out, config, ro=None) (with the
+#           the step, outside the except block so the failed attempt's memory is freed); freeGPU(*policies) (drop models
+#           and vLLM engines, empty the cache: called at the end of trainSFT and trainRL, so later stages in one session
+#           find the GPU free); saveMemory(model, gradCkpt); saveCheckpoint(model, opt, step, out, config, ro=None) (with the
 #           step's rollout, also its turn logs);
 #           loadCheckpoint(model, opt, out, config, names) -> step
 ```

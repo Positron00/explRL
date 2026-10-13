@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_sft.html.md"""
 __all__ = ['teacherNote', 'teacherReply', 'sftExamples', 'SFTConfig', 'libVersions', 'loraConfig', 'loadModel', 'trainSFT',
            'mergeAdapter', 'warmCheck']
 
-# %% ../nbs/clue_sft.ipynb #2a62154b
+# %% ../nbs/clue_sft.ipynb #9159f7e3
 import json
 import time
 from dataclasses import asdict, dataclass
@@ -24,7 +24,7 @@ from .clue_train import ClueEpisodes, teacherAction
 from .llm_runs import LLMConfig
 from .local_policy import dtypeFor, pickDevice
 from .multi import spawnRngs
-from .rl_torch import replyLogps, saveMemory
+from .rl_torch import freeGPU, replyLogps, saveMemory
 
 
 def _clue(p, r):
@@ -153,6 +153,8 @@ def trainSFT(cfg, examples):
             log.write(json.dumps(dict(step=s + 1, loss=total, seconds=round(time.time() - t0, 3))) + '\n')
             log.flush()
     model.save_pretrained(out / 'adapter')
+    del model, base, opt, params
+    freeGPU()
     (out / 'config.json').write_text(json.dumps(dict(asdict(cfg), versions=libVersions()), indent=1) + '\n')
     return str(out / 'adapter')
 
