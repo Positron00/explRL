@@ -1,6 +1,6 @@
 # Plan: Phase 12, training agents to work together (RL on the clue board)
 
-Status: **code implemented and tested offline** (2026-10-13); no run yet (the user asked to wait until disk space is cleared). Next: the Track A pilot (T4), the Mac debug run, then Colab. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
+Status: **code implemented; runs in progress** (2026-10-13). Track A pilot done and `TRACKA_PLAN` frozen (commit `23ee080`, hash `45258d8a34da`); Track A main runs next, then the Mac debug run and Colab. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
 
 ## Files in this spec
 
@@ -190,3 +190,9 @@ Expected GPU spend about $20-50, well inside the cap, which leaves room for reru
 ## Deliverables
 
 Track A results; a package extra and a Colab notebook that train from a clean runtime; a trained adapter per reward scheme with its training curves; an evaluation report (run on the Mac) comparing the untrained, warm-start and RL models with rule agents and Haiku; a section in `results/multiagent/REPORT.md`; and the answer to the headline question of this phase: does learning beat better instructions at teaching agents to cooperate, and which reward teaches it?
+
+## Track A pilot (T4, 2026-10-13)
+
+Live, Haiku, 480 calls, $0.11, 389 s; `results/multiagent/coop/pilot/`. **AC-8 met:** 3 invalid replies in 480 (0.6%). Each change reached the agents: with the follow hint (A1) Haiku opened the coordinator's suggestion in 21 of 22 opens (Phase 11: 61 of 161, 38%); with pooled clues passed on (A2), routed clues appeared in 90 of 120 observations (Phase 11: 74 of 800 at N = 4); the teammates line (A3) appeared in every observation. One board per variant (seed 1100), so the welfare figures (A1 0.14, A2 0.38, A3 blackboard 0.63, A3 coordinator 0.19) are not yet comparisons.
+
+`TRACKA_PLAN` was frozen and committed before any main-run call: commit `23ee080`, `coopHash(TRACKA_PLAN)` = `45258d8a34da`.
