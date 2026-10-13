@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'DELTA', 'LLMConfig', 'setup', 'taskMetrics', 'llmStats', 'runLLM', 'makeClient', 'cellRow', 'runLLMCell']
 
-# %% ../nbs/llm_runs.ipynb #6d374185
+# %% ../nbs/llm_runs.ipynb #9c333a25
 import json
 import os
 import time
@@ -20,7 +20,7 @@ from .bench_grid import rowKey
 from .bench_metrics import beliefs, discoveries, freeRiding, recovery
 from .board_agents import BoardLead, ClaimBoard
 from .harness import MessageBus
-from .harness_runs import benchWorld, HarnessConfig, makeChannel, makeTeam, netHarvest
+from .harness_runs import benchWorld, HarnessConfig, makeChannel, netHarvest
 from .llm_agent import LLMMember, ScriptedLiarText, elicitBeliefs, runTurns
 from .llm_board import TextBoardEnv
 from .llm_budget import Budget, estimateCost

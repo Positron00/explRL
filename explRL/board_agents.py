@@ -7,10 +7,9 @@ Docs: https://Positron00.github.io/explRL/board_agents.html.md"""
 # %% auto #0
 __all__ = ['ClaimBoard', 'BoardLead', 'BoardBandit']
 
-# %% ../nbs/board_agents.ipynb #e07afb26
+# %% ../nbs/board_agents.ipynb #8675e0e4
 from .harness import MessageBus
 from .multi import Outcome
-from .taskboard import TaskBoardEnv
 from .team_agents import PatchMember
 
 

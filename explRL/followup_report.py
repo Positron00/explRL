@@ -8,14 +8,14 @@ Docs: https://Positron00.github.io/explRL/followup_report.html.md"""
 __all__ = ['HAIKU', 'SONNET', 'hardTable', 'effortTable', 'roundsNumpyTable', 'roundsLLMTable', 'summaries', 'writeReport',
            'figBars', 'figRounds', 'writeFigures']
 
-# %% ../nbs/followup_report.ipynb #f10d61e4
+# %% ../nbs/followup_report.ipynb #9c02f7b2
 import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .llm_figures import COLORS, _legend, _save, figTeamTotal
+from .llm_figures import _legend, _save, figTeamTotal
 from .llm_report import NAN, _f, _fmt, _paired, _sel, _stat, interfaceTable
 
 HAIKU, SONNET = 'claude-haiku-5-5', 'claude-sonnet-5-5'

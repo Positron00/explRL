@@ -7,12 +7,11 @@ Docs: https://Positron00.github.io/explRL/llm_env.html.md"""
 # %% auto #0
 __all__ = ['FORAGE_SCHEMA', 'BOARD_SCHEMA', 'locationNames', 'TextForagingEnv']
 
-# %% ../nbs/llm_env.ipynb #cf905b67
+# %% ../nbs/llm_env.ipynb #888510a4
 import math
 
 import numpy as np
 
-from .board_agents import BoardLead, ClaimBoard
 from .harness import Blackboard, Lead, MessageBus
 
 _STR, _NUM = {'type': 'string'}, {'type': 'number'}
