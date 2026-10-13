@@ -115,7 +115,7 @@ def teacherReply(board, i, channel, rng) -> str     # notes first, then action, 
 @dataclass
 class SFTConfig: model; out; loraR=16; loraAlpha=32; dropout=0.05; lr=1e-4; epochs=1; batch=16; microBatch=4; maxLen=1536; maxSteps=0; device='auto'; seed=0; gradCkpt=True
 def loadModel(model, device, dtype=None) -> (tokenizer, model); def loraConfig(r, alpha, dropout=0.0)
-def saveMemory(model, gradCkpt=True)            # gradient checkpointing (non-reentrant)
+# saveMemory(model, gradCkpt=True): gradient checkpointing (non-reentrant); in rl_torch, used by both trainers
 def trainSFT(cfg, examples) -> path            # LoRA adapter (out/adapter); loss over the reply tokens only, from replyLogps
                                                # (only the reply positions' logits are computed); metrics.jsonl, config.json
 def mergeAdapter(model, adapter, out) -> path  # merged weights (the warm-start model; bf16, merged on cpu)
@@ -156,7 +156,9 @@ def microBatches(samples, cfg) -> list          # per-role: one slot per chunk
 def adapterNames(cfg) -> list                    # ['default'], or ['slot0', ...] per role
 def trainRL(cfg, settings=CLUE_SETTINGS) -> path
 # rl_torch: replyLogps(model, tok, samples, maxLen, device); policyUpdate(model, tok, opt, params, samples, chunks, names,
-#           perRole, kl, maxLen, device) -> loss, kl, tokens; saveCheckpoint(model, opt, step, out, config);
+#           perRole, kl, maxLen, device) -> loss, kl, tokens (out of GPU memory without checkpointing: switch it on, redo
+#           the step); saveMemory(model, gradCkpt); saveCheckpoint(model, opt, step, out, config, ro=None) (with the
+#           step's rollout, also its turn logs);
 #           loadCheckpoint(model, opt, out, config, names) -> step
 ```
 
@@ -166,12 +168,12 @@ def trainRL(cfg, settings=CLUE_SETTINGS) -> path
 3. Training returns: the rollout returns minus `formatPenalty` per invalid turn of the slot.
 4. Advantages per (seed, slot) over the group: `(R - mean) / (std + 1e-6)`, zero when all equal. Of the turns with a nonzero advantage, a seeded random share `turnFraction` is trained on (`stepSamples(ro, adv, turnFraction, default_rng([trainSeed, s]))`): the same expected gradient at a quarter of the update's cost.
 5. One optimizer step (AdamW, gradient clipping 1.0, gradient accumulation over micro-batches) on the mean over samples of `-A * mean_t log pi(y_t) + kl * mean_t k3_t`. Here `k3_t = exp(d_t) - d_t - 1` with `d_t = log pi_ref(y_t) - log pi(y_t)`, and `pi_ref` is the same model with the RL adapter disabled (`peft` `disable_adapter`). Turns with zero advantage are skipped. `replyLogps` left-pads the batch so the replies end together and asks the model only for the reply positions' logits (`logits_to_keep`), with position ids from the attention mask.
-6. Append to `metrics.jsonl`: step, seconds (rollout and update), mean training return, welfare per agent-turn, shares per held clue, invalid rate, solo share, turns with signal (`signalTurns`), turns trained on (`samples`), mean KL, loss, tokens.
+6. Append to `metrics.jsonl`: step, seconds (rollout and update), mean training return, welfare per agent-turn, shares per held clue, invalid rate, solo share, turns with signal (`signalTurns`), turns trained on (`samples`), whether gradient checkpointing was on (`gradCkpt`), mean KL, loss, tokens.
 7. The stopping rule (`haltReason` over the metrics so far, including those before a resume): invalid replies above `haltInvalid` for `haltRun` steps in a row, or the mean KL above `haltKL`. Then a checkpoint, `halted.json` (step, reason), and the loop ends; a later call returns at once instead of resuming. At checkpoint steps, also write that step's turn logs to `out/turns/step-<step>.jsonl` (with board index and seed), for reading what the agents do.
 
 **Outputs** of a run: `config.json` (configuration, hash, library versions), `metrics.jsonl`, `turns/`, `ckpt-<step>/`, `live/` (the adapter vLLM reads during the run), `final/` (the trained adapter), `halted.json` (only if the stopping rule fired).
 
-**Checkpoints** go to `out/ckpt-<step>/` every `ckptEvery` steps and at the end: adapter, optimizer state, `state.json` (step, config hash). `trainRL` resumes from the newest checkpoint whose config hash matches, and refuses one that does not; the step count is not part of the hash, so a run can be extended. Sampling seeds depend only on the step (the policies' call counter is set to `step x 100 000` before each rollout), so a resumed run continues as the uninterrupted one would, up to GPU non-determinism.
+**Checkpoints** go to `out/ckpt-<step>/` every `ckptEvery` steps and at the end: adapter, optimizer state, `state.json` (step, config hash). `trainRL` resumes from the newest checkpoint whose config hash matches, and refuses one that does not; on resume, `metrics.jsonl` keeps only the steps the checkpoint holds (the later ones are redone, not logged twice); the step count is not part of the hash, so a run can be extended. Sampling seeds depend only on the step (the policies' call counter is set to `step x 100 000` before each rollout), so a resumed run continues as the uninterrupted one would, up to GPU non-determinism.
 
 **Defaults:** 40 steps x 8 seeds x 4 rollouts x 4 agents x 10 turns = 51 200 played turns per run, of which a quarter of those with signal are trained on. The Colab pilot (full turns, gradient checkpointing on) measured 631 s per step; with `turnFraction` 0.25 and gradient checkpointing off (`RL_PLAN` sets `gradCkpt` False), about 150 s per step is expected. The step count (40, or 60 if the speed check allows) is fixed in `RL_PLAN` after the RL speed check (P12-9, AC-7). The training seed sets the adapter initialisation and the sampling; the board seeds are the same for every scheme and training seed.
 
@@ -209,7 +211,7 @@ That is about 31 000 local turns and 3 200 Haiku calls (about $0.8). On the Mac 
 - **`logMetrics(records, m)`** (`coop_report`): per row key, follow share and solo solves from turn logs (scoring answers submitted with fewer than `m` known clues). Track A rows come from `runClue` and keep the Phase 11 columns (so Phase 11's outputs stay byte-identical), so these two metrics are read from the logs, for the variants and the Phase 11 baseline alike; a test checks that they agree with `coopRows` on rollouts.
 - **`trackASummaries(rows, p11, logm, p11logm, study='coopA')`**, **`writeTrackA`**, **`figTrackA`** (`coop_report`): variant effects, coordinator gap and mechanism (the `TRACKA_PLAN` table), paired on seed with the Phase 11 rows of `results/multiagent/clue/full/runs.csv`.
 - **`rlSummaries(evalRows, p11, numpyRows)`** (`rl_report`): the `RL_PLAN` table; Phase 11 Haiku and rule-agent rows from the same file.
-- **`writeRL(path, S, meta)`** and **`writeRLFigures(out, S, curves, refs)`** (`rl_report`; curves per scheme from `metrics.jsonl`): provenance first: the `RL_PLAN` hash, commit, base model, adapter hashes, GPU hours and cost (from `gpu.json`), the evaluation's API cost and the total API spend. `writeTrackA` likewise: the `TRACKA_PLAN` hash, commit, model, prices, cost, calls, wall time and total spend.
+- **`writeRL(path, S, meta)`** and **`writeRLFigures(out, S, curves, refs)`** (`rl_report`; curves per scheme from `metrics.jsonl`): provenance first: the `RL_PLAN` hash, commit, base model, adapter hashes, GPU hours and cost (from `gpu.json`), the evaluation's API cost and the total API spend. Runs stopped by the stopping rule are named first, with their step and reason (from `halted.json`). `writeTrackA` likewise: the `TRACKA_PLAN` hash, commit, model, prices, cost, calls, wall time and total spend.
 - **Figures:**
   - `coopA.png`: variant effects;
   - `coop_main.png`: welfare per model on the main boards, with the Phase 11 Haiku and rule-agent means (seeds 900-904) as lines;

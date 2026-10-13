@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples',
            'haltReason', 'microBatches', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #a150a96f
+# %% ../nbs/clue_rl.ipynb #48faa2dc
 import hashlib
 import json
 import time
@@ -19,10 +19,10 @@ import numpy as np
 
 from .clue_grid import BOARD, CLUE_SETTINGS
 from .clue_roll import coopRows, rollout
-from .clue_sft import libVersions, loadModel, loraConfig, saveMemory
+from .clue_sft import libVersions, loadModel, loraConfig
 from .llm_runs import LLMConfig
 from .local_policy import LocalPolicy, pickDevice
-from .rl_torch import loadCheckpoint, policyUpdate, saveCheckpoint
+from .rl_torch import loadCheckpoint, policyUpdate, saveCheckpoint, saveMemory
 
 
 @dataclass
@@ -144,7 +144,9 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
     if (out / 'halted.json').exists():                       # stopped by the stopping rule: never silently resumed
         print('halted:', json.loads((out / 'halted.json').read_text())['reason'])
         return str(out / 'final')
-    history = [h for h in map(json.loads, open(out / 'metrics.jsonl')) if h['step'] <= start] if (out / 'metrics.jsonl').exists() else []
+    mp = out / 'metrics.jsonl'                               # on resume, drop the steps after the checkpoint (redone)
+    history = [h for h in map(json.loads, open(mp)) if h['step'] <= start] if mp.exists() else []
+    mp.write_text(''.join(json.dumps(h) + '\n' for h in history))
     vllm = dev == 'cuda' and LocalPolicy(cfg.model, device=dev, engine='auto', tokenizer=tok).engine == 'vllm'
     first = LocalPolicy(cfg.model, device=dev, maxNew=cfg.maxNew, temperature=cfg.temperature, seed=cfg.trainSeed,
                         engine='vllm' if vllm else 'hf', hf=None if vllm else model, tokenizer=tok, adapterName=names[0])
@@ -158,10 +160,11 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
         for s in range(start, cfg.steps):
             t0 = time.time()
             model.eval()
+            if vllm:
+                model.save_pretrained(out / 'live')
             for v, n in zip(views, names):
                 v.calls = s * 100_000                       # sampling seeds depend on the step only (exact resume)
                 if vllm:
-                    model.save_pretrained(out / 'live')
                     v.setAdapter(str(out / 'live' / ('' if n == 'default' else n)))
             ro = rollout(lcfg, stepSeeds(cfg, s), pol, keepPrompts=True)
             R = trainingReturns(ro, cfg.formatPenalty)
@@ -177,17 +180,14 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
                      meanReturn=float(R.mean()), welfare=float(np.mean([r['welfare'] for r in rows])),
                      sharePerHeld=float(np.mean([r['sharePerHeld'] for r in rows])),
                      invalid=sum(r['invalid'] for r in rows) / max(sum(r['calls'] for r in rows), 1),
-                     soloShare=_mean([r['soloShare'] for r in rows]), signalTurns=len(signal), samples=len(samples), **stats)
+                     soloShare=_mean([r['soloShare'] for r in rows]), signalTurns=len(signal), samples=len(samples),
+                     gradCkpt=bool(getattr(model, 'is_gradient_checkpointing', False)), **stats)
             log.write(json.dumps(m) + '\n')
             log.flush()
             history.append(m)
             reason = haltReason(history, cfg)
             if (s + 1) % cfg.ckptEvery == 0 or s + 1 == cfg.steps or reason:
-                saveCheckpoint(model, opt, s + 1, out, configHash(cfg))
-                (out / 'turns').mkdir(exist_ok=True)       # this step's turns, to read what the agents do
-                (out / 'turns' / f'step-{s + 1:04d}.jsonl').write_text(''.join(
-                    json.dumps(dict(board=b, seed=ro.seeds[b], **x), sort_keys=True) + '\n'
-                    for b in range(len(ro.boards)) for lg in ro.logs[b] for x in lg))
+                saveCheckpoint(model, opt, s + 1, out, configHash(cfg), ro)
             if reason:
                 (out / 'halted.json').write_text(json.dumps(dict(step=s + 1, reason=reason)) + '\n')
                 print('halted:', reason)

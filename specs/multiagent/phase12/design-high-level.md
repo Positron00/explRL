@@ -14,7 +14,7 @@
 | `nbs/clue_roll.ipynb` -> `explRL/clue_roll.py` | new | `rollout` (batched boards, one policy per slot, scripted slots, turn logs, returns), `coopRows`, `runEval` |
 | `nbs/clue_sft.ipynb` -> `explRL/clue_sft.py` | new | `sftExamples`, `trainSFT`, `mergeAdapter`, `warmCheck` |
 | `nbs/clue_rl.ipynb` -> `explRL/clue_rl.py` | new | `RLConfig` (including `perRole`, the per-role adapter ablation, `turnFraction` and the stopping rule's thresholds), `configHash`, `stepSeeds`, `trainingReturns`, `groupAdvantages`, `stepSamples`, `haltReason`, `microBatches`, `trainRL` |
-| `nbs/rl_torch.ipynb` -> `explRL/rl_torch.py` | new | the PyTorch side of `clue_rl`: `replyLogps`, `policyUpdate`, `saveCheckpoint`, `loadCheckpoint` (split to keep `clue_rl` under 200 lines) |
+| `nbs/rl_torch.ipynb` -> `explRL/rl_torch.py` | new | the PyTorch side of `clue_rl`: `replyLogps`, `saveMemory`, `policyUpdate` (with an out-of-memory fallback), `saveCheckpoint`, `loadCheckpoint` (split to keep `clue_rl` under 200 lines) |
 | `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | new | `trackAGrid`, `trackAPilotGrid`, `TRACKA_PLAN`, `RL_PLAN`, `coopHash`, `evalSuite` |
 | `nbs/coop_report.ipynb` -> `explRL/coop_report.py` | new | Track A: `logMetrics` (follow share and solo solves from turn logs), `trackASummaries`, `writeTrackA`, `figTrackA` |
 | `nbs/rl_report.ipynb` -> `explRL/rl_report.py` | new | Track B: `rlSummaries`, `writeRL`, `writeRLFigures` (split from `coop_report` to keep both under 200 lines) |

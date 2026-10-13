@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl_report.html.md"""
 # %% auto #0
 __all__ = ['INFO', 'SCHEMES', 'rlSummaries', 'writeRL', 'writeRLFigures']
 
-# %% ../nbs/rl_report.ipynb #e1c0696a
+# %% ../nbs/rl_report.ipynb #5c237676
 import matplotlib
 
 matplotlib.use('Agg')
@@ -77,7 +77,8 @@ def writeRL(path, S, meta):
          f"- Plan hash `{meta['planHash']}`, git commit `{meta['commit']}`; base model {meta['base']}; adapters "
          + ', '.join(f'{k} `{v[:12]}`' for k, v in meta['adapters'].items()),
          f"- GPU time {meta['gpuHours']:.1f} h, GPU cost ${meta['gpuCost']:.2f} (cap $150); API cost of this evaluation "
-         f"${meta['apiCost']:.2f}; total API spend ${meta['apiSpent']:.2f} of the $150 cap", '',
+         f"${meta['apiCost']:.2f}; total API spend ${meta['apiSpent']:.2f} of the $150 cap",
+         *[f"- **Run {sc} stopped by the stopping rule at step {h['step']}:** {h['reason']}" for sc, h in meta.get('halted', {}).items()], '',
          '## Main boards (N = 4, blackboard, 40 turns)', '', '| model | welfare per agent-turn | pooled-bound share |', '|---|---|---|']
     L += [f"| {m} | {_fmt(v['welfare'])} | {_fmt(v['pooledShare'])} |" for m, v in S['main'].items()]
     L += ['', '## Information use (means)', '', '| model | ' + ' | '.join(INFO) + ' |', '|---' * (len(INFO) + 1) + '|']
