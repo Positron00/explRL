@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/coop_grid.html.md"""
 __all__ = ['MODELS', 'TRACKA', 'TRACKA_PLAN', 'LOCAL', 'MAIN_SEEDS', 'RL_PLAN', 'trackAGrid', 'trackAPilotGrid', 'trackAQuick',
            'evalCell', 'evalSuite', 'coopHash']
 
-# %% ../nbs/coop_grid.ipynb #56d3c529
+# %% ../nbs/coop_grid.ipynb #a990183f
 import hashlib
 import json
 from dataclasses import asdict
@@ -57,12 +57,13 @@ TRACKA_PLAN = dict(
 LOCAL = ('untrained', 'warm', 'individual', 'team', 'credit')      # the models evaluated (main boards: all five)
 MAIN_SEEDS = list(range(900, 905)) + list(range(930, 940))
 RL_PLAN = dict(
-    version=1, frozen=False, models=MODELS, settings=CLUE_SETTINGS, schemes=['individual', 'team', 'credit'], prices=PRICES,
+    version=1, frozen=True, models=MODELS, settings=CLUE_SETTINGS, schemes=['individual', 'team', 'credit'], prices=PRICES,
     sft={k: v for k, v in asdict(SFTConfig('', '')).items() if k not in ('model', 'out', 'device')},
     sftData=dict(seeds=[20000, 20099], sizes=[1, 2, 4], turns=20),
     warmCheck=dict(seeds=[1200, 1219], turns=30, solveRate=0.8, invalid=0.05),
     rl={**{k: v for k, v in asdict(RLConfig('', '')).items() if k not in ('model', 'out', 'device', 'scheme')},
-        'gradCkpt': False},                   # the A100 has the memory (pilot: 11.9 GB peak); about a quarter faster
+        'gradCkpt': False,                    # the A100 has the memory (speed check: 50.3 GB of 80)
+        'steps': 60},                         # speed check: 166 s per step, so 2.8 hours per run (P12-9)
     haiku=dict(model=HAIKU, memory='full', framing='own', effort=CLUE_SETTINGS['effort'], maxTokens=CLUE_SETTINGS['maxTokens']),
     seeds=dict(train='boardSeed0 + step x seedsPerStep + j', main=MAIN_SEEDS, generalisation=[900, 904], crossplay=[900, 904],
                liar=[900, 902]),
