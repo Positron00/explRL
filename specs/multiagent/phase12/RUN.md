@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 11: [../phase11/RUN.md](../phase11/RUN.md).
 
-Status 2026-10-13: the code is implemented and tested offline; no Phase 12 run has been made yet. Measured times and costs are added here as the runs happen.
+Status 2026-10-13: Track A done (pilot and main); the Mac debug run done; the Colab runs next. Measured times and costs are added here as the runs happen.
 
 ## Prerequisites
 
@@ -37,10 +37,10 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/{tiny
 
 | Step | Where | Command | Cost |
 |------|-------|---------|------|
-| T4 Track A pilot (480 calls) | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --flags llm nbs/demo_coop.ipynb` (the pilot section runs; the main section stops until `TRACKA_PLAN` is frozen) | about $0.12 |
+| T4 Track A pilot (480 calls) | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --flags llm nbs/demo_coop.ipynb` (the pilot section runs; the main section stops until `TRACKA_PLAN` is frozen) | measured: $0.11, 389 s |
 | T4 freeze | Mac | set `TRACKA_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit; record the commit and hash in the README | none |
-| T5 Track A main (9 600 calls) | Mac | the same command, `--cell-timeout 0` | about $2.3 |
-| T7-T9 debug (0.5B) | Mac | `nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (debug section; the later sections need the Colab results) | none |
+| T5 Track A main (9 600 calls) | Mac | the same command, `--cell-timeout 0` | measured: $2.17, 1 027 s at 32 processes |
+| T7-T9 debug (0.5B) | Mac | from `.venv-train`: `nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (debug section; the later sections need the Colab results) | measured: 903 s, peak GPU memory about 8 GB |
 | T10 pilot | Colab | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb), run set-up, configuration and pilot; record step time, memory and GPU hours | $1-3 |
 | T11 warm start | Colab | the warm-start section; then download the zip (pack section) to `results/multiagent/rl/colab/` | $1-3 |
 | T11 warm-start check, freeze | Mac | `demo_rl` warm-check section (`--flags train`); if it passes, set `RL_PLAN['frozen'] = True`, export, commit, record the hash | none |

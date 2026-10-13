@@ -71,6 +71,16 @@ Each subtask's answer is fixed by two modular clues ("x mod 7 = 3") dealt to dif
 
 Details: `specs/multiagent/phase11/README.md`, `results/multiagent/clue/full/report.md`.
 
+## 8. Phase 12, Track A: better instructions for Claude (exploratory)
+
+Three changes to the Phase 11 clue board for Claude Haiku 5.5, compared paired on seed with the Phase 11 runs (seeds 900-904; plan frozen before the runs, `TRACKA_PLAN`). Welfare per agent-turn, change from Phase 11:
+
+- **Telling agents to follow the coordinator made the team worse:** -0.13 [-0.16, -0.10] at N = 4, -0.16 [-0.19, -0.13] at N = 8. Haiku then followed it almost always, but opened subtasks it knew nothing about and waited for clues the coordinator does not pass on.
+- **Passing on the coordinator's collected clues helped:** 0.12 [0.07, 0.16] at N = 4, 0.07 [0.02, 0.11] at N = 8, though the coordinator still trails the blackboard.
+- **Showing who works on what did little:** 0.03 [0.01, 0.05] on the blackboard at N = 4.
+
+A coordinator helps by moving information, not by giving orders. Track B (RL training of an open model on the same board) is in progress. Details: `specs/multiagent/phase12/README.md`, `results/multiagent/coop/full/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).
@@ -79,5 +89,5 @@ Details: `specs/multiagent/phase11/README.md`, `results/multiagent/clue/full/rep
 
 ## Where to look
 
-- Phase specs and results: `specs/multiagent/phase5/` to `phase11/` (each with a plain-language figure guide).
+- Phase specs and results: `specs/multiagent/phase5/` to `phase12/` (each with a plain-language figure guide).
 - Full per-phase reports: `results/multiagent/bench/full/report.md`, `safety/h3/report.md`, `safety/full/report.md`, `llm/full/report.md`.

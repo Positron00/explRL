@@ -1,6 +1,6 @@
 # Tasks: Phase 12, training agents to work together
 
-Status (2026-10-13): code written and tested offline for T1-T3 and T6-T10 (T1 references recorded: baselines identical, reference hashes written down). No runs yet (the user asked to wait until disk space is cleared): T4, T5, the runs of T7-T9 (the 0.5B debug run), the push and Colab pilot of T10, and T11-T13. T14 partly done (RUN.md, links, sidebar).
+Status (2026-10-13): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression and push done, the Colab pilot next; T11-T13 to follow. T14 partly done (RUN.md, links, sidebar, REPORT.md section 8 for Track A).
 
 Rules for every task:
 
