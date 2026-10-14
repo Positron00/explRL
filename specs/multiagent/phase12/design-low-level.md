@@ -154,10 +154,11 @@ def groupAdvantages(returns) -> array           # returns: (seeds x group x N) -
 def stepSamples(ro, adv, fraction=1.0, rng=None) -> list   # slot, prompt, reply text, eos, advantage; nonzero advantage only;
                                                 # fraction < 1: a seeded random share (rng = default_rng([trainSeed, step]))
 def adapterNames(cfg) -> list                    # ['default'], or ['slot0', ...] per role
-def trainRL(cfg, settings=CLUE_SETTINGS) -> path
-# rl_control (pure): warmLr(lr, s, warmup); nextLr(lr, stepKL, cfg, warming=False, trained=True) -> (lr, undo); haltReason(history, cfg) -> str | None;
+def trainRL(cfg, settings=CLUE_SETTINGS, show=True) -> path   # show: a progress bar (tqdm) and one line per step
+# rl_control (pure): stepLine(m, steps) (the per-step line); progressBar(total, start, desc, show) (tqdm, imported on use);
+#           warmLr(lr, s, warmup); nextLr(lr, stepKL, cfg, warming=False, trained=True) -> (lr, undo); haltReason(history, cfg) -> str | None;
 #           microBatches(samples, cfg) (per-role: one slot per chunk); nanMean(x)
-# rl_torch: probeLogps(model, tok, chunks, names, perRole, maxLen, device); probeKL(before, after); snapshot(params, opt);
+# rl_torch: makePolicies(cfg, model, tok, names, device) -> (views, policy, vllm); probeLogps(model, tok, chunks, names, perRole, maxLen, device); probeKL(before, after); snapshot(params, opt);
 #           restore(params, opt, snap); replyLogps(model, tok, samples, maxLen, device); policyUpdate(model, tok, opt, params, samples, chunks, names,
 #           perRole, kl, maxLen, device) -> loss, kl, tokens (out of GPU memory without checkpointing: switch it on, redo
 #           the step, outside the except block so the failed attempt's memory is freed); freeGPU(*policies) (drop models
@@ -236,7 +237,7 @@ That is about 31 000 local turns and 3 200 Haiku calls (about $0.8). On the Mac 
 ## 11. Packaging
 
 `pyproject.toml`:
-- **Extra:** `train = ['torch', 'transformers', 'peft', 'accelerate', 'tokenizers', 'vllm; sys_platform == "linux"']`.
+- **Extra:** `train = ['torch', 'transformers', 'peft', 'accelerate', 'tokenizers', 'tqdm', 'vllm; sys_platform == "linux"']`.
 - **Test flags:** `tst_flags` gains `gpu` and `train`.
 - **Colab install:** `pip install "explRL[train] @ git+https://github.com/Positron00/explRL"`, after upgrading Colab's preinstalled `torchao` to 0.16 or later (PEFT needs it; found in session 2).
 - **Mac:** the extra goes into a separate environment (for example `python -m venv .venv-train && .venv-train/bin/pip install -e ".[train,dev,llm]"`), so the project environment stays without `torch` and the offline suite keeps proving that (AC-1).

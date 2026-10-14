@@ -24,7 +24,7 @@ explRL = "explRL._modidx:d"
 [project.optional-dependencies]
 dev = ['nbdev', 'fastcore', 'matplotlib']
 llm = ['anthropic']
-train = ['torch', 'transformers', 'peft', 'accelerate', 'tokenizers', 'vllm; sys_platform == "linux"']
+train = ['torch', 'transformers', 'peft', 'accelerate', 'tokenizers', 'tqdm', 'vllm; sys_platform == "linux"']
 
 [tool.setuptools.dynamic]
 version = {attr = "explRL.__version__"}

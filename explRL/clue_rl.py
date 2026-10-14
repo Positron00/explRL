@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 # %% auto #0
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #d0e71f72
+# %% ../nbs/clue_rl.ipynb #bc1efd0d
 import hashlib
 import json
 import time
@@ -20,9 +20,10 @@ from .clue_grid import BOARD, CLUE_SETTINGS
 from .clue_roll import coopRows, rollout
 from .clue_sft import libVersions, loadModel, loraConfig
 from .llm_runs import LLMConfig
-from .local_policy import LocalPolicy, pickDevice
-from .rl_control import haltReason, microBatches, nanMean, nextLr, warmLr
-from .rl_torch import freeGPU, loadCheckpoint, policyUpdate, probeKL, probeLogps, restore, saveCheckpoint, saveMemory, snapshot
+from .local_policy import pickDevice
+from .rl_control import haltReason, microBatches, nanMean, nextLr, progressBar, stepLine, warmLr
+from .rl_torch import (freeGPU, loadCheckpoint, makePolicies, policyUpdate, probeKL, probeLogps, restore, saveCheckpoint,
+                             saveMemory, snapshot)
 
 
 @dataclass
@@ -106,7 +107,7 @@ def stepSamples(ro, adv, fraction=1.0, rng=None):
     return [out[k] for k in keep]
 
 
-def trainRL(cfg, settings=CLUE_SETTINGS):
+def trainRL(cfg, settings=CLUE_SETTINGS, show=True):
     "GRPO on the clue board from the warm-start model (one update per step, KL to the adapter-free model); -> final adapter."
     import torch
     from peft import get_peft_model
@@ -132,15 +133,10 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
     history = [h for h in map(json.loads, open(mp)) if h['step'] <= start] if mp.exists() else []
     mp.write_text(''.join(json.dumps(h) + '\n' for h in history))
     lr = history[-1].get('lrNext', cfg.lr) if history else cfg.lr
-    vllm = dev == 'cuda' and LocalPolicy(cfg.model, device=dev, engine='auto', tokenizer=tok).engine == 'vllm'
-    first = LocalPolicy(cfg.model, device=dev, maxNew=cfg.maxNew, temperature=cfg.temperature, seed=cfg.trainSeed,
-                        engine='vllm' if vllm else 'hf', hf=None if vllm else model, tokenizer=tok, adapterName=names[0])
-    views = [first] + [LocalPolicy(cfg.model, device=dev, maxNew=cfg.maxNew, temperature=cfg.temperature,
-                                   seed=cfg.trainSeed, engine=first.engine, hf=first.hf, tokenizer=tok, adapterName=n,
-                                   share=first) for n in names[1:]]
-    pol = {i: views[i] for i in range(cfg.N)} if cfg.perRole else first
+    views, pol, vllm = makePolicies(cfg, model, tok, names, dev)
     lcfg = LLMConfig(task='clue', channel=cfg.channel, N=cfg.N, turns=cfg.turns, model=cfg.model,
                      world={**{k: settings[k] for k in BOARD}, 'scheme': cfg.scheme})
+    bar = progressBar(cfg.steps, start, f'{cfg.scheme} RL', show)   # with one line per step below it
     with open(out / 'metrics.jsonl', 'a') as log:
         for s in range(start, cfg.steps):
             t0 = time.time()
@@ -180,6 +176,9 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
             log.write(json.dumps(m) + '\n')
             log.flush()
             history.append(m)
+            bar.write(stepLine(m, cfg.steps)) if show else None
+            bar.set_postfix(lr=f"{m['lr']:.2g}", stepKL=f"{stepKL:.4f}", welfare=f"{m['welfare']:.3f}")
+            bar.update(1)
             lr = lrNext
             reason = haltReason(history, cfg)
             if (s + 1) % cfg.ckptEvery == 0 or s + 1 == cfg.steps or reason:
@@ -188,6 +187,7 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
                 (out / 'halted.json').write_text(json.dumps(dict(step=s + 1, reason=reason)) + '\n')
                 print('halted:', reason)
                 break
+    bar.close()
     model.save_pretrained(out / 'final')
     del model, base, opt, params
     freeGPU(*views)                                          # vLLM runs in its own process: free its memory too
