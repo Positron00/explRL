@@ -1,6 +1,6 @@
 # Plan: Phase 12, training agents to work together (RL on the clue board)
 
-Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start done; warm-start check passed on the Mac (AC-9). RL speed check done; `RL_PLAN` v1 frozen (commit `d8467f2`, hash `708dfc435c1f`, 60 steps) and run: the three v1 runs barely moved the model, so the plan is amended (P12-10, version 2). Next: the learning-rate pilot on Colab, then v2 frozen and the three runs repeated. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
+Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start done; warm-start check passed on the Mac (AC-9). RL speed check done; `RL_PLAN` v1 frozen (commit `d8467f2`, hash `708dfc435c1f`, 60 steps) and run: the three v1 runs barely moved the model, so the plan is amended (P12-10, version 2). Learning-rate pilot done; `RL_PLAN` v2 frozen (commit `304b955`, hash `4d1ea0078a6e`). Next: the three v2 runs on Colab. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
 
 ## Files in this spec
 
@@ -186,7 +186,7 @@ Expected GPU spend about $20-50, well inside the cap, which leaves room for reru
 | P12-6 | Use Haiku's logs as training data? | **No** (terms of use); the teacher's moves only |
 | P12-7 | Where the GPU runs happen | **A standalone Google Colab notebook** (the user; an A100 runtime on a paid plan), runnable on any Linux GPU machine |
 | P12-9 | RL run length after the Colab pilot (631 s per step, 7 hours per run) | **Keep the steps, make each step cheaper** (the user, 2026-10-13): train on a quarter of each step's turns with a nonzero advantage (an unbiased estimate of the same gradient), gradient checkpointing off on the A100, a stopping rule (invalid replies above 10% for 3 steps in a row, or KL above 0.5), and 40 steps, or 60 if the RL speed check fits them in a few hours. Rejected: fewer boards per step and fewer steps (too little signal per scheme) |
-| P12-10 | The version 1 RL runs barely moved the model (learning rate 1e-5) | **Amend the plan (version 2) and rerun** (the user, 2026-10-14): steer each step's policy change to a target (per-step KL 0.01, measured on 32 re-scored replies) by adjusting the learning rate, undo runaway steps (above 4 x the target), warm up over 3 steps, gradient checkpointing on from the start; the starting and maximum learning rates from a pilot (10 steps at 3e-5, 1e-4, 3e-4 under `credit`). The version 1 runs are kept and reported as a failed first attempt |
+| P12-10 | The version 1 RL runs barely moved the model (learning rate 1e-5) | **Amend the plan (version 2) and rerun** (the user, 2026-10-14): steer each step's policy change to a target (per-step KL, measured on 32 re-scored replies; 0.003 after the pilot) by adjusting the learning rate, undo runaway steps (above 4 x the target), warm up over 3 steps, gradient checkpointing on from the start; the starting and maximum learning rates from a pilot (10 steps at 3e-5, 1e-4, 3e-4 under `credit`). The version 1 runs are kept and reported as a failed first attempt |
 | P12-8 | What runs on the Mac | **Debugging with a 0.5B model, the warm-start check, evaluation, cross-play and reports** (the user); PyTorch on the Apple GPU, same code as Colab |
 
 ## Deliverables
@@ -260,3 +260,17 @@ Three Colab sessions (individual 2.26, team 2.72, credit 2.71 GPU hours; all 60 
 | (warm start, for scale) | 9.13 | | |
 
 The RL adapters moved the weights about 5% as far as the warm start did and the policy hardly at all (KL near 0); training welfare rose by about 0.01 in all three, within the noise. No instability (no invalid replies, no trial-and-error solves). Why: Adam moves each weight by about one learning rate per step whatever the gradient, so 60 steps at 1e-5 cannot move a LoRA adapter far, and noisy step directions cancel part of that. One genuine difference: under individual reward fewer turns carry a learning signal (874 against about 1 200 per step), as more groups tie. Decision P12-10 (the user): amend the plan to steer each step's policy change rather than fix the learning rate, set the rates from a pilot, and rerun; these runs are kept (`runs/`) and reported as a failed first attempt.
+
+## Learning-rate pilot and RL_PLAN version 2 (T12, 2026-10-14)
+
+Colab session 3, 10 steps under `credit` at three fixed learning rates (controller off), about 1.6 GPU hours:
+
+| learning rate | per-step KL, mean / max | KL to the warm start after 10 steps | invalid | welfare, first 3 / last 3 steps |
+|---|---|---|---|---|
+| 3e-5 | 0.0000 / 0.0001 | 0.0001 | 0.1% | 0.238 / 0.252 |
+| 1e-4 | 0.0007 / 0.0056 | 0.017 | 0% | 0.246 / 0.243 |
+| 3e-4 | 0.018 / 0.092 | 0.012 | 1.0% | 0.222 / 0.210 |
+
+3e-5 does not move the model; 1e-4 moves it steadily without harm; at 3e-4 steps already swing (one at 0.09), invalid replies appear and welfare falls. The planned per-step target of 0.01 sits in that harmful range, so the target is lowered to **0.003**, with a starting rate of **1.5e-4** (the per-step change grows roughly with the square of the rate) and a maximum of **2.5e-4** (below where harm appeared); a step above 4 x 0.003 = 0.012 is undone. The ten-step welfare changes are within the noise and are not evidence about RL's effect.
+
+`RL_PLAN` version 2 was frozen and committed before any version 2 run: commit `304b955`, `coopHash(RL_PLAN)` = `4d1ea0078a6e` (60 steps, a quarter of the turns trained on, gradient checkpointing on, learning rate from 1.5e-4 within [1e-6, 2.5e-4] steered to a per-step KL of 0.003, warm-up 3, runaway steps above 0.012 undone, the stopping rule).
