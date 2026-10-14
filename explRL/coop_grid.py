@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/coop_grid.html.md"""
 __all__ = ['MODELS', 'TRACKA', 'TRACKA_PLAN', 'LOCAL', 'MAIN_SEEDS', 'RL_PLAN', 'trackAGrid', 'trackAPilotGrid', 'trackAQuick',
            'evalCell', 'evalSuite', 'coopHash']
 
-# %% ../nbs/coop_grid.ipynb #13684962
+# %% ../nbs/coop_grid.ipynb #a57768a5
 import hashlib
 import json
 from dataclasses import asdict
@@ -57,15 +57,15 @@ TRACKA_PLAN = dict(
 LOCAL = ('untrained', 'warm', 'individual', 'team', 'credit')      # the models evaluated (main boards: all five)
 MAIN_SEEDS = list(range(900, 905)) + list(range(930, 940))
 RL_PLAN = dict(
-    version=2, frozen=False, models=MODELS, settings=CLUE_SETTINGS, schemes=['individual', 'team', 'credit'], prices=PRICES,
+    version=2, frozen=True, models=MODELS, settings=CLUE_SETTINGS, schemes=['individual', 'team', 'credit'], prices=PRICES,
     sft={k: v for k, v in asdict(SFTConfig('', '')).items() if k not in ('model', 'out', 'device')},
     sftData=dict(seeds=[20000, 20099], sizes=[1, 2, 4], turns=20),
     warmCheck=dict(seeds=[1200, 1219], turns=30, solveRate=0.8, invalid=0.05),
     rl={**{k: v for k, v in asdict(RLConfig('', '')).items() if k not in ('model', 'out', 'device', 'scheme')},
         'gradCkpt': True,                     # v1: every run fell back to it at step 1 (out of memory)
         'steps': 60,                          # speed check: about 2.8 hours per run (P12-9)
-        'klTarget': 0.01, 'warmup': 3, 'rejectFactor': 4.0, 'probe': 32,   # P12-10: steer each step's policy change
-        'lr': 1e-4, 'lrMax': 3e-4},           # provisional: set from the learning-rate pilot before freezing
+        'klTarget': 0.003, 'warmup': 3, 'rejectFactor': 4.0, 'probe': 32,  # P12-10: steer each step's policy change
+        'lr': 1.5e-4, 'lrMax': 2.5e-4},       # from the learning-rate pilot: 3e-4 already swung (step KL 0.018, max 0.09)
     lrPilot=dict(lrs=[3e-5, 1e-4, 3e-4], steps=10, scheme='credit'),      # fixed rates, controller off
     v1=dict(commit='d8467f2', hash='708dfc435c1f', result='lr 1e-5, 60 steps x 3 schemes: KL to the warm start under 0.02, '
             'weight change about 5% of the warm start, training welfare flat (0.25): the policy barely moved; kept as a failed '
