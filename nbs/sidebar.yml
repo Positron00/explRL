@@ -79,6 +79,7 @@ website:
       - clue_roll.ipynb
       - clue_sft.ipynb
       - clue_rl.ipynb
+      - rl_control.ipynb
       - rl_torch.ipynb
       - coop_grid.ipynb
       - coop_report.ipynb

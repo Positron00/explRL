@@ -1,6 +1,6 @@
 # Plan: Phase 12, training agents to work together (RL on the clue board)
 
-Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start done; warm-start check passed on the Mac (AC-9). RL speed check done and `RL_PLAN` frozen (commit `d8467f2`, hash `708dfc435c1f`, 60 steps). Next: the three RL runs on Colab. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
+Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start done; warm-start check passed on the Mac (AC-9). RL speed check done; `RL_PLAN` v1 frozen (commit `d8467f2`, hash `708dfc435c1f`, 60 steps) and run: the three v1 runs barely moved the model, so the plan is amended (P12-10, version 2). Next: the learning-rate pilot on Colab, then v2 frozen and the three runs repeated. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
 
 ## Files in this spec
 
@@ -186,6 +186,7 @@ Expected GPU spend about $20-50, well inside the cap, which leaves room for reru
 | P12-6 | Use Haiku's logs as training data? | **No** (terms of use); the teacher's moves only |
 | P12-7 | Where the GPU runs happen | **A standalone Google Colab notebook** (the user; an A100 runtime on a paid plan), runnable on any Linux GPU machine |
 | P12-9 | RL run length after the Colab pilot (631 s per step, 7 hours per run) | **Keep the steps, make each step cheaper** (the user, 2026-10-13): train on a quarter of each step's turns with a nonzero advantage (an unbiased estimate of the same gradient), gradient checkpointing off on the A100, a stopping rule (invalid replies above 10% for 3 steps in a row, or KL above 0.5), and 40 steps, or 60 if the RL speed check fits them in a few hours. Rejected: fewer boards per step and fewer steps (too little signal per scheme) |
+| P12-10 | The version 1 RL runs barely moved the model (learning rate 1e-5) | **Amend the plan (version 2) and rerun** (the user, 2026-10-14): steer each step's policy change to a target (per-step KL 0.01, measured on 32 re-scored replies) by adjusting the learning rate, undo runaway steps (above 4 x the target), warm up over 3 steps, gradient checkpointing on from the start; the starting and maximum learning rates from a pilot (10 steps at 3e-5, 1e-4, 3e-4 under `credit`). The version 1 runs are kept and reported as a failed first attempt |
 | P12-8 | What runs on the Mac | **Debugging with a 0.5B model, the warm-start check, evaluation, cross-play and reports** (the user); PyTorch on the Apple GPU, same code as Colab |
 
 ## Deliverables
@@ -246,3 +247,16 @@ Rerunning the pilot in session 2 ran out of GPU memory at its first step (loadin
 Colab session 2 (after a restart), from the warm-start model with the final settings (a quarter of the turns trained on, gradient checkpointing off): **166 s per step** in steady state (step 1 excluded: vLLM's start-up), so 1.8 hours for 40 steps or 2.8 hours for 60; peak GPU memory 50.3 GB of 80 (no out-of-memory fallback). Following P12-9, the step count is **60** (within a few hours per run; about 8.4 GPU hours, roughly $10-15, for the three schemes).
 
 `RL_PLAN` was frozen and committed before any main RL run: commit `d8467f2`, `coopHash(RL_PLAN)` = `708dfc435c1f` (models `Qwen/Qwen2.5-3B-Instruct` and `Qwen/Qwen2.5-0.5B-Instruct`, 60 steps, 8 boards x 4 rollouts x 4 agents x 10 turns per step, a quarter of the turns with signal trained on, gradient checkpointing off, the stopping rule).
+
+## RL runs, version 1 (T12, 2026-10-13 to 14): the policy barely moved
+
+Three Colab sessions (individual 2.26, team 2.72, credit 2.71 GPU hours; all 60 steps, none halted; each fell back to gradient checkpointing at step 1 after running out of memory, so the steps took 130-160 s). Learning rate 1e-5, fixed.
+
+| run | weight change from the warm start (norm) | largest KL to the warm start | training welfare, steps 1-10 / 51-60 |
+|---|---|---|---|
+| individual | 0.46 | 0.016 | 0.248 / 0.261 |
+| team | 0.43 | 0.0003 | 0.245 / 0.253 |
+| credit | 0.47 | 0.0006 | 0.248 / 0.260 |
+| (warm start, for scale) | 9.13 | | |
+
+The RL adapters moved the weights about 5% as far as the warm start did and the policy hardly at all (KL near 0); training welfare rose by about 0.01 in all three, within the noise. No instability (no invalid replies, no trial-and-error solves). Why: Adam moves each weight by about one learning rate per step whatever the gradient, so 60 steps at 1e-5 cannot move a LoRA adapter far, and noisy step directions cancel part of that. One genuine difference: under individual reward fewer turns carry a learning signal (874 against about 1 200 per step), as more groups tie. Decision P12-10 (the user): amend the plan to steer each step's policy change rather than fix the learning rate, set the rates from a pilot, and rerun; these runs are kept (`runs/`) and reported as a failed first attempt.

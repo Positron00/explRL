@@ -13,8 +13,9 @@
 | `nbs/tiny_model.ipynb` -> `explRL/tiny_model.py` | new | `tinyModel`: a tiny random model and tokenizer (no download) for smoke tests of the model code |
 | `nbs/clue_roll.ipynb` -> `explRL/clue_roll.py` | new | `rollout` (batched boards, one policy per slot, scripted slots, turn logs, returns), `coopRows`, `runEval` |
 | `nbs/clue_sft.ipynb` -> `explRL/clue_sft.py` | new | `sftExamples`, `trainSFT`, `mergeAdapter`, `warmCheck` |
-| `nbs/clue_rl.ipynb` -> `explRL/clue_rl.py` | new | `RLConfig` (including `perRole`, the per-role adapter ablation, `turnFraction` and the stopping rule's thresholds), `configHash`, `stepSeeds`, `trainingReturns`, `groupAdvantages`, `stepSamples`, `haltReason`, `microBatches`, `trainRL` |
-| `nbs/rl_torch.ipynb` -> `explRL/rl_torch.py` | new | the PyTorch side of `clue_rl`: `replyLogps`, `saveMemory`, `policyUpdate` (with an out-of-memory fallback), `saveCheckpoint`, `loadCheckpoint` (split to keep `clue_rl` under 200 lines) |
+| `nbs/clue_rl.ipynb` -> `explRL/clue_rl.py` | new | `RLConfig` (including `perRole`, the per-role adapter ablation, `turnFraction` and the stopping rule's thresholds), `configHash`, `stepSeeds`, `trainingReturns`, `groupAdvantages`, `stepSamples`, `trainRL` |
+| `nbs/rl_control.ipynb` -> `explRL/rl_control.py` | new | the pure control logic of the RL loop: `warmLr`, `nextLr` (the KL-targeted learning rate, P12-10), `haltReason`, `microBatches`, `nanMean` |
+| `nbs/rl_torch.ipynb` -> `explRL/rl_torch.py` | new | the PyTorch side of `clue_rl`: `replyLogps`, `saveMemory`, `freeGPU`, `policyUpdate` (with an out-of-memory fallback), `probeLogps`, `probeKL`, `snapshot`, `restore`, `saveCheckpoint`, `loadCheckpoint` (split to keep `clue_rl` under 200 lines) |
 | `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | new | `trackAGrid`, `trackAPilotGrid`, `TRACKA_PLAN`, `RL_PLAN`, `coopHash`, `evalSuite` |
 | `nbs/coop_report.ipynb` -> `explRL/coop_report.py` | new | Track A: `logMetrics` (follow share and solo solves from turn logs), `trackASummaries`, `writeTrackA`, `figTrackA` |
 | `nbs/rl_report.ipynb` -> `explRL/rl_report.py` | new | Track B: `rlSummaries`, `writeRL`, `writeRLFigures` (split from `coop_report` to keep both under 200 lines) |
@@ -79,6 +80,7 @@ flowchart LR
 | Training runs out of GPU memory (found in the Mac debug run: full-vocabulary logits over 1 300-token prompts) | Runs fail | Loss over the reply positions only; gradient checkpointing (`gradCkpt`) |
 | Colab step time too long (the pilot: 631 s per step, 7 hours per run, mostly the update over 1 280 turns) | Runs exceed a few hours | Train on a quarter of each step's turns, gradient checkpointing off on the A100, steps fixed by the RL speed check (P12-9) |
 | A run degenerates (invalid replies, the model drifting far from the warm start) | Wasted GPU time, meaningless adapter | The stopping rule (FR-D5) |
+| The learning rate is too small to move the policy, or so large that it swings (v1 at 1e-5: KL under 0.02 after 60 steps) | No effect, or instability | The per-step policy change is measured and the learning rate steered to a target, runaway steps undone; a learning-rate pilot sets the starting and maximum rates (P12-10) |
 | vLLM and training share one GPU | Out of memory | vLLM given a fixed share of GPU memory; Hugging Face generation as fallback |
 | MPS lacks an operation or is slow | Mac debug or evaluation blocked | cpu fallback for debug; evaluation on Colab with the same code |
 | Mac disk nearly full (15 GB free) | Model downloads fail | Free about 15 GB in T1, before the model work of T7 |
