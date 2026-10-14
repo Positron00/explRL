@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 # %% auto #0
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #bc1efd0d
+# %% ../nbs/clue_rl.ipynb #247dd8db
 import hashlib
 import json
 import time
@@ -185,7 +185,7 @@ def trainRL(cfg, settings=CLUE_SETTINGS, show=True):
                 saveCheckpoint(model, opt, s + 1, out, configHash(cfg), ro)
             if reason:
                 (out / 'halted.json').write_text(json.dumps(dict(step=s + 1, reason=reason)) + '\n')
-                print('halted:', reason)
+                bar.write(f'halted: {reason}')             # through the bar, so a live bar is not garbled
                 break
     bar.close()
     model.save_pretrained(out / 'final')
