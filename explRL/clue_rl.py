@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 # %% auto #0
 __all__ = ['RLConfig', 'configHash', 'adapterNames', 'stepSeeds', 'trainingReturns', 'groupAdvantages', 'stepSamples', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #e33fa626
+# %% ../nbs/clue_rl.ipynb #d0e71f72
 import hashlib
 import json
 import time
@@ -166,7 +166,7 @@ def trainRL(cfg, settings=CLUE_SETTINGS):
             stats = policyUpdate(model, tok, opt, params, samples, microBatches(samples, cfg), names, cfg.perRole, cfg.kl,
                                  cfg.maxLen, dev)
             stepKL = probeKL(before, probeLogps(model, tok, probe, names, cfg.perRole, cfg.maxLen, dev))
-            lrNext, rejected = nextLr(lr, stepKL, cfg)
+            lrNext, rejected = nextLr(lr, stepKL, cfg, warming=s + 1 < cfg.warmup, trained=bool(samples))
             if rejected:                                     # a runaway step is undone (weights and optimizer)
                 restore(params, opt, snap)
             rows = coopRows(lcfg, ro)

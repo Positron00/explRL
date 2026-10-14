@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl_control.html.md"""
 # %% auto #0
 __all__ = ['nanMean', 'warmLr', 'nextLr', 'haltReason', 'microBatches']
 
-# %% ../nbs/rl_control.ipynb #72c33894
+# %% ../nbs/rl_control.ipynb #14b8e926
 import numpy as np
 
 
@@ -21,16 +21,17 @@ def warmLr(lr, s, warmup):
     return lr * min(1.0, (s + 1) / warmup) if warmup else lr
 
 
-def nextLr(lr, stepKL, cfg):
+def nextLr(lr, stepKL, cfg, warming=False, trained=True):
     """The KL-targeted learning rate (off when cfg.klTarget is 0): -> (next learning rate, undo this step). A step whose
     policy change exceeds rejectFactor x klTarget is undone and the rate halved; above 2 x klTarget the rate is halved,
-    below klTarget / 2 raised by half; always within [lrMin, lrMax]."""
-    if not cfg.klTarget:
+    below klTarget / 2 raised by half (not while warming up, when the step used only part of the rate, and not after a
+    step with nothing to train on); always within [lrMin, lrMax]."""
+    if not cfg.klTarget or not trained:
         return lr, False
     reject = stepKL > cfg.rejectFactor * cfg.klTarget
     if reject or stepKL > 2 * cfg.klTarget:
         lr = lr / 2
-    elif stepKL < cfg.klTarget / 2:
+    elif stepKL < cfg.klTarget / 2 and not warming:
         lr = lr * 1.5
     return float(min(cfg.lrMax, max(cfg.lrMin, lr))), reject
 
