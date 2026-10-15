@@ -1,6 +1,6 @@
 # Tasks: Phase 12, training agents to work together
 
-Status (2026-10-13): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression, push and the Colab pilot done (decision P12-9), the RL speed check done (166 s per step, 60 steps). T11: done (warm-start check passed; `RL_PLAN` frozen at `d8467f2`, hash `708dfc435c1f`). T12: the three version 1 runs done (60 steps each, no halt) but the policy barely moved (KL under 0.02; decision P12-10): learning-rate pilot done (3e-4 swings; per-step target lowered to 0.003, rates 1.5e-4 to 2.5e-4), `RL_PLAN` v2 frozen at `304b955` (hash `4d1ea0078a6e`); the three v2 runs next (`runs_v2/`); then T13. T14 partly done (RUN.md, links, sidebar, REPORT.md section 8 for Track A).
+Status (2026-10-13): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression, push and the Colab pilot done (decision P12-9), the RL speed check done (166 s per step, 60 steps). T11: done (warm-start check passed; `RL_PLAN` frozen at `d8467f2`, hash `708dfc435c1f`). T12: the three version 1 runs done (60 steps each, no halt) but the policy barely moved (KL under 0.02; decision P12-10): learning-rate pilot done (3e-4 swings; per-step target lowered to 0.003, rates 1.5e-4 to 2.5e-4), `RL_PLAN` v2 frozen at `304b955` (hash `4d1ea0078a6e`); the three v2 runs done (`runs_v2/`; team halted at step 56). T13: the evaluation on Colab (P12-11), then cross-play on the Mac. T14 partly done (RUN.md, links, sidebar, REPORT.md section 8 for Track A).
 
 Rules for every task:
 
@@ -111,9 +111,10 @@ Track A (T2-T5) and the Track B code (T6-T9) can proceed side by side; Track A's
   - Optional, if the GPU cap allows: the per-role adapter ablation under the credit reward (`perRole=True`).
 - **Done when**: **AC-10**.
 
-## T13. Evaluation and report (Mac)
+## T13. Evaluation (Colab and Mac) and report
 - **What**:
-  - Run `runEval(evalSuite(...))` with cached local replies, with the API key for the cross-play cells.
+  - On Colab: `evalModels` over every `evalSuite` cell except cross-play (P12-11); pack and download.
+  - On the Mac: `runEval` of the cross-play cells with cached local replies and the API key, merged with Colab's rows.
   - Write the Track B report and figures, then run a cached rerun of the evaluation.
 - **Done when**: **AC-11**; findings in the README, labelled exploratory.
 

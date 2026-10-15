@@ -11,7 +11,7 @@
 | `nbs/clue_policy.ipynb` -> `explRL/clue_policy.py` | new | `historyBlocks`, `renderPrompt`, `userText`, `parseReply`, `asReply`, `scriptedPolicy`, `claudePolicy` |
 | `nbs/local_policy.ipynb` -> `explRL/local_policy.py` | new | `LocalPolicy` (Hugging Face model and LoRA adapter on cuda, mps or cpu; vLLM on cuda; reply cache), `pickDevice`, `promptText`, `encodePair`, `adapterHash` |
 | `nbs/tiny_model.ipynb` -> `explRL/tiny_model.py` | new | `tinyModel`: a tiny random model and tokenizer (no download) for smoke tests of the model code |
-| `nbs/clue_roll.ipynb` -> `explRL/clue_roll.py` | new | `rollout` (batched boards, one policy per slot, scripted slots, turn logs, returns), `coopRows`, `runEval` |
+| `nbs/clue_roll.ipynb` -> `explRL/clue_roll.py` | new | `rollout` (batched boards, one policy per slot, scripted slots, turn logs, returns), `coopRows`, `runEval`, `evalModels` (the Colab evaluation: one model at a time, resumable) |
 | `nbs/clue_sft.ipynb` -> `explRL/clue_sft.py` | new | `sftExamples`, `trainSFT`, `mergeAdapter`, `warmCheck` |
 | `nbs/clue_rl.ipynb` -> `explRL/clue_rl.py` | new | `RLConfig` (including `perRole`, the per-role adapter ablation, `turnFraction` and the stopping rule's thresholds), `configHash`, `stepSeeds`, `trainingReturns`, `groupAdvantages`, `stepSamples`, `trainRL` |
 | `nbs/rl_control.ipynb` -> `explRL/rl_control.py` | new | the pure control logic of the RL loop: `warmLr`, `nextLr` (the KL-targeted learning rate, P12-10), `haltReason`, `microBatches`, `nanMean`, `stepLine` and `progressBar` (watching a run: a bar with the ETA and one line per step) |
@@ -21,7 +21,7 @@
 | `nbs/rl_report.ipynb` -> `explRL/rl_report.py` | new | Track B: `rlSummaries`, `writeRL`, `writeRLFigures` (split from `coop_report` to keep both under 200 lines) |
 | `nbs/demo_coop.ipynb` | new | Track A: quick (fake client), pilot and main (`llm`) |
 | `nbs/demo_rl.ipynb` | new | Mac: quick offline checks; debug run (0.5B), warm-start check, evaluation, cross-play, report (`train`; run from the separate training environment) |
-| `nbs/colab_clue_rl.ipynb` | new | Colab: set-up, pilot, warm start, three RL runs (`gpu`) |
+| `nbs/colab_clue_rl.ipynb` | new | Colab: set-up, pilot, warm start, three RL runs, evaluation without cross-play (`gpu`) |
 | `nbs/demo_multiagent.ipynb` | changed | section 8 of `REPORT.md` (Phase 12) |
 | `pyproject.toml` | changed | `[train]` extra; test flags `gpu` and `train` |
 | `nbs/sidebar.yml`, `nbs/index.ipynb`, `README.md` | changed | the new notebooks and links |
@@ -40,7 +40,7 @@ flowchart LR
     M --> WC[warmCheck, Mac]
     M --> RL[trainRL, Colab: rollout x G, groupAdvantages, policy gradient + KL] --> AD[RL adapters x 3 schemes]
   end
-  AD --> EV[runEval, Mac: rollout, coopRows]
+  AD --> EV[evalModels, Colab; cross-play on the Mac: runEval, rollout, coopRows]
   M --> EV
   EV --> REP[coop_report, rl_report, REPORT.md]
   RA --> REP
@@ -82,6 +82,6 @@ flowchart LR
 | A run degenerates (invalid replies, the model drifting far from the warm start) | Wasted GPU time, meaningless adapter | The stopping rule (FR-D5) |
 | The learning rate is too small to move the policy, or so large that it swings (v1 at 1e-5: KL under 0.02 after 60 steps) | No effect, or instability | The per-step policy change is measured and the learning rate steered to a target, runaway steps undone; a learning-rate pilot sets the starting and maximum rates (P12-10) |
 | vLLM and training share one GPU | Out of memory | vLLM given a fixed share of GPU memory; Hugging Face generation as fallback |
-| MPS lacks an operation or is slow | Mac debug or evaluation blocked | cpu fallback for debug; evaluation on Colab with the same code |
+| MPS lacks an operation or is slow (the Mac evaluation: about 10 hours) | Mac debug or evaluation too slow | cpu fallback for debug; the evaluation on Colab with the same code, cross-play only on the Mac (P12-11) |
 | Mac disk nearly full (15 GB free) | Model downloads fail | Free about 15 GB in T1, before the model work of T7 |
 | Track A changes break Phase 11 outputs | Frozen results change | Options default off; Phase 11 cached reruns checked (AC-1) |
