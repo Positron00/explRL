@@ -22,7 +22,7 @@
 | `nbs/demo_coop.ipynb` | new | Track A: quick (fake client), pilot and main (`llm`) |
 | `nbs/demo_rl.ipynb` | new | Mac: quick offline checks; debug run (0.5B), warm-start check, evaluation, cross-play, report (`train`; run from the separate training environment) |
 | `nbs/colab_clue_rl.ipynb` | new | Colab: set-up, pilot, warm start, three RL runs, evaluation without cross-play (`gpu`) |
-| `nbs/demo_multiagent.ipynb` | changed | section 8 of `REPORT.md` (Phase 12) |
+| `nbs/demo_multiagent.ipynb` | changed | sections 8 (Track A) and 9 (Track B) of `REPORT.md` |
 | `pyproject.toml` | changed | `[train]` extra; test flags `gpu` and `train` |
 | `nbs/sidebar.yml`, `nbs/index.ipynb`, `README.md` | changed | the new notebooks and links |
 

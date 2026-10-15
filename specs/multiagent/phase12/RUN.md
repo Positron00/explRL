@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 11: [../phase11/RUN.md](../phase11/RUN.md).
 
-Status 2026-10-15: Track A done (pilot and main); the Mac debug run, the warm start and the RL runs (v1, v2) done; the evaluation next (Colab, then cross-play on the Mac). Measured times and costs are added here as the runs happen.
+Status 2026-10-15: Track A done (pilot and main); the Mac debug run, the warm start and the RL runs (v1, v2) done; the evaluation done (Colab, then cross-play on the Mac); written up in `REPORT.md` sections 8-9. Measured times and costs are added here as the runs happen.
 
 ## Prerequisites
 
@@ -47,9 +47,9 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/{tiny
 | T10 RL speed check | Colab, start of session 2 (after Runtime -> Restart session; never rerun the pilot) | set-up, configuration, the RL speed-check cell; send the printout; the step count is set in `RL_PLAN`, which is then frozen, committed and pushed | measured: 166 s per step, 50.3 GB; 60 steps chosen; `RL_PLAN` frozen at `d8467f2` (hash `708dfc435c1f`) |
 | T12 RL runs, v1 | Colab | one session per scheme | measured: 2.26, 2.72, 2.71 GPU hours; the policy barely moved (P12-10) |
 | T12 learning-rate pilot | Colab, session 3 (restart first) | set-up, configuration, the learning-rate pilot cell; send the printout; the rates are set in `RL_PLAN` v2, which is then frozen, committed and pushed | measured: about 1.6 GPU hours; `RL_PLAN` v2 frozen at `304b955` (hash `4d1ea0078a6e`) |
-| T12 RL runs, v2 | Colab | one session per scheme (restart first): set `SCHEME`, run the RL section (writes `runs_v2/`; a progress bar with the ETA and one line per step: learning rate, step KL, KL to the warm start, welfare, invalid replies, undone or not); pack and download after the last | about 8.5 GPU hours |
-| T13 evaluation | Colab, session 4 (restart first) | set-up, configuration, then the Evaluation cell (skip the earlier sections): every cell but cross-play, five models one at a time, rows to `eval/`; a rerun after a disconnect continues from the last finished model; then pack and download, unzip to `results/multiagent/rl/colab/` | about 1.5-2 GPU hours |
-| T13 cross-play and report | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` from `.venv-train`: reads `colab/eval/runs.csv`, runs only the cross-play cells (local model plus Haiku), merges and reports; GPU hours and cost in `results/multiagent/rl/gpu.json` | API under $1, about 45 min |
+| T12 RL runs, v2 | Colab | one session per scheme (restart first): set `SCHEME`, run the RL section (writes `runs_v2/`; a progress bar with the ETA and one line per step: learning rate, step KL, KL to the warm start, welfare, invalid replies, undone or not); pack and download after the last | measured: 2.62, 2.34 + an untimed first part (team, halted at step 56), 3.03 GPU hours |
+| T13 evaluation | Colab, session 4 (restart first) | set-up, configuration, then the Evaluation cell (skip the earlier sections): every cell but cross-play, five models one at a time, rows to `eval/`; a rerun after a disconnect continues from the last finished model; then pack and download, unzip to `results/multiagent/rl/colab/` | measured: 1.08 GPU hours |
+| T13 cross-play and report | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` from `.venv-train`: reads `colab/eval/runs.csv`, runs only the cross-play cells (local model plus Haiku), merges and reports; GPU hours and cost in `results/multiagent/rl/gpu.json` | measured: $0.75; cached rerun 7 s, byte-identical |
 
 API spend goes through the Phase 10 client and ledger (`results/multiagent/llm/`) under the $150 API cap; GPU spend has its own $150 cap (decision P12-1).
 

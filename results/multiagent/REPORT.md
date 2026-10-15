@@ -79,7 +79,21 @@ Three changes to the Phase 11 clue board for Claude Haiku 5.5, compared paired o
 - **Passing on the coordinator's collected clues helped:** 0.12 [0.07, 0.16] at N = 4, 0.07 [0.02, 0.11] at N = 8, though the coordinator still trails the blackboard.
 - **Showing who works on what did little:** 0.03 [0.01, 0.05] on the blackboard at N = 4.
 
-A coordinator helps by moving information, not by giving orders. Track B (RL training of an open model on the same board) is in progress. Details: `specs/multiagent/phase12/README.md`, `results/multiagent/coop/full/report.md`.
+A coordinator helps by moving information, not by giving orders. Track B (RL training of an open model on the same board) is section 9. Details: `specs/multiagent/phase12/README.md`, `results/multiagent/coop/full/report.md`.
+
+## 9. Phase 12, Track B: training an open model to cooperate (exploratory)
+
+![rl](report/rl_main.png)
+
+Qwen2.5-3B-Instruct on the same clue board (4 agents, blackboard, 15 boards; plan frozen before the runs, `RL_PLAN` version 2): a warm start imitating the rule agents, then 60 steps of RL on a LoRA adapter under three rewards: individual (own solves), team (the team's score) and credit (the solves that one's moves enabled). One training run per reward. Welfare per agent-turn:
+
+- **Imitation did the teaching:** untrained -0.001, warm start 0.27 [0.22, 0.32] (Haiku minus warm start 0.24 [0.19, 0.29]).
+- **RL did not beat the warm start** (change from it): credit 0.02 [-0.03, 0.06], individual -0.17 [-0.27, -0.07], team -0.20 [-0.26, -0.14].
+- **Individual reward taught selfishness:** shares per held clue fell from 0.92 to 0.15, and 74% of its solves were guesses (3.8 wrong answers per solve).
+- **Team reward was unstable:** with no way to tell whose move helped, training collapsed mid-run and the stopping rule halted it at step 56; the evaluated adapter is that run's last, degenerate one.
+- **Credit reward kept cooperation intact:** credit minus individual 0.19 [0.09, 0.27], minus team 0.22 [0.14, 0.29]; with three trained agents and one Haiku it was the best partner (-0.16 [-0.20, -0.12] against an all-Haiku team; warm start -0.22 [-0.27, -0.16]).
+
+Better instructions (Track A) and imitation helped; RL did not improve cooperation, and the wrong reward destroyed it. Credit assignment is what kept RL from harming the team. Details: `specs/multiagent/phase12/README.md`, `results/multiagent/rl/eval/report.md`.
 
 ## Limitations
 

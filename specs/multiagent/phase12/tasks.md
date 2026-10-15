@@ -1,6 +1,6 @@
 # Tasks: Phase 12, training agents to work together
 
-Status (2026-10-13): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression, push and the Colab pilot done (decision P12-9), the RL speed check done (166 s per step, 60 steps). T11: done (warm-start check passed; `RL_PLAN` frozen at `d8467f2`, hash `708dfc435c1f`). T12: the three version 1 runs done (60 steps each, no halt) but the policy barely moved (KL under 0.02; decision P12-10): learning-rate pilot done (3e-4 swings; per-step target lowered to 0.003, rates 1.5e-4 to 2.5e-4), `RL_PLAN` v2 frozen at `304b955` (hash `4d1ea0078a6e`); the three v2 runs done (`runs_v2/`; team halted at step 56). T13: the evaluation on Colab (P12-11), then cross-play on the Mac. T14 partly done (RUN.md, links, sidebar, REPORT.md section 8 for Track A).
+Status (2026-10-15, all tasks done): T1-T9 done (T4-T5: Track A pilot and main runs; T7-T9: the 0.5B debug run on the Mac, AC-6). T10: code, regression, push and the Colab pilot done (decision P12-9), the RL speed check done (166 s per step, 60 steps). T11: done (warm-start check passed; `RL_PLAN` frozen at `d8467f2`, hash `708dfc435c1f`). T12: the three version 1 runs done (60 steps each, no halt) but the policy barely moved (KL under 0.02; decision P12-10): learning-rate pilot done (3e-4 swings; per-step target lowered to 0.003, rates 1.5e-4 to 2.5e-4), `RL_PLAN` v2 frozen at `304b955` (hash `4d1ea0078a6e`); the three v2 runs done (`runs_v2/`; team halted at step 56). T13: done (Colab evaluation 1.08 GPU hours, cross-play $0.75, cached rerun identical; findings in the README). T14: done (`REPORT.md` section 9 for Track B, after section 8 for Track A; RUN.md, links, sidebar; the plan's status and conclusions).
 
 Rules for every task:
 
@@ -122,7 +122,7 @@ Track A (T2-T5) and the Track B code (T6-T9) can proceed side by side; Track A's
 - **What**:
   - README status, results and a plain-language figure guide.
   - `RUN.md` covering the Mac and Colab steps, with an "Open in Colab" link.
-  - `REPORT.md` section 8 from `demo_multiagent`.
+  - `REPORT.md` sections 8 (Track A) and 9 (Track B) from `demo_multiagent`.
   - The multi-agent plan's status and plain-language conclusions.
   - Links from `nbs/index.ipynb`, `README.md`, the Phase 11 `RUN.md` and the sidebar.
 - **Done when**: docs updated; all checks pass.

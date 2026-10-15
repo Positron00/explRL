@@ -1,6 +1,6 @@
 # Plan: Phase 12, training agents to work together (RL on the clue board)
 
-Status: **code implemented; runs in progress** (2026-10-13). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start done; warm-start check passed on the Mac (AC-9). RL speed check done; `RL_PLAN` v1 frozen (commit `d8467f2`, hash `708dfc435c1f`, 60 steps) and run: the three v1 runs barely moved the model, so the plan is amended (P12-10, version 2). Learning-rate pilot done; `RL_PLAN` v2 frozen (commit `304b955`, hash `4d1ea0078a6e`). The three v2 runs done (team halted at step 56). Next: the evaluation on Colab, then cross-play on the Mac (P12-11). Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
+Status: **done** (2026-10-15). Track A done (pilot, `TRACKA_PLAN` frozen at commit `23ee080`, hash `45258d8a34da`, main runs $2.17; cached rerun byte-identical). Mac debug run done (AC-6). Colab pilot done (RL too slow: 631 s per step; decision P12-9); Colab warm start done; warm-start check passed on the Mac (AC-9). RL speed check done; `RL_PLAN` v1 frozen (commit `d8467f2`, hash `708dfc435c1f`, 60 steps) and run: the three v1 runs barely moved the model, so the plan is amended (P12-10, version 2). Learning-rate pilot done; `RL_PLAN` v2 frozen (commit `304b955`, hash `4d1ea0078a6e`). The three v2 runs done (team halted at step 56). Evaluation done (Colab and Mac, P12-11; cached rerun identical, AC-11): RL added nothing over the warm start; individual reward taught selfish trial and error, team reward was unstable, credit reward kept cooperation intact. Written up in `results/multiagent/REPORT.md` sections 8 (Track A) and 9 (Track B). Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md), whose clue board was packaged for this phase. Two machines (P12-7, P12-8): **this Mac** (M4 Max) for writing and debugging the training loop with a tiny model, the warm-start check, evaluation and reports; **a standalone Google Colab notebook** for the GPU runs (warm start and RL with a 3B model), each a few hours, under a $150 GPU cap (P12-1).
 
 ## Files in this spec
 
@@ -276,3 +276,43 @@ Colab session 3, 10 steps under `credit` at three fixed learning rates (controll
 3e-5 does not move the model; 1e-4 moves it steadily without harm; at 3e-4 steps already swing (one at 0.09), invalid replies appear and welfare falls. The planned per-step target of 0.01 sits in that harmful range, so the target is lowered to **0.003**, with a starting rate of **1.5e-4** (the per-step change grows roughly with the square of the rate) and a maximum of **2.5e-4** (below where harm appeared); a step above 4 x 0.003 = 0.012 is undone. The ten-step welfare changes are within the noise and are not evidence about RL's effect.
 
 `RL_PLAN` version 2 was frozen and committed before any version 2 run: commit `304b955`, `coopHash(RL_PLAN)` = `4d1ea0078a6e` (60 steps, a quarter of the turns trained on, gradient checkpointing on, learning rate from 1.5e-4 within [1e-6, 2.5e-4] steered to a per-step KL of 0.003, warm-up 3, runaway steps above 0.012 undone, the stopping rule).
+
+## RL runs, version 2 (T12, 2026-10-14 to 15)
+
+Three Colab sessions under `RL_PLAN` v2 (individual 2.62 GPU hours; team 2.34 after a resume from step 10, the first part not timed; credit 3.03). The controller moved the policy as intended: learning rates between 4.7e-5 and 2.5e-4, KL to the warm start 0.18 (individual) and 0.16 (credit) after 60 steps, against about 0.0005 in v1.
+
+| scheme | steps | steps undone | KL to the warm start at the end | most invalid replies in a step | training welfare |
+|---|---|---|---|---|---|
+| individual | 60 | 4 (15, 38, 39, 50) | 0.18 | 3% | noisy, 0.11-0.32; sharing fell from 0.85 to 0.17 shares per held clue over the last 25 steps |
+| team | 56, **halted** | 3 (13, 17, 56) | 0.63 at step 56 | 28% at step 56 | collapsed to about 0 (steps 19-31), recovered to about 0.2 |
+| credit | 60 | 7 | 0.16 | 9% (steps 52-57) | dipped at steps 12-17 (sharing briefly collapsed), otherwise 0.2-0.27 |
+
+**Team halted by the stopping rule** at step 56: that step's rollouts, made by the policy after step 55, had 28% invalid replies and a KL of 0.63 to the warm start, although step 55's measured change was in band (0.005). The controller measures each step's change only on that step's own replies, so it missed the drift. By the plan, team's evaluated adapter is its `final` (after step 55); checkpoint 50, probably healthier, would be an unplanned extra and was not evaluated.
+
+## Evaluation (T13, 2026-10-15; exploratory)
+
+Colab ran the 159 boards without Haiku (1.08 GPU hours; P12-11), the Mac the 40 cross-play boards with Haiku ($0.75). A cached rerun gave byte-identical rows and turn logs (AC-11). Report and figures: `results/multiagent/rl/eval/`. In all: about 20.5 GPU hours (a lower bound; about $27) and $47.22 of API spend.
+
+Main boards (4 agents, blackboard, 15 boards; welfare per agent-turn, 95% CI):
+
+| model | welfare | against the warm start | shares per held clue | solves by guessing | wrong answers per solve |
+|---|---|---|---|---|---|
+| untrained | -0.001 | | 1.63 (repeats) | none solved | |
+| warm start | 0.273 [0.218, 0.320] | | 0.92 | 0% | 1.31 |
+| individual | 0.102 [0.031, 0.176] | **-0.171** [-0.270, -0.069] | 0.15 | 74% | 3.76 |
+| team | 0.069 [0.004, 0.134] | **-0.205** [-0.265, -0.145] | 0.68 | 13% | 4.04 |
+| credit | 0.289 [0.253, 0.321] | +0.015 [-0.034, 0.064] | 0.95 | 1% | 0.87 |
+
+For comparison on the same boards: Haiku (Phase 11) about 0.55, rule agents about 0.61.
+
+What it shows:
+
+- **The warm start did the teaching.** Imitating the rule agent's moves took the 3B model from unable to play (-0.001) to half of Haiku's welfare. RL added nothing measurable on top under any reward.
+- **Individual reward taught selfishness.** The model stopped sharing clues (0.15 shares per held clue, from 0.92) and solved by trial and error (74% of solves by guessing, about 90 guesses per board, 3.8 wrong answers per solve): what pays one agent hurts the team. This is the clearest effect of the phase.
+- **Team reward (everyone gets the team's score) failed to train stably.** With no way to tell which agent's move helped, training collapsed mid-run and then degenerated; the evaluated adapter is that degenerate one. Its rows are about the halted run, not about team reward at its best.
+- **Credit reward (each agent paid for the solves its moves enabled) kept cooperation intact,** and was the only scheme that did no harm: credit beats individual by 0.19 [0.09, 0.27] and team by 0.22 [0.14, 0.29]. It is the best of the three rewards, but not better than not doing RL.
+- **Cross-play:** one trained agent among three Haiku agents costs almost nothing for the warm start (-0.014) and credit (-0.006), but team's agent costs the board 0.14. With three trained agents and one Haiku, credit is the best partner (-0.157 against all-Haiku; warm -0.217, individual -0.272, team -0.370).
+- **Generalisation** (8 agents, messages channel, with a coordinator): every model stays well below Haiku; credit sits close to the warm start; individual is worse with 8 agents but better with a coordinator (-0.146 against warm's -0.306), since it ignores teammates anyway.
+- **Liar:** the warm start and credit lose more to a liar on the blackboard than with messages (warm 0.31 [0.19, 0.40], credit 0.50 [0.28, 0.63]; H3), as in Phase 11; individual and team barely read shared clues, so they lose little either way.
+
+Plain answer to the phase's question: on this board, with a 3B model and about 60 steps, **better instructions (Track A) and imitation helped; RL did not improve cooperation, and the wrong reward destroyed it.** Credit assignment is what kept RL from harming the team. Limits: one training seed per scheme, 15 main boards, one model size; the team run's evaluated adapter is degenerate.
