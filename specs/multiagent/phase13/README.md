@@ -148,3 +148,11 @@ For each failure, the gap closed by each fix with its interval, the cost of the 
 ## References (T1, 2026-10-15)
 
 Phase 12 outputs that Phase 13 must leave unchanged (NFR-1), as sha256 prefixes: Track B evaluation `results/multiagent/rl/eval/runs.csv` `16c6ba190d590a07`, its turn logs (sorted file hashes, hashed) `7b071e38899e3058`; Track A `results/multiagent/coop/full/runs.csv` `89ebe98b05fbb85a`. RL v2 run identities (`configHash`): individual `542eb4f99c29`, team `be13d2c8afb3`, credit `c02fa4f72378`. Phase 5-11 references as recorded in Phase 12 T1.
+
+## Track A pilot (T5, 2026-10-15)
+
+Prices re-checked on the pricing page (unchanged: Haiku 5.5 $0.10 / $0.50 / $0.125 / $0.01 per million input / output / cache-write / cache-read tokens). The pilot cost $0.65 (clue board $0.51, vote $0.15; 2 340 calls). AC-6 passes with the planned settings, so `FIX_PLAN` needs no change:
+
+- Invalid replies: 0 of 84 asks, 0 of 40 checks (36 of the checks found a liar's false clue), at most 0.6% per board, 0 of 660 vote replies (all under 5%).
+- The vote (classic, 20 episodes): baseline win rate 0.45 (band 0.2-0.8), `factsFirst` 0.45, solo ceiling 1.00 (at least 0.8). Members posted about half of their private facts (0.49 baseline, 0.47 `factsFirst`). Measured vote tokens per call: 386 uncached input, 280 cache-read, 349 cache-write, 272 output, $0.00022 per call, as the provisional estimate.
+- Two seeds per arm are not evidence about the fixes; they only show that every arm runs and the new actions are used.
