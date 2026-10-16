@@ -35,3 +35,25 @@ Phases 10-11 found that numpy rule agents rank harness designs as LLM teams do. 
 1. Commit this plan and `tools/rl_forecast.py` (the method is frozen here).
 2. Run the numpy model once; commit its output and the predicted signs, with the retrodiction score against Phase 12, before downloading the Colab zip.
 3. After the Phase 13 evaluation, score the forecast with this rule, unchanged.
+
+## Numpy run and frozen predictions (2026-10-16)
+
+Run once with the frozen method (`tools/rl_forecast.py`, 5 arms x 5 training seeds, 50 s on the Mac); predictions computed with `tools/forecast_score.py` and copied to [forecast_predictions.json](forecast_predictions.json). Committed before the Phase 13 Colab results were downloaded or evaluated.
+
+Numpy effect against the warm start (mean over training seeds [95% CI], sign):
+
+| arm | welfare | shares per held clue | solo share | wrong per solve |
+|---|---|---|---|---|
+| individual | -0.060 [-0.064, -0.058] - | -0.486 - | +0.047 + | +0.115 + |
+| team | +0.038 [+0.037, +0.040] + | -0.274 - | +0.003 + | +0.005 + |
+| credit | +0.038 [+0.037, +0.039] + | -0.264 - | +0.002 + | +0.005 + |
+| **indpen** (forecast) | -0.062 [-0.067, -0.056] - | -0.477 - | +0.023 + | +0.054 + |
+| **credturn** (forecast) | +0.037 [+0.037, +0.038] + | -0.275 - | +0.003 + | +0.003 + |
+
+Learned policies: sharing probability fell from 0.90 to about 0.30 under individual reward (with or without the guessing cost) and to about 0.55 under team, credit and credturn; guessing changed little (the warm start guesses 10%).
+
+**Retrodiction against Phase 12: 7 of 12 signs agree.** Individual 4 of 4 (less sharing, more guessing, more wrong answers, lower welfare); team 3 of 4 (the numpy model predicts a small welfare gain, the LLM run collapsed: training instability is outside a two-parameter model); credit 0 of 4 (numpy: less sharing, a small gain; LLM: slightly more sharing, no change).
+
+**Forecast for Phase 13, frozen:** `indpen`: pricing the guessing loophole does **not** stop the selfish drift (sharing -0.48, welfare -0.06; guessing rises half as much as without the cost), against H13-4; `credturn`: welfare **above** the warm start (+0.037), in line with H13-5, with less sharing than the warm start; `credit` seed 2: the numpy `credit` signs.
+
+**A lesson recorded now, not applied:** the numpy runs vary so little across training seeds that effects of +0.003 get a definite sign, while the LLM's intervals call such effects 0. The frozen rule is kept; a practical-significance threshold (for example, |effect| below 10% of the warm start's value counts as 0) will be reported separately, labelled post hoc.
