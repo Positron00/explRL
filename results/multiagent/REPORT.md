@@ -93,7 +93,20 @@ Qwen2.5-3B-Instruct on the same clue board (4 agents, blackboard, 15 boards; pla
 - **Team reward was unstable:** with no way to tell whose move helped, training collapsed mid-run and the stopping rule halted it at step 56; the evaluated adapter is that run's last, degenerate one.
 - **Credit reward kept cooperation intact:** credit minus individual 0.19 [0.09, 0.27], minus team 0.22 [0.14, 0.29]; with three trained agents and one Haiku it was the best partner (-0.16 [-0.20, -0.12] against an all-Haiku team; warm start -0.22 [-0.27, -0.16]).
 
-Better instructions (Track A) and imitation helped; RL did not improve cooperation, and the wrong reward destroyed it. Credit assignment is what kept RL from harming the team. Details: `specs/multiagent/phase12/README.md`, `results/multiagent/rl/eval/report.md`.
+Better instructions (Track A) and imitation helped; RL did not improve cooperation, and the wrong reward destroyed it. Credit assignment is what kept RL from harming the team. Details: `specs/multiagent/phase12/README.md`, `results/multiagent/rl/eval/report.md`. **Revised by section 10:** with a second training seed, RL with credit reward did beat the warm start; the one-seed null result above was seed luck.
+
+## 10. Phase 13: from diagnosis to fixes (exploratory)
+
+![fixes](report/fix.png)
+
+Fixes for the failures Anthropic's red team reported, each against a prompt-only control and reported as the share of a gap closed against an explicit ceiling (Claude Haiku 5.5; plan frozen before the runs, `FIX_PLAN`).
+
+- **Communication has a price.** On the clue board, where a message costs a turn, a request board widened the pooling gap (-0.18 [-0.21, -0.14] at N = 4) and an instruction to share first lowered output too (-0.14 [-0.18, -0.09]); a fact table did nothing (-0.01 [-0.06, 0.04]).
+- **Public reputation beats private verification.** A harness-computed track record of each sender recovered 0.32 [0.20, 0.44] of a liar's damage at no cost without a liar (0.006 [-0.012, 0.026]); a costly private check caught lies but recovered -0.01 [-0.28, 0.19]; a warning did nothing (0.03 [-0.16, 0.20]).
+- **Aggregation, not only disclosure.** In a hidden-profile vote, a table of the posted facts closed 0.75 [0.50, 1.00] of the lone-dissenter gap without raising disclosure; enforcing facts first did nothing (-0.02 [-0.31, 0.18]); asking members to speak up closed 0.39 [0.14, 0.59] of the classic gap.
+- **RL with the right incentive beats imitation, and a mechanism fix suffices.** Pooled over two training seeds, credit reward gained 0.068 [0.026, 0.112] over the warm start and credit with per-turn advantages 0.069 [0.018, 0.120]; individual reward with a training-only cost per wrong answer kept agents sharing (the loophole priced) and gained 0.053 [0.000, 0.106]. The same credit configuration gained 0.015 with one seed and 0.120 with another.
+
+Details: `specs/multiagent/phase13/README.md`, `results/multiagent/fix/full/report.md`, `results/multiagent/rl/eval_p13/report.md`; preprint draft in `paper/`.
 
 ## Limitations
 
