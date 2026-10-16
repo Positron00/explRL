@@ -1,6 +1,6 @@
 # Plan: Phase 13, from diagnosis to fixes
 
-Status: **code done; live runs next** (2026-10-15). T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
+Status: **Track A done; Track B running on Colab** (2026-10-15). Track A: a public track record recovered a third of a liar's damage and a fact table helped the vote, while requests and more sharing hurt (results below). T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
 
 ## Files in this spec
 
@@ -156,3 +156,39 @@ Prices re-checked on the pricing page (unchanged: Haiku 5.5 $0.10 / $0.50 / $0.1
 - Invalid replies: 0 of 84 asks, 0 of 40 checks (36 of the checks found a liar's false clue), at most 0.6% per board, 0 of 660 vote replies (all under 5%).
 - The vote (classic, 20 episodes): baseline win rate 0.45 (band 0.2-0.8), `factsFirst` 0.45, solo ceiling 1.00 (at least 0.8). Members posted about half of their private facts (0.49 baseline, 0.47 `factsFirst`). Measured vote tokens per call: 386 uncached input, 280 cache-read, 349 cache-write, 272 output, $0.00022 per call, as the provisional estimate.
 - Two seeds per arm are not evidence about the fixes; they only show that every arm runs and the new actions are used.
+
+## Track A results (T7, 2026-10-15; exploratory)
+
+Main runs: 39 460 new Haiku calls, $9.08 (total API spend $56.96 of $150), 70 minutes live with the cached rerun, which was byte-identical and free (AC-7). Report and figure: `results/multiagent/fix/full/` (all parts) and `results/multiagent/profile/full/` (A3). (The report header's wall time and cost come from the cached rerun and from every row's recorded cost, Phase 11's cached baseline cells included; the live timing is in `timing_live.jsonl`.)
+
+**A1, pooling on the clue board: no fix closed the gap; two made it wider** (pooled-share gap closed, 10 seeds, Holm over the four primary tests):
+
+| arm | N = 4 | N = 8 | what agents did |
+|---|---|---|---|
+| `request` (affordance) | -0.18 [-0.21, -0.14], Holm p 0.008 | -0.17 [-0.21, -0.14], Holm p 0.008 | asked 42 (N 4) and 83 (N 8) times per board, a quarter of their turns; sharing did not rise (0.37 shares per held clue, baseline 0.40) |
+| `table` (affordance) | -0.01 [-0.06, 0.04] | -0.05 [-0.09, -0.01], Holm p 0.098 | no change |
+| `evidence` (instruction) | -0.14 [-0.18, -0.09] | -0.11 [-0.14, -0.08] | shared far more (0.73 shares per held clue) and earned less |
+
+Pooling on this board is not limited by agents not knowing what others need: sharing costs a turn, and both asking and sharing more spend turns that solving needed. H13-1 is not supported.
+
+**A2, one liar: reputation recovers a third of the damage; verification and warnings do not** (loss recovered, 10 seeds; baseline honest loss 0.35):
+
+| arm | loss recovered | cost with no liar |
+|---|---|---|
+| `record` (affordance: senders' track records) | **0.32 [0.20, 0.44], Holm p 0.008** | +0.006 [-0.012, 0.026] |
+| `verify` (affordance: a `check` action) | -0.01 [-0.28, 0.19] | -0.001 [-0.033, 0.025] |
+| `warn` (instruction) | 0.03 [-0.16, 0.20] | 0.000 [-0.022, 0.020] |
+
+With `verify`, agents checked 14 clues per board and caught 13 false ones, yet welfare did not recover: a check costs a turn and its result stays private. A public track record computed by the harness helps everyone at once and costs nothing when there is no liar (Phase 9's finding that private trust paid, now with LLM agents, in its shared form). H13-2 is supported for `record` only.
+
+**A3, the hidden-profile vote: a structured fact table helps, enforcing facts first does not, and the dissent instruction helps in one variant** (win-rate gap closed against the solo ceiling of 1.00, 100 episodes per arm, paired on episode seed):
+
+| arm | classic (baseline 0.54) | lone dissenter (baseline 0.88) |
+|---|---|---|
+| `factsFirst` (affordance) | -0.02 [-0.31, 0.18] | -0.33 [-1.43, 0.21] |
+| `table` (affordance) | 0.22 [-0.02, 0.40], Holm p 0.29 | **0.75 [0.50, 1.00], Holm p 0.012** (win rate 0.97) |
+| `dissent` (instruction) | **0.39 [0.14, 0.59]**, p 0.008 (control) | -0.58 [-2.33, 0.13] |
+
+Members posted only about half of their private facts in every arm (0.48-0.50 in classic); the fixes changed the votes, not the disclosure: with the table, votes against the best option fell from 0.58 to 0.21 per episode in `lone`. H13-3 is supported for `table` (lone) only; the instruction control was not weaker than the affordances here, against K13-2's expectation.
+
+**Overall.** Of the five affordances, two worked (a public track record against a liar; a structured fact table in the vote), two backfired or did nothing (requests, enforced facts-first), one did nothing (private verification). What worked made the team's information easier to aggregate and trust at no cost in turns; what failed added work per agent. Haiku's hidden-profile baseline (0.54) is higher than the red team's 17-36% for most models, so this vote is easier than theirs; the gap and the fix are still measured against the same model's solo ceiling.
