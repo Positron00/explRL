@@ -1,6 +1,6 @@
 # Plan: Phase 13, from diagnosis to fixes
 
-Status: **plan** (2026-10-15), not started. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
+Status: **code done; live runs next** (2026-10-15). T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN` (not yet frozen); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical. Next: T5 pilots. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
 
 ## Files in this spec
 
@@ -10,8 +10,7 @@ Status: **plan** (2026-10-15), not started. Part of the multi-agent plan: [../RE
 | [design-high-level.md](design-high-level.md) | Modules, data flow, main decisions, risks |
 | [design-low-level.md](design-low-level.md) | New actions and observation lines, the hidden-profile environment, turn-level advantages, grids and plans, report |
 | [tasks.md](tasks.md) | Ordered tasks with "done when" checks and the gates |
-
-`RUN.md` is written with the code (T-level runs, as Phase 12).
+| [RUN.md](RUN.md) | Tests, the runs in order (Mac and Colab), artifacts, regression |
 
 ## Goal
 

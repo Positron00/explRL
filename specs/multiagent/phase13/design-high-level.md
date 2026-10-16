@@ -4,20 +4,22 @@
 
 | Module | New / changed | Contents |
 |---|---|---|
-| `nbs/clue_agents.ipynb` -> `explRL/clue_agents.py` | changed | `ClueBoard` keeps requests (`ask`) and reports track records (`record`); `known(i, board, channel, checked=None)` drops clues the agent found false and pins those it found true |
+| `nbs/clue_agents.ipynb` -> `explRL/clue_agents.py` | changed | `ClueBoard` keeps requests (`ask`, `requests`); `known(i, board, channel, checked=None)` drops clues the agent found false and pins those it found true |
 | `nbs/clue_text.ipynb` -> `explRL/clue_text.py` | changed | `TextClueEnv(..., ask, table, record, check)`: schema per instance (`ask`, `check` in the action enum only with their options), rule sentences, observation lines, parsing of `ask` and `check`; `HINTS['evidence']`, `HINTS['warn']` |
-| `nbs/clue_fix.ipynb` -> `explRL/clue_fix.py` | new (only if `clue_text` would pass 200 lines) | the observation lines and parsing of the four options, called by `TextClueEnv` |
+| `nbs/clue_fix.ipynb` -> `explRL/clue_fix.py` | new (`clue_text` would pass 200 lines) | `fixOptions`, `fixSchema`, `FIX_RULES`, `trackRecord` (the `record` count; `clue_agents` is at 199 lines), `fixRules`, `fixBoard`, `fixLines`, `fixParse`, called by `TextClueEnv` |
 | `nbs/clue_policy.ipynb` -> `explRL/clue_policy.py` | changed | `claudePolicy(client, workers=8, schema=CLUE_SCHEMA, task='clue')`: built with the environment's schema when `ask` or `check` is on, with the vote's for the vote; defaults unchanged |
 | `nbs/clue_runs.ipynb`, `nbs/clue_train.ipynb`, `nbs/clue_roll.ipynb` | changed | the options pass from `cfg.world` (rows unchanged) |
-| `nbs/hidden_profile.ipynb` -> `explRL/hidden_profile.py` | new | `profileTask`, `ProfileEnv`, `soloCeiling` (the hidden-profile vote) |
-| `nbs/profile_runs.ipynb` -> `explRL/profile_runs.py` | new | `runProfile` (batched episodes through `claudePolicy`), rows and turn logs |
+| `nbs/hidden_profile.ipynb` -> `explRL/hidden_profile.py` | new | `profileTask`, `factTotals`, `ProfileEnv` (with `endRound`), `POST_SCHEMA`, `voteSchema`, `parseVote`, `soloCeiling` (the hidden-profile vote) |
+| `nbs/profile_domains.ipynb` -> `explRL/profile_domains.py` | new (data only, split for size) | `DOMAINS`: names, fact templates and the rule-out sentence of the three domains |
+| `nbs/profile_runs.ipynb` -> `explRL/profile_runs.py` | new | `ARMS`, `profileCell`, `runProfile` (batched episodes through `claudePolicy`), rows and turn logs |
 | `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | new | `fixGrid`, `profileGrid`, their pilots, `FIX_PLAN` |
-| `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | changed | `RL13_PLAN` beside `RL_PLAN` (Track B does not wait for Track A's code) |
+| `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | changed | `RL13_ARMS`, `RL13_RUNS`, `RL13_PLAN`, `rl13Name`, `rl13Config`, `rl13Suite` beside `RL_PLAN` (Track B does not wait for Track A's code) |
 | `nbs/fix_report.ipynb` -> `explRL/fix_report.py` | new | `fixLogMetrics` (asks, checks, checked-false from turn logs), `fixSummaries` (gap closed, loss recovered, costs, mechanism), `writeFix`, `figFix` |
 | `nbs/fix_stats.ipynb` -> `explRL/fix_stats.py` | new (split from `fix_report` for size) | `gapClosed`, `lossRecovered` (bootstrap over the pairing units), `holmFamily` |
 | `nbs/llm_fake.ipynb` -> `explRL/llm_fake.py` | changed | `fakeReply` sometimes asks or checks, only when the schema has those actions (Phase 10-12 fake runs unchanged) |
-| `nbs/clue_rl.ipynb`, `nbs/rl_control.ipynb`, `nbs/rl_torch.ipynb` | changed | `advantage`, `wrongPenalty`, `haltJump` in `RLConfig`; `turnAdvantages`; roll-back on a jump; `configHash` unchanged for Phase 12 configurations |
-| `nbs/rl_report.ipynb` | changed | per-arm means over training seeds, per-seed RL gains |
+| `nbs/rl_adv.ipynb` -> `explRL/rl_adv.py` | new (split from `clue_rl` for size; pure numpy) | `trainingReturns`, `groupAdvantages`, `stepSamples` (moved), `wrongTimes`, `turnRewards`, `rewardsToGo`, `turnAdvantages` |
+| `nbs/clue_rl.ipynb`, `nbs/rl_control.ipynb`, `nbs/rl_torch.ipynb` | changed | `advantage`, `wrongPenalty`, `haltJump` in `RLConfig`, `runFields`; `invalidShare`, `jumpGuard` (roll-back on a jump, in `rl_control`); `configHash` unchanged for Phase 12 configurations |
+| `nbs/rl_report.ipynb` | changed | `armSeed`, `renameModel`, `bestArm`; per-arm means over training seeds, per-seed RL gains |
 | `nbs/demo_fix.ipynb` | new | Track A: quick (fake client), pilots and main (`llm`) |
 | `nbs/colab_clue_rl.ipynb`, `nbs/demo_rl.ipynb` | changed | Track B: `ARM`, `SEED`, `runs_p13/`; evaluation of the new adapters |
 | `nbs/demo_multiagent.ipynb` | changed | section 10 of `REPORT.md` (Phase 13) |

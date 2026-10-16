@@ -8,7 +8,7 @@ Section numbers are referred to from [tasks.md](tasks.md).
 class ClueBoard:                    # changed: requests and track records
     def ask(self, i, k, t)          # request (k, i, t), k = agent i's open subtask; a new ask replaces the agent's last
     def requests(self, board)       # [(k, i, t)] still live: k open and board.opened[i] == k
-    def record(self, a, board)      # (true, checked) over agent a's shares (board.shareLog) of subtasks solved so far
+# clue_fix.trackRecord(a, board)  # (true, checked) over agent a's shares (board.shareLog) of subtasks solved so far
 
 def known(i, board, channel, checked=None)   # checked: {(k, j, r): true?} of agent i; None = Phase 11 behaviour
 ```
@@ -26,7 +26,7 @@ def known(i, board, channel, checked=None)   # checked: {(k, j, r): true?} of ag
 
 - Schema: `self.SCHEMA` is `CLUE_SCHEMA` unless `ask` or `check` is on; then a copy whose action enum adds them (Phase 11 requests, and so cached replies, unchanged). `LLMMember` sends `env.SCHEMA`; a `claudePolicy` for a rollout with these options is built with `schema=env.SCHEMA`.
 - `HINTS['evidence']` = "Before working on your own subtask, post every clue you hold for an open subtask that has not been posted yet." `HINTS['warn']` = "A teammate may share false clues. Cross-check a shared clue before relying on it, for example against the answer range."
-- If `clue_text` would pass 200 lines, the table's middle three columns live in `clue_fix` (`fixRules(opts)`, `fixLines(env, i, t, channel)`, `fixParse(env, parsed, i)`), called from `TextClueEnv`.
+- The table's middle three columns live in `clue_fix` (`fixRules`, `fixBoard`, `fixLines`, `fixParse`; `clue_text` would pass 200 lines), called from `TextClueEnv`. `ask` and `check` are valid only on the blackboard (with another channel they are invalid waits); a request lapses once its asker has opened anything since asking (so re-opening the same subtask does not revive it); with `table` and `record` both on, `table` wins (its entries have no sender). With `ask` or `check` on, the reply-format sentence lists the new actions, and the turn summary reads `asked for clues for T3` or `checked T3: ...` instead of `waited`.
 - Rows are unchanged. `fixLogMetrics(records)` (in `fix_report`) counts per row key `asks` (valid asks), `checks` and `checkedFalse` (checks that found a false clue) from the turn logs' parsed actions and the check lines of the next observation.
 
 ## 2. The hidden-profile vote (`hidden_profile`, `profile_runs`)
@@ -52,7 +52,9 @@ def runProfile(cells, client, logDir=None) -> list[dict]
 
 **Vote.** After the last round, each agent's vote request (its facts, the board, schema `{vote: '<name 1>' | '<name 2>', notes}`) is sent at once; success = strictly more than N/2 votes for A. The solo ceiling sends one request with every fact and the vote schema.
 
-**Rows.** Per episode: `study`, `level` (`<arm>|<variant>`, or `solo|<variant>`), `seed`, `domain`, `success`, `votesA`, `factsPosted`, `factsHeld`, `uniquePosted` (private facts posted / private facts held), `opinions`, `invalid`, `calls`, `cost`, `latency`; keyed with `cellRow`. Turn logs as Phase 11 (prompt, reply, parsed, valid, per agent and round).
+**Implementation choices.** Fact ids are per agent (F1..Fk in the agent's own shuffled order, so ids do not reveal what others hold); notes carry over between rounds and into the vote (notes memory); `endRound()` applies a round's queued posts in agent order; in `lone` the rule-out fact counts -1 for B, is flagged `ruleOut` and is private; the domain templates (13 positive, 6 negative each) live in the data-only `profile_domains`. Cells come from `profileCell(study, arm, variant, seed, ...)`: `cfg['world'] = dict(arm, variant, rule, table, solo, [hint])`, arm `solo` the ceiling. `estimateCost(model, 'profile', N, rounds + 1)` uses a provisional token profile (700 in, 300 out per call) that the pilot measures. The fake client answers the post and vote schemas deterministically (existing schemas unchanged).
+
+**Rows.** Per episode: `study`, `level` (`<arm>|<variant>`, or `solo|<variant>`), `seed`, `domain`, `success`, `votesA`, `factsPosted`, `factsHeld`, `uniquePosted` (private facts posted / private facts held), `opinions`, `invalid`, `calls`, `cost`, `latency` (sequential request stages, rounds + 1, not wall-clock, so reruns stay byte-identical); keyed with `cellRow`. Turn logs as Phase 11 (prompt, reply, parsed, valid, per agent and round).
 
 `claudePolicy(client, workers=8, schema=CLUE_SCHEMA, task='clue')`: the vote passes its schemas and `task='profile'` (cache key and ledger task); defaults unchanged.
 
@@ -98,23 +100,23 @@ def turnAdvantages(ro, penalty, wrongPenalty=0.0)       # per board, slot, turn:
 
 Wrong answers come from each board's `submits` log (time, agent, subtask, candidates, result), matched to the slot's text turn by its time, so the turn logs keep their fields (Phase 12 logs byte-identical).
 
-**Roll-back (FR-D4).** With `haltJump`: before each update `prev = snapshot(model, opt)` (the P12-10 snapshot); after the next step's rollouts, if their invalid share is above `haltJump`, `restore(prev)`, `lr *= 0.5`, discard the rollouts and redo the step with the same seeds; two roll-backs in a row write `halted.json` (reason `jump`). The metrics line gains `rolledBack`.
+**Roll-back (FR-D4).** In `rl_control.jumpGuard(play, jumped, undo, rolls)`, used by `trainRL`. With `haltJump`: before each update `prev = snapshot(model, opt)` (the P12-10 snapshot); after the next step's rollouts, if their invalid share is above `haltJump`, `restore(prev)`, `lr *= 0.5`, discard the rollouts and redo the step with the same seeds; two roll-backs in a row (at the redone step, or at the next step after a step that rolled back) write `halted.json` (reason starting `jump:`); the final adapter is the restored one. The metrics line gains `rolledBack` only with `haltJump` set. The snapshot is held in memory only: after a disconnect right after a roll-back, the resume starts from the last checkpoint.
 
-**Hash.** `configHash` drops `advantage`, `wrongPenalty` and `haltJump` when they equal their defaults (`'board'`, `0.0`, `None`), so Phase 12 hashes are unchanged (tested against the saved `config.json` hashes).
+**Hash.** `configHash` (and `config.json`, through `runFields`) drops `advantage`, `wrongPenalty` and `haltJump` when they equal their defaults (`'board'`, `0.0`, `None`), so Phase 12 hashes are unchanged (tested against the saved `config.json` hashes).
 
 ## 5. Report (`fix_report`, `rl_report`)
 
 - `fixSummaries(rows, p11rows, logMetrics)`: per part and arm, the gap closed (A1: pooled share; A3: win rate against the solo ceiling) or loss recovered (A2, from `welfareHonest`) with bootstrap CIs over the pairing units (A1, A2: board seeds; A3: episode seeds, which arms share), Holm p-values within each primary family, the controls, each A2 arm's no-liar cost, the mechanism columns.
 - `writeFix(path, S, meta)`: tables per part, labelled exploratory, with the plan hash and commit; `figFix(out, S)`: gap closed per arm with CIs, one panel per part (affordances in one colour, instructions in another).
-- `rl_report`: `rlSummaries` groups adapters `<arm>_s<seed>` by arm: per-arm mean of the per-seed RL gains (CI from the pooled paired differences) and each seed's own gain.
+- `rl_report`: `rlSummaries` groups adapters `<arm>_s<seed>` (`armSeed`; Phase 12's `credit` relabelled `credit_s1` with `renameModel`) by arm, and `bestArm(S)` applies `RL13_PLAN`'s rule: per-arm mean of the per-seed RL gains (CI from the pooled paired differences) and each seed's own gain.
 
 ## 6. Notebooks and outputs
 
 | Notebook | Sections | Outputs |
 |---|---|---|
-| `demo_fix` | quick (normal tests): every option and the vote with the fake client and scripted replies, the report on synthetic rows; pilot (`llm`); main (`llm`, asserts `FIX_PLAN` frozen); cached rerun check | `results/multiagent/fix/{quick,pilot,full}/`, `results/multiagent/profile/{quick,pilot,full}/` |
+| `demo_fix` | quick (normal tests): `fixQuick` and `profileQuick` with the fake client (which asks and checks when the schema allows), identical at 1 and 8 processes; pilot (`llm`): invalid rates per arm and new action, the vote's baseline win rate and solo ceiling against the AC-6 bands; main (`llm`, asserts `FIX_PLAN` frozen); cached rerun (`llm`: byte-identical, ledger unchanged) | `results/multiagent/fix/{quick,pilot,full}/`, `results/multiagent/profile/{quick,pilot,full}/` |
 | `colab_clue_rl` | Phase 13 RL section: `ARM`, `SEED` at the top, asserts `RL13_PLAN` frozen, resumes; evaluation of all five new adapters (no cross-play) | Drive `explRL_rl/runs_p13/<arm>_s<seed>/`, `eval_p13/` |
-| `demo_rl` | Phase 13 evaluation: reads Colab's `eval_p13`, picks the best arm by `RL13_PLAN`'s rule, runs cross-play for both its seeds on the Mac, report | `results/multiagent/rl/eval_p13/` |
+| `demo_rl` | Phase 13 evaluation: reads Colab's `eval_p13`, picks the best arm by `RL13_PLAN`'s rule, runs cross-play for both its seeds on the Mac (reusing Phase 12's `credit` cross-play rows as `credit_s1`), report; skips when Colab's files are absent | `results/multiagent/rl/eval_p13/` |
 | `demo_multiagent` | section 10 (Phase 13) | `REPORT.md`, `report/fix.png` |
 
 ## 7. Determinism, cost, secrets
