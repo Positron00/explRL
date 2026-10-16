@@ -1,6 +1,6 @@
 # Plan: Phase 13, from diagnosis to fixes
 
-Status: **Track A done; Track B running on Colab** (2026-10-15). Track A: a public track record recovered a third of a liar's damage and a fact table helped the vote, while requests and more sharing hurt (results below). A numpy forecast of the Track B arms was frozen before their evaluation ([forecast.md](forecast.md): retrodiction 7 of 12 signs against Phase 12). Preprint draft: `paper/`. T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
+Status: **Track A and Track B done; write-up next** (2026-10-16). Track B: RL beat imitation once the guessing loophole was priced or credit given (pooled gains +0.05 to +0.07); pricing the loophole stopped the selfish drift; seed variance is as large as the effects. Track A: a public track record recovered a third of a liar's damage and a fact table helped the vote, while requests and more sharing hurt (results below). A numpy forecast of the Track B arms was frozen before their evaluation ([forecast.md](forecast.md): retrodiction 7 of 12 signs against Phase 12). Preprint draft: `paper/`. T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
 
 ## Files in this spec
 
@@ -193,3 +193,25 @@ With `verify`, agents checked 14 clues per board and caught 13 false ones, yet w
 Members posted only about half of their private facts in every arm (0.48-0.50 in classic); the fixes changed the votes, not the disclosure: with the table, votes against the best option fell from 0.58 to 0.21 per episode in `lone`. H13-3 is supported for `table` (lone) only; the instruction control was not weaker than the affordances here, against K13-2's expectation.
 
 **Overall.** Of the five affordances, two worked (a public track record against a liar; a structured fact table in the vote), two backfired or did nothing (requests, enforced facts-first), one did nothing (private verification). What worked made the team's information easier to aggregate and trust at no cost in turns; what failed added work per agent. Haiku's hidden-profile baseline (0.54) is higher than the red team's 17-36% for most models, so this vote is easier than theirs; the gap and the fix are still measured against the same model's solo ceiling.
+
+## Track B results (T9-T10, 2026-10-16; exploratory)
+
+Five Colab runs in one batch session (training 13.9 GPU hours from the runs' metrics, evaluation about 1.6; GPU total about 36 hours, about $47 of $150), all 60 steps, none halted; one roll-back (`credturn_s2`), at most 10.8% invalid replies in a step (`indpen_s1`); `credturn_s1`'s mid-run drift (KL to the warm start about 0.4 at steps 22-27) came back to 0.044 by the end. Cross-play for the best arm cost $0.31 (API total $57.27). Report: `results/multiagent/rl/eval_p13/report.md`.
+
+Main boards (welfare per agent-turn, 15 boards; warm start 0.273, Haiku about 0.55):
+
+| arm | seed 1 | seed 2 | RL gain per arm (both seeds pooled) | shares per held clue (s1, s2; warm 0.92) | solves by guessing (s1, s2) |
+|---|---|---|---|---|---|
+| credit | 0.289 (+0.015, n.s.; Phase 12) | **0.394 (+0.120 [0.066, 0.181])** | **+0.068 [0.026, 0.112]** | 0.95, 0.84 | 1%, 2% |
+| credturn | 0.293 (+0.019, n.s.) | **0.391 (+0.118 [0.066, 0.178])** | **+0.069 [0.018, 0.120]** (best arm) | 0.61, 0.93 | 13%, 1% |
+| indpen | **0.371 (+0.097 [0.045, 0.151])** | 0.283 (+0.009, n.s.) | +0.053 [0.000, 0.106] | 1.00, 0.83 | 0%, 5% |
+
+What it shows:
+
+- **RL can beat imitation.** Every arm's pooled gain is positive, credit's and credturn's with intervals above 0; the best runs reach 0.39, a 44% gain over the warm start (Haiku: about 0.55). Phase 12's conclusion that RL added nothing came from one unlucky seed: the same credit configuration gave +0.015 with seed 1 and +0.120 with seed 2. Training-seed variance is as large as the effects, so single-seed RL comparisons are unreliable.
+- **Pricing the loophole stops the selfish drift (H13-4 supported in both seeds).** Under individual reward with a training-only cost of 3 per wrong answer, sharing stayed at 1.00 and 0.83 shares per held clue (Phase 12's individual reward: 0.15) and guessing at 0% and 5% of solves (Phase 12: 74%). A mechanism fix (make trial and error expensive) did what a reward-sharing fix (credit) did, with the same individual reward.
+- **Per-turn credit adds nothing over board-level credit** (credturn +0.069 vs credit +0.068). H13-5 is supported by its frozen rule (pooled interval above 0, both seed means above 0), but seed 1 is weak (+0.019) and drifted toward guessing (13% of solves, 22 guesses per board, sharing 0.61) despite the cost: per-turn advantages can reward a lucky guess at the turn it pays.
+- **Cross-play (best arm, credturn):** with three trained agents and one Haiku, -0.17 and -0.16 against an all-Haiku team (warm start -0.22, Phase 12's credit -0.16); one trained agent among three Haiku agents costs -0.07 (seed 1) and -0.02 (seed 2).
+- **Liar:** the blackboard stays more vulnerable than messages for every new adapter but credturn_s1 (H3's sign).
+
+The numpy forecast, scored with its frozen rule: retrodiction 7 of 12, forecast 4 of 8 ([forecast.md](forecast.md)).

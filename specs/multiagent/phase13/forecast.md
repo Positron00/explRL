@@ -1,6 +1,6 @@
 # Forecast: can a numpy simulation predict the LLM RL arms?
 
-Status: **predictions frozen** (2026-10-16): plan committed at `eb7b7c6` before the numpy run, predictions at `734839b` before any Phase 13 Track B evaluation result existed; scoring waits for the Colab evaluation. Part of [README.md](README.md) (Phase 13); evidence for the companion paper on simulation-first design ([../LITERATURE.md](../LITERATURE.md), section 14, gap 5).
+Status: **scored** (2026-10-16): plan committed at `eb7b7c6` before the numpy run, predictions at `734839b` (pushed in `23cc20d`) before any Phase 13 Track B evaluation result existed; scored with the frozen rule after the evaluation: retrodiction 7 of 12, forecast 4 of 8. Part of [README.md](README.md) (Phase 13); evidence for the companion paper on simulation-first design ([../LITERATURE.md](../LITERATURE.md), section 14, gap 5).
 
 ## Question
 
@@ -57,3 +57,24 @@ Learned policies: sharing probability fell from 0.90 to about 0.30 under individ
 **Forecast for Phase 13, frozen:** `indpen`: pricing the guessing loophole does **not** stop the selfish drift (sharing -0.48, welfare -0.06; guessing rises half as much as without the cost), against H13-4; `credturn`: welfare **above** the warm start (+0.037), in line with H13-5, with less sharing than the warm start; `credit` seed 2: the numpy `credit` signs.
 
 **A lesson recorded now, not applied:** the numpy runs vary so little across training seeds that effects of +0.003 get a definite sign, while the LLM's intervals call such effects 0. The frozen rule is kept; a practical-significance threshold (for example, |effect| below 10% of the warm start's value counts as 0) will be reported separately, labelled post hoc.
+
+## Scoring (2026-10-16, frozen rule, unchanged)
+
+`python tools/forecast_score.py $PWD results/multiagent/rl/colab/eval_p13/runs.csv` (output `results/multiagent/forecast/score.json`).
+
+| arm | metric | numpy | LLM (both seeds pooled, paired on board) | agree |
+|---|---|---|---|---|
+| indpen | welfare | - | + (+0.053 [+0.000, +0.106]) | no |
+| indpen | shares per held clue | - | 0 (+0.002 [-0.038, +0.042]) | no |
+| indpen | solo share | + | + (+0.021 [+0.009, +0.036]) | yes |
+| indpen | wrong per solve | + | 0 (-0.587 [-1.218, +0.026]) | no |
+| credturn | welfare | + | + (+0.069 [+0.018, +0.120]) | yes |
+| credturn | shares per held clue | - | - (-0.148 [-0.209, -0.088]) | yes |
+| credturn | solo share | + | + (+0.065 [+0.037, +0.095]) | yes |
+| credturn | wrong per solve | + | - (-0.628 [-1.179, -0.129]) | no |
+
+**Forecast: 4 of 8. Retrodiction: 7 of 12. Credit replication** (seed 2 against numpy's credit signs): 3 of 4 (welfare +, sharing -, solo +; wrong per solve: numpy +, LLM -).
+
+**What the simulation got right and wrong.** It predicted the headline welfare result for `credturn` (RL with credit and per-turn advantages beats the warm start) and the direction of the selfish drift under individual reward (Phase 12: 4 of 4). It got the headline `indpen` result wrong: it predicted that pricing the guessing loophole would not stop the drift (sharing -0.48), while the LLM kept sharing (+0.002) and gained welfare. In the numpy model, sharing never pays the sharer under individual reward, whatever guessing costs; the LLM appears to have learned that sharing helps the team solve faster, which a two-decision model cannot represent. It also mispredicts wrong answers per solve, which fell for the LLM (better-informed submits) and rose slightly in numpy.
+
+**Post hoc (labelled as such):** with a practical-significance threshold (a numpy effect below 10% of the warm start's value counts as 0), the scores are 6 of 12 and 5 of 8. Conclusion for the companion paper: as a screen for RL reward designs, this simple simulation predicts what individual incentives do to sharing and the sign of a welfare gain under credit, but not the effect of a mechanism fix that relies on the learner discovering team-level benefits; a richer numpy learner (more decisions, a value for helping) is the obvious next test.

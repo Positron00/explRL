@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 12: [../phase12/RUN.md](../phase12/RUN.md).
 
-Status 2026-10-15: code done (T1-T4, T8 and the evaluation code of T10); `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`); the live runs are next (T5 pilots on the Mac, the five Track B runs on Colab).
+Status 2026-10-16: Track A and Track B run and evaluated; the numpy forecast scored. Earlier status 2026-10-15: code done (T1-T4, T8 and the evaluation code of T10); `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`); the live runs are next (T5 pilots on the Mac, the five Track B runs on Colab).
 
 ## Prerequisites
 
@@ -36,9 +36,9 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/clue_
 | T6 freeze | Mac | set the pilot-informed settings and `FIX_PLAN['frozen'] = True` in `nbs/fix_grid.ipynb`, export, commit; record the commit and `coopHash(FIX_PLAN)` in the README | done: `f01ad81`, hash `79abfb531cdd` |
 | T7 Track A main | Mac | the same command with `--cell-timeout 0` (main section; the pilot replays from the cache); then the cached-rerun section | measured: $9.08, 70 min with the cached rerun (byte-identical, free) |
 | T8 freeze | Mac | `RL13_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit, push | done: `962c4e1`, hash `3e50a4002c7b` |
-| T9 RL runs | Colab, one session per run (restart first) | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb); set-up; configuration with `ARM` and `SEED` (`credit` 2, `indpen` 1 and 2, `credturn` 1 and 2); the "Phase 13 RL run" section (resumes after a disconnect); or all five in one session with "Phase 13: all five runs in one session" (each run in its own process, finished runs skipped, resumes after a disconnect; queue the evaluation and Pack after it) | about 3 GPU hours each |
+| T9 RL runs (measured: 13.9 GPU hours of training in one batch session, no halts, one roll-back) | Colab, one session per run (restart first) | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb); set-up; configuration with `ARM` and `SEED` (`credit` 2, `indpen` 1 and 2, `credturn` 1 and 2); the "Phase 13 RL run" section (resumes after a disconnect); or all five in one session with "Phase 13: all five runs in one session" (each run in its own process, finished runs skipped, resumes after a disconnect; queue the evaluation and Pack after it) | about 3 GPU hours each |
 | Forecast (before T10) | Mac | `python tools/rl_forecast.py $PWD results/multiagent/forecast/numpy.json` (50 s; byte-identical on rerun), then `python tools/forecast_score.py $PWD` (predictions and the retrodiction against Phase 12) | none; done 2026-10-16 |
-| T10 evaluation | Colab, then Mac | the "Phase 13 evaluation" section, then Pack; download and `unzip -o` into `results/multiagent/rl/colab/`; on the Mac from `.venv-train`: `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (its Phase 13 cell picks the best arm and runs its cross-play); then score the frozen forecast: `python tools/forecast_score.py $PWD results/multiagent/rl/colab/eval_p13/runs.csv` | about 2 GPU hours; API under $1 |
+| T10 evaluation | Colab, then Mac | the "Phase 13 evaluation" section, then Pack; download and `unzip -o` into `results/multiagent/rl/colab/`; on the Mac from `.venv-train`: `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (its Phase 13 cell picks the best arm and runs its cross-play); then score the frozen forecast: `python tools/forecast_score.py $PWD results/multiagent/rl/colab/eval_p13/runs.csv` | measured: about 1.6 GPU hours; cross-play $0.31 |
 
 API spend goes through the Phase 10 client and ledger under the $150 API cap; GPU spend under its own $150 cap.
 
