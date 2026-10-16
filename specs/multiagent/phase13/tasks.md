@@ -1,6 +1,6 @@
 # Tasks: Phase 13, from diagnosis to fixes
 
-Status (2026-10-15): T1-T4 and T8 done, and the evaluation code of T10 (code and tests; full suite, tiny-model tests and the Phase 11-12 cached reruns pass). Next: T5 pilots (live), T6 freeze, T7; T8's freeze of `RL13_PLAN` (gate B) before T9.
+Status (2026-10-15): T1-T4 and T8 done, and the evaluation code of T10 (code and tests; full suite, tiny-model tests and the Phase 11-12 cached reruns pass). `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`; gate B). Next: T5 pilots (live), T6 freeze, T7 on the Mac; T9 on Colab in parallel.
 
 Rules for every task (as Phase 12):
 

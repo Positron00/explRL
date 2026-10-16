@@ -1,6 +1,6 @@
 # Plan: Phase 13, from diagnosis to fixes
 
-Status: **code done; live runs next** (2026-10-15). T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN` (not yet frozen); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
+Status: **code done; live runs next** (2026-10-15). T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
 
 ## Files in this spec
 

@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 12: [../phase12/RUN.md](../phase12/RUN.md).
 
-Status 2026-10-15: code done (T1-T4, T8 and the evaluation code of T10); the live runs are next (T5 pilots, then the freezes and main runs).
+Status 2026-10-15: code done (T1-T4, T8 and the evaluation code of T10); `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`); the live runs are next (T5 pilots on the Mac, the five Track B runs on Colab).
 
 ## Prerequisites
 
@@ -35,7 +35,7 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/clue_
 | T5 pilots | Mac | re-check prices; `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --flags llm nbs/demo_fix.ipynb` (the pilot section runs; the main section stops until `FIX_PLAN` is frozen); check the AC-6 bands it prints | about $0.55 |
 | T6 freeze | Mac | set the pilot-informed settings and `FIX_PLAN['frozen'] = True` in `nbs/fix_grid.ipynb`, export, commit; record the commit and `coopHash(FIX_PLAN)` in the README | none |
 | T7 Track A main | Mac | the same command with `--cell-timeout 0` (main section; the pilot replays from the cache); then the cached-rerun section | about $9 |
-| T8 freeze | Mac | `RL13_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit, push | none |
+| T8 freeze | Mac | `RL13_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit, push | done: `962c4e1`, hash `3e50a4002c7b` |
 | T9 RL runs | Colab, one session per run (restart first) | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb); set-up; configuration with `ARM` and `SEED` (`credit` 2, `indpen` 1 and 2, `credturn` 1 and 2); the "Phase 13 RL run" section (resumes after a disconnect) | about 3 GPU hours each |
 | T10 evaluation | Colab, then Mac | the "Phase 13 evaluation" section, then Pack; download and `unzip -o` into `results/multiagent/rl/colab/`; on the Mac from `.venv-train`: `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (its Phase 13 cell picks the best arm and runs its cross-play) | about 2 GPU hours; API under $1 |
 
