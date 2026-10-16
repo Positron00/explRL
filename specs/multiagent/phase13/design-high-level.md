@@ -12,7 +12,7 @@
 | `nbs/hidden_profile.ipynb` -> `explRL/hidden_profile.py` | new | `profileTask`, `factTotals`, `ProfileEnv` (with `endRound`), `POST_SCHEMA`, `voteSchema`, `parseVote`, `soloCeiling` (the hidden-profile vote) |
 | `nbs/profile_domains.ipynb` -> `explRL/profile_domains.py` | new (data only, split for size) | `DOMAINS`: names, fact templates and the rule-out sentence of the three domains |
 | `nbs/profile_runs.ipynb` -> `explRL/profile_runs.py` | new | `ARMS`, `profileCell`, `runProfile` (batched episodes through `claudePolicy`), rows and turn logs |
-| `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | new | `fixGrid`, `profileGrid`, their pilots, `FIX_PLAN` |
+| `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | new | `FIX_ARMS`, `fixCell`, `fixGrid`, `profileGrid`, their pilots and quick grids, `FIX_PLAN`; `phase11Cells`, `requestKey`, `cellCalls`, `fixEstimate` (calls and cost, Phase 11's cached cells free) |
 | `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | changed | `RL13_ARMS`, `RL13_RUNS`, `RL13_PLAN`, `rl13Name`, `rl13Config`, `rl13Suite` beside `RL_PLAN` (Track B does not wait for Track A's code) |
 | `nbs/fix_report.ipynb` -> `explRL/fix_report.py` | new | `fixLogMetrics` (asks, checks, checked-false from turn logs), `fixSummaries` (gap closed, loss recovered, costs, mechanism), `writeFix`, `figFix` |
 | `nbs/fix_stats.ipynb` -> `explRL/fix_stats.py` | new (split from `fix_report` for size) | `gapClosed`, `lossRecovered` (bootstrap over the pairing units), `holmFamily` |

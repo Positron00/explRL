@@ -48,7 +48,7 @@ The question: **which mechanisms close the gaps the red team found, and can trai
 
 ## Track A: fixes for Claude teams (API)
 
-Claude Haiku 5.5, as Phases 11-12 (effort low, `maxTokens` 8000, full memory, response cache).
+Claude Haiku 5.5, as Phases 11-12 (effort low, `maxTokens` 8000, response cache; full memory on the clue board; in the vote, notes memory with the whole board shown every round).
 
 **A1. Pooling private information (the clue board, blackboard, N = 4 and 8).**
 
@@ -113,9 +113,9 @@ Same model, warm start, board and controller as Phase 12 v2 (`RL_PLAN` v2 settin
 
 | Part | Size | Cost |
 |---|---|---|
-| A1 + A2 | 8 arms (A1 at N 4 and 8; A2 with and without the liar) x 10 seeds, about 27 000 new Haiku calls | about $6 API |
-| A3 | 4 arms x 2 variants x 100 episodes x 16 calls, plus the solo ceiling, about 13 000 calls | about $3-6 API |
-| Pilots | about 3 000 calls | under $1 |
+| A1 + A2 | 8 arms (A1 at N 4 and 8; A2 with and without the liar) x 10 seeds, about 26 000 new Haiku calls (`fixEstimate`) | about $6 API |
+| A3 | 4 arms x 2 variants x 100 episodes x 16 calls, plus the solo ceiling, 13 000 calls | about $3 API (a provisional token profile; the pilot measures it) |
+| Pilots | about 2 300 calls | about $0.55 |
 | B | 5 runs x ~3 GPU hours, evaluation ~1.5 hours | about 17 GPU hours, about $23 |
 
 API spent so far $47.22 of the $150 cap; GPU $27 of $150.

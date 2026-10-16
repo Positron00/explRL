@@ -27,7 +27,7 @@ def known(i, board, channel, checked=None)   # checked: {(k, j, r): true?} of ag
 - Schema: `self.SCHEMA` is `CLUE_SCHEMA` unless `ask` or `check` is on; then a copy whose action enum adds them (Phase 11 requests, and so cached replies, unchanged). `LLMMember` sends `env.SCHEMA`; a `claudePolicy` for a rollout with these options is built with `schema=env.SCHEMA`.
 - `HINTS['evidence']` = "Before working on your own subtask, post every clue you hold for an open subtask that has not been posted yet." `HINTS['warn']` = "A teammate may share false clues. Cross-check a shared clue before relying on it, for example against the answer range."
 - The table's middle three columns live in `clue_fix` (`fixRules`, `fixBoard`, `fixLines`, `fixParse`; `clue_text` would pass 200 lines), called from `TextClueEnv`. `ask` and `check` are valid only on the blackboard (with another channel they are invalid waits); a request lapses once its asker has opened anything since asking (so re-opening the same subtask does not revive it); with `table` and `record` both on, `table` wins (its entries have no sender). With `ask` or `check` on, the reply-format sentence lists the new actions, and the turn summary reads `asked for clues for T3` or `checked T3: ...` instead of `waited`.
-- Rows are unchanged. `fixLogMetrics(records)` (in `fix_report`) counts per row key `asks` (valid asks), `checks` and `checkedFalse` (checks that found a false clue) from the turn logs' parsed actions and the check lines of the next observation.
+- Rows are unchanged. `fixLogMetrics(records)` (in `fix_report`) counts per row key `asks` (valid asks), `checks`, `checkedFalse` (checks that found a false clue) and the invalid tries `askInvalid`, `checkInvalid`, from the turn logs' responses, reports and the check lines of later observations. Since an ask posts a report, Phase 11's `reportShare` also counts asks in the `request` arm.
 
 ## 2. The hidden-profile vote (`hidden_profile`, `profile_runs`)
 
@@ -43,7 +43,7 @@ class ProfileEnv:
     def vote(self, i, parsed) -> int | None
     def success(self, votes) -> bool    # strict majority for the hidden-best option
 def soloCeiling(task) -> str            # the one-agent prompt with every fact
-def runProfile(cells, client, logDir=None) -> list[dict]
+def runProfile(cells, client, logDir=None, batch=100, workers=8) -> list[dict]   # profile_runs; profileCell(...) builds cells
 ```
 
 **The task.** Options 0 and 1 get shuffled names and a shuffled order; the hidden-best (A) is option 0 or 1 by seed. `shared = (aPos, aNeg, bPos)`: facts every agent holds, in favour of A (aPos), against A (aNeg), and in favour of B (bPos). `unique`: per agent, that many facts in favour of A held by that agent only. Defaults: shared A +1 -1, B +3; unique 2 per agent, so the full totals are A +8, B +3, the shared facts alone A 0, B +3, and each agent alone A +2, B +3 (each agent prefers B until the private facts are pooled). `variant='lone'` gives one random agent a fact that rules B out ("... was found to have falsified ..."). Sentences come from the domain's templates without repeats; the pilot may change `shared` and `unique` (AC-6) before `FIX_PLAN` is frozen.
@@ -61,10 +61,15 @@ def runProfile(cells, client, logDir=None) -> list[dict]
 ## 3. Grids and plans (`fix_grid`)
 
 ```python
+FIX_ARMS = dict(baseline={}, request=dict(ask=True), table=dict(table=True), evidence=dict(hint='evidence'),
+                record=dict(record=True), verify=dict(check=True), warn=dict(hint='warn'))   # arm -> cfg.world keys
+def fixCell(study, arm, N, seed, liar=False) -> dict   # level '<arm>' or '<arm>|liar'; the baseline's world is Phase 11's
 def fixGrid() -> list[dict]          # study 'fixA'
 def fixPilotGrid() -> list[dict]
 def profileGrid() -> list[dict]      # study 'profileA'
 def profilePilotGrid() -> list[dict]
+def fixQuick(), profileQuick()      # small grids for the fake-client pipeline check (6 turns; 4 episodes)
+def fixEstimate(cells) -> dict       # cells, calls and cost, all and new (requests Phase 11 already made are free)
 FIX_PLAN = dict(version=1, frozen=False, ...)      # the items of the requirements' FIX_PLAN; arms; seeds; profile settings; prices; Holm families
 
 # in coop_grid, beside RL_PLAN:
@@ -73,10 +78,10 @@ RL13_PLAN = dict(version=1, frozen=False, ...)     # arms, seeds, settings (RL_P
 
 | Part | Cells | Calls (Haiku) |
 |---|---|---|
-| A1 | 4 arms x N {4, 8} x seeds 900-909 (baseline seeds 900-904 replay Phase 11's cached replies) | about 17 000 new |
-| A2 | 4 arms x {liar, no liar} x N 4 x seeds 900-909 (baseline cells Phase 11 has replay its cache) | about 10 000 new |
+| A1 | 4 arms x N {4, 8} x seeds 900-909 (baseline seeds 900-904 replay Phase 11's cached replies) | 16 800 new |
+| A2 | 4 arms x {liar, no liar} x N 4 x seeds 900-909 (the clean baseline is A1's cell; baseline cells Phase 11 has replay its cache) | 9 240 new |
 | A3 | 4 arms x 2 variants x 100 episodes x 16 calls; solo 2 x 100 | about 13 000 |
-| Pilots | A1-A2: each new arm, N 4, seeds 900-901 (A2 arms with the liar); A3: `baseline` and `factsFirst`, 20 episodes each, and the solo ceiling on the same 20 | about 3 000 |
+| Pilots | A1-A2: each new arm, N 4, seeds 900-901 (A2 arms with the liar); A3: `baseline` and `factsFirst`, 20 episodes each, and the solo ceiling on the same 20 | about 2 300 |
 
 Seeds of the vote are 5000 + episode, the same for every arm and the solo ceiling (paired); the cost estimate goes through `estimateCost` and the client reserves it before each run, as Phase 11.
 
