@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_policy.html.md"""
 # %% auto #0
 __all__ = ['USAGE0', 'historyBlocks', 'renderPrompt', 'userText', 'parseReply', 'asReply', 'scriptedPolicy', 'claudePolicy']
 
-# %% ../nbs/clue_policy.ipynb #6cb7cbe2
+# %% ../nbs/clue_policy.ipynb #316f29bf
 import json
 from concurrent.futures import ThreadPoolExecutor
 
@@ -74,9 +74,10 @@ def scriptedPolicy(fn):
     return lambda requests: [asReply(fn(s, b)) for s, b in requests]
 
 
-def claudePolicy(client, workers=8):
-    "A policy that sends each request through a Phase 10 LLMClient (clue schema; a batch's requests concurrently)."
+def claudePolicy(client, workers=8, schema=CLUE_SCHEMA, task='clue'):
+    """A policy that sends each request through a Phase 10 LLMClient with `schema` (`task`: the timing records' task;
+    Phase 13: the clue board's options and the vote pass theirs); a batch's requests concurrently."""
     def policy(requests):
         with ThreadPoolExecutor(max(1, min(workers, len(requests)))) as ex:
-            return list(ex.map(lambda r: client.complete(r[0], r[1], CLUE_SCHEMA, task='clue'), requests))
+            return list(ex.map(lambda r: client.complete(r[0], r[1], schema, task=task), requests))
     return policy

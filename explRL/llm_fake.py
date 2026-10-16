@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_fake.html.md"""
 # %% auto #0
 __all__ = ['FakeClient', 'fakeReply']
 
-# %% ../nbs/llm_fake.ipynb #d59d5c3a
+# %% ../nbs/llm_fake.ipynb #ebad39e9
 import hashlib
 import json
 import re
@@ -44,6 +44,14 @@ def fakeReply(req):
     if 'estimates' in req['output_config']['format']['schema']['properties']:
         seen = re.findall(r'stayed at (\w+), earned (-?\d+\.\d+)', ' '.join(b['text'] for b in blocks))
         return json.dumps(dict(estimates=[dict(location=n, value=float(v)) for n, v in seen]))
+    props = req['output_config']['format']['schema']['properties']
+    if 'vote' in props:                                     # the hidden-profile vote (Phase 13): one of the two names
+        return json.dumps(dict(vote=props['vote']['enum'][h % 2], notes=f'h{h % 7}'))
+    if 'kind' in props:                                     # a hidden-profile post: mostly one of the own facts
+        ids = re.findall(r'^(F\d+): ', o, re.M)
+        if ids and h % 4:
+            return json.dumps(dict(kind='fact', fact=ids[h % len(ids)], text='', notes=f'h{h % 7}'))
+        return json.dumps(dict(kind='opinion', fact='', text=f'I lean towards one option (h{h % 5}).', notes=f'h{h % 7}'))
     own = re.search(r'Your own clues: T(\d+): (x mod \d+ = \d+)', o)
     if own and h % 3 == 0:                                  # the clue board: sometimes share an own clue
         return json.dumps(dict(action='share', target=f'T{own.group(1)}', answer=0, clue=own.group(2), notes=f'h{h % 7}'))
