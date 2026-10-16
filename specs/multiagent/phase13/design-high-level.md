@@ -14,6 +14,8 @@
 | `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | new | `fixGrid`, `profileGrid`, their pilots, `FIX_PLAN` |
 | `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | changed | `RL13_PLAN` beside `RL_PLAN` (Track B does not wait for Track A's code) |
 | `nbs/fix_report.ipynb` -> `explRL/fix_report.py` | new | `fixLogMetrics` (asks, checks, checked-false from turn logs), `fixSummaries` (gap closed, loss recovered, costs, mechanism), `writeFix`, `figFix` |
+| `nbs/fix_stats.ipynb` -> `explRL/fix_stats.py` | new (split from `fix_report` for size) | `gapClosed`, `lossRecovered` (bootstrap over the pairing units), `holmFamily` |
+| `nbs/llm_fake.ipynb` -> `explRL/llm_fake.py` | changed | `fakeReply` sometimes asks or checks, only when the schema has those actions (Phase 10-12 fake runs unchanged) |
 | `nbs/clue_rl.ipynb`, `nbs/rl_control.ipynb`, `nbs/rl_torch.ipynb` | changed | `advantage`, `wrongPenalty`, `haltJump` in `RLConfig`; `turnAdvantages`; roll-back on a jump; `configHash` unchanged for Phase 12 configurations |
 | `nbs/rl_report.ipynb` | changed | per-arm means over training seeds, per-seed RL gains |
 | `nbs/demo_fix.ipynb` | new | Track A: quick (fake client), pilots and main (`llm`) |
@@ -21,7 +23,7 @@
 | `nbs/demo_multiagent.ipynb` | changed | section 10 of `REPORT.md` (Phase 13) |
 | `nbs/sidebar.yml`, `nbs/index.ipynb`, `README.md` | changed | the new notebooks and links |
 
-Import rule: as Phase 12; `hidden_profile` imports only `numpy` (named so as not to shadow the standard `profile`); `profile_runs` imports `hidden_profile`, `clue_policy` (`claudePolicy` with a schema, `parseReply`), `llm_runs` (`cellRow`, `llmStats`), `bench_grid`; `fix_grid` imports `clue_grid`, `llm_grid`, `llm_budget`; `coop_grid` as Phase 12; `fix_report` imports `llm_report`, `llm_figures`, `bench_stats`, `bench_grid`. No module imports a demo; only `llm_client` imports `anthropic`.
+Import rule: as Phase 12; `hidden_profile` imports only `numpy` (named so as not to shadow the standard `profile`); `profile_runs` imports `hidden_profile`, `clue_policy` (`claudePolicy` with a schema, `parseReply`), `llm_runs` (`cellRow`, `llmStats`), `bench_grid`; `fix_grid` imports `clue_grid`, `llm_grid`, `llm_budget`; `coop_grid` as Phase 12; `fix_report` imports `llm_report`, `llm_figures`, `fix_stats` (which imports `bench_stats`, `llm_report`), `bench_grid`; `fix_grid` also imports `profile_runs` (`profileCell`) and `llm_runs` (`LLMConfig`). No module imports a demo; only `llm_client` imports `anthropic`.
 
 ## Data flow
 

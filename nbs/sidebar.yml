@@ -91,4 +91,8 @@ website:
       - profile_domains.ipynb
       - hidden_profile.ipynb
       - profile_runs.ipynb
+      - fix_grid.ipynb
+      - fix_stats.ipynb
+      - fix_report.ipynb
+      - demo_fix.ipynb
       - demo_multiagent.ipynb

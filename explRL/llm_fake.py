@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_fake.html.md"""
 # %% auto #0
 __all__ = ['FakeClient', 'fakeReply']
 
-# %% ../nbs/llm_fake.ipynb #ebad39e9
+# %% ../nbs/llm_fake.ipynb #d7dec875
 import hashlib
 import json
 import re
@@ -52,6 +52,13 @@ def fakeReply(req):
         if ids and h % 4:
             return json.dumps(dict(kind='fact', fact=ids[h % len(ids)], text='', notes=f'h{h % 7}'))
         return json.dumps(dict(kind='opinion', fact='', text=f'I lean towards one option (h{h % 5}).', notes=f'h{h % 7}'))
+    acts = props.get('action', {}).get('enum', ())
+    op = re.search(r'Your open subtask: T(\d+), open', o)
+    seen = re.search(r'(?:the board|the team): T(\d+): (x mod \d+ = -?\d+)', o)
+    if 'ask' in acts and op and h % 5 == 1:                 # Phase 13 options (only when in the schema): ask, check
+        return json.dumps(dict(action='ask', target=f'T{op.group(1)}', answer=0, clue='', notes=f'h{h % 7}'))
+    if 'check' in acts and seen and h % 5 == 2:
+        return json.dumps(dict(action='check', target=f'T{seen.group(1)}', answer=0, clue=seen.group(2), notes=f'h{h % 7}'))
     own = re.search(r'Your own clues: T(\d+): (x mod \d+ = \d+)', o)
     if own and h % 3 == 0:                                  # the clue board: sometimes share an own clue
         return json.dumps(dict(action='share', target=f'T{own.group(1)}', answer=0, clue=own.group(2), notes=f'h{h % 7}'))
