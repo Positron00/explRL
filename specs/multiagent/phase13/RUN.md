@@ -32,8 +32,8 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/clue_
 
 | Step | Where | Command | Cost |
 |------|-------|---------|------|
-| T5 pilots | Mac | re-check prices; `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --flags llm nbs/demo_fix.ipynb` (the pilot section runs; the main section stops until `FIX_PLAN` is frozen); check the AC-6 bands it prints | about $0.55 |
-| T6 freeze | Mac | set the pilot-informed settings and `FIX_PLAN['frozen'] = True` in `nbs/fix_grid.ipynb`, export, commit; record the commit and `coopHash(FIX_PLAN)` in the README | none |
+| T5 pilots | Mac | re-check prices; `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --flags llm nbs/demo_fix.ipynb` (the pilot section runs; the main section stops until `FIX_PLAN` is frozen); check the AC-6 bands it prints | measured: $0.65, AC-6 passed |
+| T6 freeze | Mac | set the pilot-informed settings and `FIX_PLAN['frozen'] = True` in `nbs/fix_grid.ipynb`, export, commit; record the commit and `coopHash(FIX_PLAN)` in the README | done: `f01ad81`, hash `79abfb531cdd` |
 | T7 Track A main | Mac | the same command with `--cell-timeout 0` (main section; the pilot replays from the cache); then the cached-rerun section | about $9 |
 | T8 freeze | Mac | `RL13_PLAN['frozen'] = True` in `nbs/coop_grid.ipynb`, export, commit, push | done: `962c4e1`, hash `3e50a4002c7b` |
 | T9 RL runs | Colab, one session per run (restart first) | open [colab_clue_rl](https://colab.research.google.com/github/Positron00/explRL/blob/main/nbs/colab_clue_rl.ipynb); set-up; configuration with `ARM` and `SEED` (`credit` 2, `indpen` 1 and 2, `credturn` 1 and 2); the "Phase 13 RL run" section (resumes after a disconnect); or all five in one session with "Phase 13: all five runs in one session" (each run in its own process, finished runs skipped, resumes after a disconnect; queue the evaluation and Pack after it) | about 3 GPU hours each |
