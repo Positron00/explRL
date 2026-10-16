@@ -1,6 +1,6 @@
 # Forecast: can a numpy simulation predict the LLM RL arms?
 
-Status: **plan frozen** (2026-10-16), before the full numpy run and before any Phase 13 Track B evaluation result exists. Part of [README.md](README.md) (Phase 13); evidence for the companion paper on simulation-first design ([../LITERATURE.md](../LITERATURE.md), section 14, gap 5).
+Status: **predictions frozen** (2026-10-16): plan committed at `eb7b7c6` before the numpy run, predictions at `734839b` before any Phase 13 Track B evaluation result existed; scoring waits for the Colab evaluation. Part of [README.md](README.md) (Phase 13); evidence for the companion paper on simulation-first design ([../LITERATURE.md](../LITERATURE.md), section 14, gap 5).
 
 ## Question
 

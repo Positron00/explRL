@@ -1,6 +1,6 @@
 # Plan: Phase 13, from diagnosis to fixes
 
-Status: **Track A done; Track B running on Colab** (2026-10-15). Track A: a public track record recovered a third of a liar's damage and a fact table helped the vote, while requests and more sharing hurt (results below). T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
+Status: **Track A done; Track B running on Colab** (2026-10-15). Track A: a public track record recovered a third of a liar's damage and a fact table helped the vote, while requests and more sharing hurt (results below). A numpy forecast of the Track B arms was frozen before their evaluation ([forecast.md](forecast.md): retrodiction 7 of 12 signs against Phase 12). Preprint draft: `paper/`. T1-T4 and T8 done (and the evaluation code of T10): clue-board options, the hidden-profile vote, the Track A grids, report and demo, the RL changes and `RL13_PLAN`, frozen at commit `962c4e1` (hash `3e50a4002c7b`, gate B); full suite and tiny-model tests pass; Phase 11 and 12 cached reruns byte-identical; code and specs reviewed for alignment. Next: T5 pilots (Mac) and the five Track B runs (Colab), side by side. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 11](../phase11/README.md) (the clue board) and [Phase 12](../phase12/README.md) (instructions for Claude; RL of a 3B open model).
 
 ## Files in this spec
 
@@ -11,6 +11,7 @@ Status: **Track A done; Track B running on Colab** (2026-10-15). Track A: a publ
 | [design-low-level.md](design-low-level.md) | New actions and observation lines, the hidden-profile environment, turn-level advantages, grids and plans, report |
 | [tasks.md](tasks.md) | Ordered tasks with "done when" checks and the gates |
 | [RUN.md](RUN.md) | Tests, the runs in order (Mac and Colab), artifacts, regression |
+| [forecast.md](forecast.md) | The numpy forecast of the Track B arms: plan, frozen predictions, scoring rule |
 
 ## Goal
 
@@ -42,7 +43,7 @@ The question: **which mechanisms close the gaps the red team found, and can trai
 | Selfish behaviour under the wrong incentive | Individual reward: 0.15 shares per held clue (warm start 0.92), 74% of solves by guessing (Phase 12) | back to cooperation |
 | RL adds nothing | Credit reward +0.015 [-0.03, 0.06] over the warm start (one seed) | a positive gain |
 
-**Why the guessing loophole exists.** A wrong answer costs 0.5. Guessing uniformly among c candidates for a subtask worth v earns (v - 0.5 (c - 1) / 2) per (c + 1) / 2 turns: +1.25 per turn for v = 3 and c = 3, positive up to about 13 candidates. Under individual reward, guessing beats sharing for the guesser; the team pays through clues never shared.
+**Why the guessing loophole exists.** A wrong answer costs 0.5. Guessing uniformly among c candidates for a subtask worth v earns (v - 0.5 (c - 1) / 2) per (c + 1) / 2 turns: +1.25 per turn for v = 3 and c = 3; for a 3-point subtask it stays positive for every candidate count this board leaves (2-10), and for a 2-point subtask up to 8. Under individual reward, guessing beats sharing for the guesser; the team pays through clues never shared.
 
 **Why RL's signal was weak.** `groupAdvantages` gives each agent one advantage per board, applied to all of its turns: a turn that shared a useful clue and a turn that waited get the same push.
 
@@ -127,7 +128,7 @@ API spent so far $47.22 of the $150 cap; GPU $27 of $150.
 | P13-1 | Build the hidden-profile vote (A3), or only the clue-board arms? | **Build it**: it is what makes the result comparable with the red team's 17-36%, at a few dollars |
 | P13-2 | Models for Track A | **Haiku 5.5** for all arms; a Sonnet 5.5 check of the best arm per part if the budget allows |
 | P13-3 | Seeds for A1-A2 | **10** (900-909): Phase 11's 5 gave wide liar intervals |
-| P13-4 | Cost of a wrong answer in training | **3** in all (0.5 on the board + 2.5 training-only; guessing among 3 or more candidates loses even for the most valuable subtask); 6 would also stop guessing between 2, but deters every uncertain submit |
+| P13-4 | Cost of a wrong answer in training | **3** in all (0.5 on the board + 2.5 training-only; guessing among 3 candidates then breaks even and among 4 or more loses, even for the most valuable subtask; on this board, with two clues per subtask and answers below 30, one known clue leaves 2-10 candidates, most often 2, 3 or 6); 6 would also stop guessing between 2, but deters every uncertain submit |
 | P13-5 | Order | **Track A first** (days, cheap, likely positive), Track B in parallel on Colab |
 | P13-6 | Track B arms | the three above; `team` with turn-level advantages only if the GPU cap allows |
 

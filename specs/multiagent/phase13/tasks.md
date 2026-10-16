@@ -1,6 +1,6 @@
 # Tasks: Phase 13, from diagnosis to fixes
 
-Status (2026-10-15): T1-T4 and T8 done, and the evaluation code of T10 (code and tests; full suite, tiny-model tests and the Phase 11-12 cached reruns pass). `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`; gate B). T5 done (pilot $0.65, AC-6 passes); T6 done (`FIX_PLAN` frozen at `f01ad81`, hash `79abfb531cdd`). T7 done (Track A main runs $9.08, cached rerun identical; results in the README). Next: T9-T10 (Colab runs, evaluation), T11 docs.
+Status (2026-10-15): T1-T4 and T8 done, and the evaluation code of T10 (code and tests; full suite, tiny-model tests and the Phase 11-12 cached reruns pass). `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`; gate B). T5 done (pilot $0.65, AC-6 passes); T6 done (`FIX_PLAN` frozen at `f01ad81`, hash `79abfb531cdd`). T7 done (Track A main runs $9.08, cached rerun identical; results in the README). Numpy forecast of the Track B arms frozen (`eb7b7c6` plan, `734839b` predictions; [forecast.md](forecast.md)). Next: T9-T10 (Colab runs, evaluation), scoring the forecast, T11 docs.
 
 Rules for every task (as Phase 12):
 
