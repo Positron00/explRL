@@ -1,6 +1,6 @@
 # HiddenBench replication of the vote fixes
 
-Status: **plan; pilot next** (2026-10-16). Part of [README.md](README.md) (Phase 13); the top-ranked gap of [../LITERATURE.md](../LITERATURE.md), section 14.
+Status: **plan frozen; main run next** (2026-10-16): pilot passed, `HB_PLAN` frozen at `a75f11f` (hash `791a2df079a8`). Part of [README.md](README.md) (Phase 13); the top-ranked gap of [../LITERATURE.md](../LITERATURE.md), section 14.
 
 ## Question
 
@@ -29,3 +29,9 @@ A3 found, on our templated vote, that a structured table of the facts posted so 
 1. Commit this plan, the adapter and the grids (`HB_PLAN` unfrozen).
 2. Pilot; record it here; freeze `HB_PLAN` and commit.
 3. Main run (`demo_hb`, `--flags llm`); cached rerun byte-identical; results here, in the Phase 13 README and in the preprint.
+
+## Pilot (2026-10-16)
+
+`baseline` and `solo` on tasks 1-20, one rep, 340 calls, $0.10 (about $0.0003 per call: 784 uncached input, 410 cache-read, 442 cache-write and 318 output tokens on average). Bands: invalid replies 0.6% (under 5%); solo ceiling 0.95 (at least 0.8); gap 0.95 - 0.75 = 0.20 (at least 0.2, met exactly). `HB_PLAN` frozen unchanged at `a75f11f` (`coopHash(HB_PLAN)` = `791a2df079a8`).
+
+Note: the baseline is far above HiddenBench's reported group accuracy (agent accuracy 0.79 here against 30.1% there). Our protocol differs (facts published verbatim on a shared board, simultaneous rounds, three rounds), and so do the model (Claude Haiku 5.5 is not among the paper's 15) and the task subset (the first 20). Which of these explains the difference is not tested here; a HiddenBench-protocol baseline (sequential free messages) would separate protocol from model.
