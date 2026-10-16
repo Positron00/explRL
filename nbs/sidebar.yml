@@ -91,9 +91,11 @@ website:
       - demo_rl.ipynb
       - profile_domains.ipynb
       - hidden_profile.ipynb
+      - hidden_bench.ipynb
       - profile_runs.ipynb
       - fix_grid.ipynb
       - fix_stats.ipynb
       - fix_report.ipynb
       - demo_fix.ipynb
+      - demo_hb.ipynb
       - demo_multiagent.ipynb

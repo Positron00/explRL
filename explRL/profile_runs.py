@@ -7,13 +7,14 @@ Docs: https://Positron00.github.io/explRL/profile_runs.html.md"""
 # %% auto #0
 __all__ = ['ARMS', 'SOLO_SYSTEM', 'NAN', 'profileCell', 'runProfile']
 
-# %% ../nbs/profile_runs.ipynb #b37af6b7
+# %% ../nbs/profile_runs.ipynb #70b404b6
 import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from .bench_grid import rowKey
 from .clue_policy import claudePolicy, historyBlocks, userText
+from .hidden_bench import HBEnv, hbItems, hbSolo, hbTask
 from .hidden_profile import POST_SCHEMA, ProfileEnv, parseVote, profileTask, soloCeiling, voteSchema
 from .llm_budget import estimateCost
 from .llm_grid import HAIKU
@@ -35,7 +36,10 @@ def profileCell(study, arm, variant, seed, rounds=3, N=4, model=HAIKU, effort='l
 
 
 def _task(cfg, seed):
+    "The episode's task: a generated vote (profileTask), or a HiddenBench task when cfg.world has bench='hiddenbench'."
     w = cfg.world
+    if w.get('bench') == 'hiddenbench':
+        return hbTask(next(x for x in hbItems() if x['id'] == w['item']), seed, cfg.N)
     kw = {k: tuple(w[k]) if k == 'shared' else w[k] for k in ('domain', 'shared', 'unique') if k in w}
     return profileTask(seed, w['variant'], N=cfg.N, **kw)
 
@@ -67,7 +71,8 @@ def _batch(cells, client, workers):
         cfg = LLMConfig.fromDict(c['cfg'])
         task = _task(cfg, c['seed'])
         w = cfg.world
-        env = None if w.get('solo') else ProfileEnv(task, cfg.turns, w.get('rule', 'free'), w.get('table', False), w.get('hint'))
+        Env = HBEnv if w.get('bench') == 'hiddenbench' else ProfileEnv
+        env = None if w.get('solo') else Env(task, cfg.turns, w.get('rule', 'free'), w.get('table', False), w.get('hint'))
         eps.append(dict(cell=c, cfg=cfg, task=task, env=env, notes=[''] * cfg.N, log=[], votes=[]))
     teams = [e for e in eps if e['env'] is not None]
     for r in range(1, max([e['cfg'].turns for e in teams], default=0) + 1):
@@ -84,7 +89,8 @@ def _batch(cells, client, workers):
     for e in eps:
         env, schema = e['env'], voteSchema(e['task']['names'])
         if env is None:
-            ps = [(SOLO_SYSTEM, [{'type': 'text', 'text': soloCeiling(e['task'])}])]
+            solo = hbSolo if e['cfg'].world.get('bench') == 'hiddenbench' else soloCeiling
+            ps = [(SOLO_SYSTEM, [{'type': 'text', 'text': solo(e['task'])}])]
         else:
             ps = [(env.rules(), historyBlocks('notes', e['notes'][i]) + [{'type': 'text', 'text': 'Now:\n' + env.voteText(i)}])
                   for i in range(e['cfg'].N)]
