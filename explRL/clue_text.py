@@ -7,10 +7,11 @@ Docs: https://Positron00.github.io/explRL/clue_text.html.md"""
 # %% auto #0
 __all__ = ['CLUE_SCHEMA', 'CLUE_RE', 'HINTS', 'TextClueEnv']
 
-# %% ../nbs/clue_text.ipynb #c21310c0
+# %% ../nbs/clue_text.ipynb #901ca946
 import re
 
 from .clue_agents import ClueBoard, ClueLead, ClueMessages, candidates, known
+from .clue_fix import fixBoard, fixLines, fixParse, fixRules, fixSchema
 
 _STR = {'type': 'string'}
 CLUE_SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['action', 'target', 'answer', 'clue', 'notes'],
@@ -18,7 +19,11 @@ CLUE_SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['ac
                               'answer': {'type': 'integer'}, 'clue': _STR, 'notes': _STR}}
 CLUE_RE = re.compile(r'x\s*mod\s*(\d+)\s*=\s*(-?\d+)', re.I)
 HINTS = dict(follow='The coordinator sees every clue anyone shares. Its suggestion is usually the best subtask to open: '
-                    'follow it unless you know a better one.')
+                    'follow it unless you know a better one.',
+             evidence='Before working on your own subtask, post every clue you hold for an open subtask that has not '
+                      'been posted yet.',
+             warn='A teammate may share false clues. Cross-check a shared clue before relying on it, for example against '
+                  'the answer range.')
 
 
 def _fmt(p, r):
@@ -29,14 +34,18 @@ class TextClueEnv:
     "The clue board in words: open subtasks, own and shared clues, the open puzzle; parsed actions; shares posted."
     task, timeUnit, SCHEMA, unit = 'clue', 'turn', CLUE_SCHEMA, 'points'
 
-    def __init__(self, board, hint=None, showOpen=False):
-        "hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3)."
+    def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False):
+        """hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3); ask, table,
+        record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations)."""
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
+        self.ask, self.table, self.record, self.check = bool(ask), bool(table), bool(record), bool(check)
+        self.SCHEMA, self.checked, self._checks, self._did, self._chan = fixSchema(CLUE_SCHEMA, ask, check), {}, {}, {}, None
 
     def rules(self):
         b = self.world
-        return (f"You are one of a team of {b.nAgents} solvers on a shared board of subtasks. The board always shows "
+        return fixRules(self, f"You are one of a team of {b.nAgents} solvers on a shared board of subtasks. The board "
+                f"always shows "
                 f"{2 * b.nAgents + 2} open subtasks, named T followed by a number, worth {', '.join(f'{v:g}' for v in sorted(set(b.values)))} "
                 f"points each and open for {b.life:g} turns after they appear; a solved or expired subtask is replaced at once.\n\n"
                 f"Each subtask hides a whole number x with 0 <= x < {b.R}. The answer is fixed by {b.m} clues of the form "
@@ -70,7 +79,8 @@ class TextClueEnv:
         b = self.world
         b.advance(t)
         sug = channel.suggest(i, b) if isinstance(channel, ClueLead) else None   # before known: it may pass clues
-        o, kn = b.observe(i), known(i, b, channel)
+        o, kn = b.observe(i), known(i, b, channel, self.checked.get(i, {}) if self.check else None)
+        self._chan = channel
         self._known[i] = kn
         lines = [f"Turn {t:g}. Your last action earned {o['lastReward']:.2f}.",
                  'Open subtasks (value, turns left, clues you know): ' +
@@ -81,7 +91,8 @@ class TextClueEnv:
         if isinstance(channel, ClueBoard):
             view = channel.view(i, t, b)
             shown = set(view)
-            lines.append('Clues shared on the board: ' + ('; '.join(
+            lines.append(fixBoard(self, t, view) if self.table or self.record else
+                         'Clues shared on the board: ' + ('; '.join(
                 f'T{k}: {_fmt(p, r)} (agent {a}, {t - ts:g} turns ago)' for k, xs in view.items() for _, p, r, a, ts in xs) or 'none'))
         elif isinstance(channel, ClueMessages):
             msgs = channel.take(i)
@@ -95,6 +106,7 @@ class TextClueEnv:
             lines.append('Clues the coordinator passed to you: ' + ('; '.join(f'T{k}: {_fmt(c[1], c[2])} (from agent {a})'
                                                                               for a, k, c, _ in routed) or 'none'))
             lines.append(f'The coordinator suggests: T{j}.')
+        lines += fixLines(self, i, t, channel)
         if self.showOpen:
             lines.append('Teammates working on: ' + '; '.join(
                 f'agent {a}: ' + (f'T{x}' if x in b.open else 'none') for a, x in enumerate(b.opened) if a != i))
@@ -120,6 +132,8 @@ class TextClueEnv:
         a, k = parsed.get('action'), self._task(parsed.get('target', ''))
         if a == 'wait':
             return wait, None, True
+        if a in ('ask', 'check') and (self.ask or self.check):
+            return fixParse(self, parsed, i, a, k)
         if a == 'open':
             return (('open', k), None, True) if k in b.open else (wait, None, False)
         if a == 'share' and k in b.open and (m := CLUE_RE.search(str(parsed.get('clue', '')))):
@@ -139,7 +153,9 @@ class TextClueEnv:
         if report is None or channel is None:
             return False
         k, clue = report
-        if isinstance(channel, ClueLead):
+        if k == 'ask':
+            channel.ask(i, clue, t)
+        elif isinstance(channel, ClueLead):
             channel.post(i, k, clue, t, self.world)
         else:
             channel.post(i, k, clue, t)
@@ -151,7 +167,8 @@ class TextClueEnv:
 
     def summary(self, i, t, action, reward, report, info):
         res, k = info['result'], info['task']
-        verb = dict(opened=f'opened T{k}', solved=f'solved T{k}', wrong=f'answered {action[1]} to T{k}: wrong',
+        verb = self._did.pop(i, None) or dict(                       # an ask or a check (a wait on the board)
+            opened=f'opened T{k}', solved=f'solved T{k}', wrong=f'answered {action[1]} to T{k}: wrong',
                     late=f'answered T{k} too late', shared=f'shared T{k}: {_fmt(*report[1][1:]) if report else ""}',
                     wait='waited', invalid='made an invalid move')[res]
         s = f'turn {t:g}: {verb}, earned {reward:.2f}'

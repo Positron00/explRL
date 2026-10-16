@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_agents.html.md"""
 # %% auto #0
 __all__ = ['ClueBoard', 'ClueMessages', 'ClueLead', 'known', 'candidates', 'RuleAgent', 'ClueLiar']
 
-# %% ../nbs/clue_agents.ipynb #ff0ab44a
+# %% ../nbs/clue_agents.ipynb #45c524ff
 from collections import defaultdict
 
 from .multi import Outcome
@@ -19,7 +19,7 @@ class ClueBoard:
     blocked = frozenset()
 
     def __init__(self):
-        self.posts, self.stats = defaultdict(list), defaultdict(lambda: dict(written=0, sent=0, received=0))
+        self.posts, self.asks, self.stats = defaultdict(list), {}, defaultdict(lambda: dict(written=0, sent=0, received=0))
 
     def post(self, i, k, clue, t):
         "clue = (j, p, r), true or false (a liar's)."
@@ -29,6 +29,15 @@ class ClueBoard:
     def view(self, i, t, board):
         "{k: [(j, p, r, author, t)]} for the open subtasks, newest first."
         return {k: sorted(self.posts[k], key=lambda x: -x[4]) for k in board.open if self.posts.get(k)}
+
+    def ask(self, i, k, t):
+        "Agent i's request (k, i, t) for clues of its open subtask k (Phase 13); replaces its earlier request."
+        self.asks[i] = (k, i, float(t))
+
+    def requests(self, board):
+        "[(k, i, t)] still live: k open and agent i has opened nothing since asking (ordered by agent)."
+        return [x for i, x in sorted(self.asks.items()) if x[0] in board.open
+                and not any(r[0] == i and r[3] == 'travel' and r[1] > x[2] for r in board.ledger)]
 
 
 class ClueMessages:
@@ -87,8 +96,9 @@ class ClueLead:
         return k
 
 
-def known(i, board, channel):
-    "{k: {j: r}} for the open subtasks: clues agent i holds, plus those its channel showed it (own clues win)."
+def known(i, board, channel, checked=None):
+    """{k: {j: r}} for the open subtasks: clues agent i holds, plus those its channel showed it (own clues win).
+    checked: agent i's checks {(k, j, r): true?} (Phase 13): clues found false are left out, those found true win."""
     seen = []
     if isinstance(channel, ClueBoard):
         seen = [(k, x[0], x[2]) for k, xs in channel.posts.items() for x in sorted(xs, key=lambda x: x[4])]
@@ -96,9 +106,9 @@ def known(i, board, channel):
         seen = [(k, c[0], c[2]) for _, k, c, _ in channel.seen[i]]
     elif isinstance(channel, ClueLead):
         seen = [(k, c[0], c[2]) for _, k, c, _ in channel.routed[i]]
-    out = {k: {} for k in board.open}
-    for k, j, r in seen:                 # later sightings overwrite earlier ones
-        if k in out:
+    out, ck = {k: {} for k in board.open}, checked or {}
+    for k, j, r in seen + [x for x, ok in ck.items() if ok]:   # later sightings overwrite earlier ones
+        if k in out and ck.get((k, j, r)) is not False:
             out[k][j] = r
     for k in out:
         out[k].update(board.held(i, k))

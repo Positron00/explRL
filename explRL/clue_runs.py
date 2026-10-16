@@ -7,10 +7,11 @@ Docs: https://Positron00.github.io/explRL/clue_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'BOARD_KEYS', 'clueSetup', 'clueMetrics', 'runClueNumpy', 'runClue', 'runClueAny']
 
-# %% ../nbs/clue_runs.ipynb #a3d35e1d
+# %% ../nbs/clue_runs.ipynb #7bf48f6f
 import numpy as np
 
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent
+from .clue_fix import fixOptions
 from .clue_text import TextClueEnv
 from .clueboard import ClueBoardEnv
 from .llm_agent import LLMMember, runTurns
@@ -79,7 +80,7 @@ def runClue(cfg, seed, client):
     T, nLLM = cfg.turnsPerAgent(), cfg.N - cfg.nLiar
     client.reserve(estimateCost(cfg.model, 'clue', nLLM, T))
     b, ch = clueSetup(cfg, seed)
-    env = TextClueEnv(b, cfg.world.get('hint'), cfg.world.get('showOpen', False))
+    env = TextClueEnv(b, cfg.world.get('hint'), cfg.world.get('showOpen', False), **fixOptions(cfg.world))
     liars = [ClueLiar(ch, r) for r in spawnRngs(seed + 3000, cfg.nLiar)]
     llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing) for _ in range(nLLM)]
     hist = runTurns(liars + llm, b, T)
