@@ -9,7 +9,7 @@ __all__ = ['FIX_ARMS', 'A1', 'A2', 'A3', 'VARIANTS', 'KIND', 'FIX_SEEDS', 'PROFI
            'fixPilotGrid', 'profileGrid', 'profilePilotGrid', 'fixQuick', 'profileQuick', 'phase11Cells', 'requestKey',
            'cellCalls', 'fixEstimate']
 
-# %% ../nbs/fix_grid.ipynb #22ec6b5d
+# %% ../nbs/fix_grid.ipynb #8e9e8e0b
 import copy
 
 from .clue_grid import BOARD, CLUE_SETTINGS, clueCell, clueLiarGrid, clueMainGrid
@@ -27,7 +27,7 @@ KIND = dict(request='affordance', table='affordance', record='affordance', verif
             evidence='instruction', warn='instruction', dissent='instruction')
 FIX_SEEDS, PROFILE_SEEDS = range(900, 910), range(5000, 5100)
 FIX_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40,
+    version=1, frozen=True, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40,
     arms=dict(A1=list(A1), A2=list(A2), A3=list(A3), world=dict(FIX_ARMS), kind=KIND,
               profile=dict(PROFILE_ARMS)),
     liar=dict(nLiar=1, slot=0, agent='ClueLiar (scripted, Phase 11)'),
