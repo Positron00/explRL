@@ -19,6 +19,8 @@ The project rebuilt computer models of how a fruit fly finds food, then asked ho
 
 Bottom line: how a team shares information matters as much as how capable its members are. A shared space works well but spreads errors and lies fastest; structures that rely on obedience break with independent agents. Training an open model to cooperate (Phase 12) worked through imitation, not RL: how agents are rewarded decides whether they cooperate, and credit for enabling others' work is the reward that keeps them cooperating.
 
+Prior work and what is new here: [LITERATURE.md](LITERATURE.md) (2026-10-16).
+
 ## Why
 
 The goal is a portfolio piece for a multi-agent research role (Anthropic, Staff+ Research Scientist, Multi-Agent). The role asks for: training environments and data, comparisons of agent harnesses (memory, context management, communication), rigorous benchmarks for large agent teams, and attention to incentives, mechanism design and safety.
