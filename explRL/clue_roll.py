@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_roll.html.md"""
 # %% auto #0
 __all__ = ['SUGGEST', 'Rollout', 'rollout', 'coopMetrics', 'coopRows', 'runEval', 'evalModels']
 
-# %% ../nbs/clue_roll.ipynb #d5c94341
+# %% ../nbs/clue_roll.ipynb #213db4e6
 import json
 import re
 import time
@@ -19,6 +19,7 @@ import numpy as np
 
 from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
+from .clue_fix import fixOptions
 from .clue_policy import renderPrompt
 from .clue_runs import NAN, clueMetrics
 from .clue_train import ClueEpisodes
@@ -49,7 +50,7 @@ def rollout(cfg, seeds, policies, scripted=None, memory='notes', keepPrompts=Fal
     LLMMember would) and each policy answers its requests in one call; scripted slots act on the board directly."""
     w, B, N = cfg.world, len(seeds), cfg.N
     ep = ClueEpisodes(B, N, w, w.get('scheme', 'individual'), cfg.turnsPerAgent(), channel=cfg.channel, seeds=seeds,
-                      scripted=scripted, text=dict(hint=w.get('hint'), showOpen=w.get('showOpen', False)),
+                      scripted=scripted, text=dict(hint=w.get('hint'), showOpen=w.get('showOpen', False), **fixOptions(w)),
                       passPooled=w.get('passPooled', False))
     notes, past = [[''] * N for _ in range(B)], [[[] for _ in range(N)] for _ in range(B)]
     logs, R = [[[] for _ in range(N)] for _ in range(B)], np.zeros((B, N))

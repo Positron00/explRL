@@ -68,6 +68,7 @@ website:
       - clueboard.ipynb
       - clue_agents.ipynb
       - clue_text.ipynb
+      - clue_fix.ipynb
       - clue_runs.ipynb
       - clue_grid.ipynb
       - clue_train.ipynb
