@@ -120,7 +120,7 @@ Wrong answers come from each board's `submits` log (time, agent, subtask, candid
 | Notebook | Sections | Outputs |
 |---|---|---|
 | `demo_fix` | quick (normal tests): `fixQuick` and `profileQuick` with the fake client (which asks and checks when the schema allows), identical at 1 and 8 processes; pilot (`llm`): invalid rates per arm and new action, the vote's baseline win rate and solo ceiling against the AC-6 bands; main (`llm`, asserts `FIX_PLAN` frozen); cached rerun (`llm`: byte-identical, ledger unchanged) | `results/multiagent/fix/{quick,pilot,full}/`, `results/multiagent/profile/{quick,pilot,full}/` |
-| `colab_clue_rl` | Phase 13 RL section: `ARM`, `SEED` at the top, asserts `RL13_PLAN` frozen, resumes; evaluation of all five new adapters (no cross-play) | Drive `explRL_rl/runs_p13/<arm>_s<seed>/`, `eval_p13/` |
+| `colab_clue_rl` | Phase 13 RL section: `ARM`, `SEED` at the top, asserts `RL13_PLAN` frozen, resumes; a batch section that trains the five runs in one session, each in its own process (GPU memory freed between runs), skipping finished runs; evaluation of all five new adapters (no cross-play) | Drive `explRL_rl/runs_p13/<arm>_s<seed>/`, `eval_p13/` |
 | `demo_rl` | Phase 13 evaluation: reads Colab's `eval_p13`, picks the best arm by `RL13_PLAN`'s rule, runs cross-play for both its seeds on the Mac (reusing Phase 12's `credit` cross-play rows as `credit_s1`), report; skips when Colab's files are absent | `results/multiagent/rl/eval_p13/` |
 | `demo_multiagent` | section 10 (Phase 13) | `REPORT.md`, `report/fix.png` |
 
