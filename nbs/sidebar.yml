@@ -87,4 +87,7 @@ website:
       - demo_coop.ipynb
       - colab_clue_rl.ipynb
       - demo_rl.ipynb
+      - profile_domains.ipynb
+      - hidden_profile.ipynb
+      - profile_runs.ipynb
       - demo_multiagent.ipynb
