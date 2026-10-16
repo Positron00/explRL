@@ -9,7 +9,7 @@ __all__ = ['FIX_ARMS', 'A1', 'A2', 'A3', 'VARIANTS', 'KIND', 'FIX_SEEDS', 'PROFI
            'fixGrid', 'fixPilotGrid', 'profileGrid', 'profilePilotGrid', 'fixQuick', 'profileQuick', 'hbGrid',
            'hbPilotGrid', 'phase11Cells', 'requestKey', 'cellCalls', 'fixEstimate']
 
-# %% ../nbs/fix_grid.ipynb #ac762ea2
+# %% ../nbs/fix_grid.ipynb #b35dcc9f
 import copy
 
 from .clue_grid import BOARD, CLUE_SETTINGS, clueCell, clueLiarGrid, clueMainGrid
@@ -100,7 +100,7 @@ def profileQuick():
 
 
 HB_PLAN = dict(   # HiddenBench replication of A3 (specs/multiagent/phase13/hiddenbench.md)
-    version=1, frozen=False, model=HAIKU, data='data/hiddenbench/benchmark.json', sha256='2815afffca4e470d', tasks=65,
+    version=1, frozen=True, model=HAIKU, data='data/hiddenbench/benchmark.json', sha256='2815afffca4e470d', tasks=65,
     reps=3, seeds='episode seed = 1000 x task id + rep (shared by every arm and the solo ceiling)', N=4, rounds=3,
     arms=list(A3) + ['solo'], holm=['factsFirst', 'table'], control='dissent',
     bands=dict(invalid=0.05, solo=0.8, gap=0.2, pilotTasks=20),
