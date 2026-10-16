@@ -145,3 +145,7 @@ For each failure, the gap closed by each fix with its interval, the cost of the 
 | Track B still does not beat the warm start | Still informative: H13-4 tests the mechanism, and the two seeds settle Phase 12's one-seed caveat |
 | Many arms, few seeds | Directions frozen; a primary arm per part; Holm correction within each part |
 | The vote prompt leaks the answer | Option names, which option is best, and fact order are shuffled per seed; a test checks that the shared facts alone favour B |
+
+## References (T1, 2026-10-15)
+
+Phase 12 outputs that Phase 13 must leave unchanged (NFR-1), as sha256 prefixes: Track B evaluation `results/multiagent/rl/eval/runs.csv` `16c6ba190d590a07`, its turn logs (sorted file hashes, hashed) `7b071e38899e3058`; Track A `results/multiagent/coop/full/runs.csv` `89ebe98b05fbb85a`. RL v2 run identities (`configHash`): individual `542eb4f99c29`, team `be13d2c8afb3`, credit `c02fa4f72378`. Phase 5-11 references as recorded in Phase 12 T1.
