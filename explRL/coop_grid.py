@@ -9,7 +9,7 @@ __all__ = ['MODELS', 'TRACKA', 'TRACKA_PLAN', 'LOCAL', 'MAIN_SEEDS', 'RL_PLAN', 
            'trackAGrid', 'trackAPilotGrid', 'trackAQuick', 'evalCell', 'evalSuite', 'coopHash', 'rl13Name',
            'rl13Config', 'rl13Suite']
 
-# %% ../nbs/coop_grid.ipynb #e46a0b24
+# %% ../nbs/coop_grid.ipynb #e49b678e
 import hashlib
 import json
 from dataclasses import asdict
@@ -116,7 +116,7 @@ RL13_ARMS = dict(credit=dict(scheme='credit'),                                  
                  credturn=dict(scheme='credit', advantage='turn', wrongPenalty=2.5, haltJump=0.15))  # and per-turn credit
 RL13_RUNS = (('credit', 2), ('indpen', 1), ('indpen', 2), ('credturn', 1), ('credturn', 2))   # credit seed 1: Phase 12's v2 run
 RL13_PLAN = dict(
-    version=1, frozen=False, base=dict(plan='RL_PLAN', version=RL_PLAN['version'], hash=coopHash(RL_PLAN)), arms=RL13_ARMS,
+    version=1, frozen=True, base=dict(plan='RL_PLAN', version=RL_PLAN['version'], hash=coopHash(RL_PLAN)), arms=RL13_ARMS,
     runs=[list(r) for r in RL13_RUNS], seeds='seed s = trainSeed s - 1; runs and adapters named <arm>_s<seed>',
     reused=dict(credit_s1='the RL_PLAN v2 credit run (runs_v2/credit, configHash c02fa4f72378)',
                 warm='the Phase 12 warm-start rows (eval/runs.csv)'),
