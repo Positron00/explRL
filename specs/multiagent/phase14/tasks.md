@@ -1,0 +1,28 @@
+# Tasks: Phase 14
+
+Status (2026-10-16): plan written; no task started.
+
+Rules as Phase 13 (notebook first, export, one notebook per test call, modules under 200 lines, offline tests without `anthropic` or `torch`; Phase 5-13 cached reruns byte-identical). Gates: no Part A main run before `TRUST_PLAN` is frozen; no Part B LLM cell before the numpy forecast is committed and `SCALE_PLAN` is frozen; API under the $150 cap.
+
+## T1. The two new settings
+- **Files**: `nbs/clue_fix.ipynb`, `nbs/clue_text.ipynb` (design: the two new settings).
+- **Tests**: AC-2: private record on hand-made boards; public check reaches every agent and their known clues; Phase 13 defaults byte-identical (the existing hash tests stay green); rollout rows equal `runClue` rows with each new setting.
+
+## T2. Grids, plans, analysis, demo
+- **Files**: `nbs/fix_grid.ipynb` (or `trust_grid`), `nbs/fix_report.ipynb` (or `scale_report`), new `nbs/demo_trust.ipynb`.
+- **Tests**: AC-3 (sizes, liar counts, reused cells); summaries on synthetic rows with known publicity and cost effects; the quick demo with the fake client.
+
+## T3. Part A main run (live, about $2)
+- **What**: freeze `TRUST_PLAN`, commit; run; cached rerun; results in the README.
+- **Done when**: AC-6 for `TRUST_PLAN`.
+
+## T4. Numpy forecast
+- **What**: `tools/scale_forecast.py`; run once; commit output and predicted signs (AC-5).
+
+## T5. Part B pilot, freeze, main (live, up to $40)
+- **What**: pilot at N = 32 (AC-4), apply the cost rule, freeze `SCALE_PLAN`, commit; main run; cached rerun; score the forecast; results.
+- **Done when**: AC-4, AC-5, AC-6.
+
+## T6. Docs and preprints
+- **What**: README results, `REPORT.md` Phase 14 section, the multi-agent plan's status, and the preprints where a claim changes (paper: the trust and communication-cost sections; paper2: the scaling forecast).
+- **Done when**: docs updated; all checks pass.
