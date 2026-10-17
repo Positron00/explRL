@@ -20,7 +20,7 @@ Terms: as Phase 13 ([../phase13/requirements.md](../phase13/requirements.md)); i
 ### Part B: the team-size sweep
 - **FR-B1** `scaleGrid()` (study `scaleB`): blackboard, N in (8, 16, 32), seeds 900-904, 40 turns; clean cells for `baseline` and `request`; cells with `nLiar = N // 4` for `baseline` and `record`. `scalePilotGrid()`: N = 32, `baseline`, clean and with liars, seed 900.
 - **FR-B2** The cost rule: if the pilot's measured cost per call projects the main grid above $40, N = 32 runs seeds 900-902 only; if that still projects above $40, stop and ask. The rule is in the plan before the pilot.
-- **FR-B3** `scaleSummaries` (in `scale_report`): per N, the request board's gap closed (as A1) and the record's loss recovered (as A2), and the baseline's pooled share and honest loss; per arm, the trend across N.
+- **FR-B3** `scaleSummaries` (in `scale_report`; `record` runs only with liars, so its honest loss uses the baseline's clean cell at the same N and seed as the clean reference, which the report names; Phase 13 found the record costs nothing without liars, +0.006 [-0.012, 0.026]): per N, the request board's gap closed (as A1) and the record's loss recovered (as A2), and the baseline's pooled share and honest loss; per arm, the trend across N.
 
 ### Part C: the numpy forecast
 - **FR-C1** `tools/scale_forecast.py run`: the Phase 11 rule agents (blackboard, share policy as Phase 11's numpy cells) at N in (4, 8, 16, 32, 64), clean and with a quarter liars, 20 seeds; output per N: pooled share (clean), honest loss (welfareHonest clean minus with liars); predicted signs of the N 8 -> 32 changes with bootstrap intervals over seeds.

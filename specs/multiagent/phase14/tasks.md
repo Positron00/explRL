@@ -1,6 +1,6 @@
 # Tasks: Phase 14
 
-Status (2026-10-17): T1 and T2 done (offline; full suite green); T3 next (freeze `TRUST_PLAN`).
+Status (2026-10-17): T1, T2 and T4 done (offline; full suite green; the numpy forecast run and committed before any Part B LLM cell). Next: T3 (freeze `TRUST_PLAN`, Part A live), then T5.
 
 Rules as Phase 13 (notebook first, export, one notebook per test call, modules under 200 lines, offline tests without `anthropic` or `torch`; Phase 5-13 cached reruns byte-identical). Gates: no Part A main run before `TRUST_PLAN` is frozen; no Part B LLM cell (the pilot included) before the numpy forecast is committed; no Part B main run before `SCALE_PLAN` is frozen; API under the $150 cap.
 

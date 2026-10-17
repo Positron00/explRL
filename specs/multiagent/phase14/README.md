@@ -1,6 +1,6 @@
 # Plan: Phase 14, what makes trust information pay, and do the fixes scale?
 
-Status: **plan** (2026-10-16), not started. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 13](../phase13/README.md) (fixes for Claude teams on the clue board) and the companion preprint's simulation-first workflow (`paper2/`).
+Status: **code done; live runs next** (2026-10-17). T1, T2 (settings, grids, plans, report, demo) and T4 (numpy forecast, frozen) done. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 13](../phase13/README.md) (fixes for Claude teams on the clue board) and the companion preprint's simulation-first workflow (`paper2/`).
 
 ## Files in this spec
 
@@ -37,7 +37,7 @@ Clue board, blackboard, N = 8, 16, 32 (the board grows with N: 2N + 2 open subta
 | Cells | Arms | Purpose |
 |---|---|---|
 | clean | `baseline`, `request` | does the request board's harm persist, grow or vanish with N? |
-| a quarter of the agents liars (2, 4, 8) | `baseline`, `record` | does the track record's benefit hold as liars and posts multiply? |
+| a quarter of the agents liars (2, 4, 8) | `baseline`, `record` | does the track record's benefit hold as liars and posts multiply? (its clean reference: the baseline's clean cell, same N and seed) |
 
 N = 8 cells for `baseline` and `request` (clean) at seeds 900-904 replay Phase 13's cached replies; everything else is new. Estimate: about 33 000 new calls; at N = 32 prompts are longer (66 open subtasks, many posts), so the cost per call is measured in the pilot. Budget: $40; if the pilot projects more, N = 32 runs 3 seeds instead of 5, and if that still projects more, stop and ask (a pre-set rule, not a choice after seeing results).
 
@@ -82,3 +82,14 @@ API spent so far $60.73 of the $150 cap.
 | Many liars at N = 32 overwhelm every arm | The quarter share matches Phase 9, where effects stayed measurable at N = 64 in numpy |
 | The private record has too little data to matter | Report how many checked shares each private record showed on average |
 | Publicity and information quantity are confounded in the record pair | The verify pair (same checks, public vs private) has no such confound; report both pairs |
+
+## Numpy forecast (T4, 2026-10-17; frozen before any Part B LLM cell)
+
+`tools/scale_forecast.py run`: Phase 11 rule agents, blackboard, N = 4-64, clean and with a quarter liars, seeds 2000-2019, 40 turns; 14 s on the Mac, byte-identical on rerun. Predictions in [scale_predictions.json](scale_predictions.json).
+
+| N | 4 | 8 | 16 | 32 | 64 |
+|---|---|---|---|---|---|
+| clean pooled share | 0.58 | 0.51 | 0.44 | 0.36 | 0.26 |
+| honest loss from liars | 0.74 | 0.74 | 0.70 | 0.60 | 0.53 |
+
+**Predicted signs, N 8 -> 32:** clean pooled share **falls** (-0.156 [-0.170, -0.141]); honest agents' loss from a quarter liars **falls** (-0.134 [-0.191, -0.074]). To be scored against the Haiku baseline cells with `tools/scale_forecast.py score` after Part B's main run.
