@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 13: [../phase13/RUN.md](../phase13/RUN.md).
 
-Status 2026-10-17: code done (T1, T2) and the numpy forecast frozen (T4); the live runs are next (T3, T5).
+Status 2026-10-17: all runs done (T3-T5): Part A $1.70, pilot $1.14, Part B main $17.47 (4 526 s for the whole notebook), cached reruns identical.
 
 ## Tests
 

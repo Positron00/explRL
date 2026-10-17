@@ -1,6 +1,6 @@
 # Plan: Phase 14, what makes trust information pay, and do the fixes scale?
 
-Status: **code done; live runs in progress** (2026-10-17). `TRUST_PLAN` frozen at `b875c5f` (`coopHash(TRUST_PLAN)` = `6d2818ae84c2`) before Part A's run. T1, T2 (settings, grids, plans, report, demo) and T4 (numpy forecast, frozen) done. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 13](../phase13/README.md) (fixes for Claude teams on the clue board) and the companion preprint's simulation-first workflow (`paper2/`).
+Status: **done** (2026-10-17): publicity and cost both matter for trust information; the request board's harm and the track record's benefit both hold from 8 to 32 agents; the numpy forecast scored 1 of 2 (results below). Earlier: `TRUST_PLAN` frozen at `b875c5f` (`coopHash(TRUST_PLAN)` = `6d2818ae84c2`) before Part A's run. T1, T2 (settings, grids, plans, report, demo) and T4 (numpy forecast, frozen) done. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 13](../phase13/README.md) (fixes for Claude teams on the clue board) and the companion preprint's simulation-first workflow (`paper2/`).
 
 ## Files in this spec
 
@@ -98,3 +98,31 @@ API spent so far $60.73 of the $150 cap.
 ## Part B pilot and the SCALE_PLAN freeze (T5, 2026-10-17)
 
 N = 32, `baseline`, clean and with 8 liars, seed 900: 2 240 calls, $1.14, about 67 minutes (a 32-agent board plays its 1 280 turns in order). Invalid replies 0.22% (band: under 5%); cost per call $0.00051 (about twice the N = 4 price); projected main run $17.25 (the cut: $12.67), within the $40 budget: the cost rule's verdict is **run** (all five seeds). `SCALE_PLAN` frozen at `04f83ed` (`coopHash(SCALE_PLAN)` = `b886baefb2ef`). One-seed glimpse, not a result: with 8 liars the honest agents' welfare was -0.12 against +0.45 clean.
+
+## Results (2026-10-17; exploratory)
+
+API: Part A $1.70, pilot $1.14, Part B main $17.47 (projected $17.25); total API spend $79.14 of $150. Cached reruns of both parts byte-identical and free. Reports: `results/multiagent/trust/full/report.md`, `results/multiagent/scale/full/report.md`.
+
+**Part A, the 2 x 2 of trust information** (one liar among four, 10 seeds; loss recovered, paired on seed):
+
+| | free | costly (a turn per check) |
+|---|---|---|
+| **public** | `record`: **0.32** [0.20, 0.44] | `verifyPublic`: 0.14 [-0.05, 0.30] |
+| **private** | `recordPrivate`: 0.13 [-0.13, 0.29] | `verify`: -0.01 [-0.28, 0.19] |
+
+- **Publicity helps: +0.18 [0.04, 0.36] (H14-1 supported). Being free helps about as much: +0.16 [0.02, 0.30]; their difference is +0.02 [-0.16, 0.20] (H14-2 not supported).** The two add up: the public, free track record recovers the most, the private, costly check nothing. Neither new arm is significant on its own (Holm p 0.37 each).
+- **The private record rested on less data:** 1.2-1.7 checked shares behind each entry, against about 5 for the public record, and 40-47% of its entries were `record none`. For the record pair, privacy and the amount of information cannot be separated; the verify pair (the same checks, public or private: 0.14 against -0.01) has no such confound.
+- **Public checking has a small cost without a liar** (-0.033 [-0.055, -0.013] welfare): checks spend turns when there is nothing to catch.
+
+**Part B, team size** (blackboard, 5 seeds per cell, a quarter of the agents liars in the liar cells):
+
+| N | clean pooled share | request: gap closed | honest loss from liars | record: loss recovered |
+|---|---|---|---|---|
+| 8 | 0.41 | -0.16 [-0.21, -0.12] | 0.47 | 0.30 [0.19, 0.42] |
+| 16 | 0.38 | -0.17 [-0.20, -0.15] | 0.58 | 0.22 [0.10, 0.33] |
+| 32 | 0.34 | -0.16 [-0.18, -0.15] | 0.54 | 0.31 [0.26, 0.36] |
+
+- **Both effects hold from 8 to 32 agents.** The request board costs about a sixth of the pooling gap at every size (H14-3), and the track record recovers 0.22-0.31 of the liars' damage at every size (H14-4); every bootstrap interval excludes 0. With 5 seeds, the exact sign-flip test cannot go below p = 0.0625, so the Holm-corrected p-values are 0.19 throughout: the intervals carry the evidence, and more seeds would be needed for the test.
+- **Larger teams pool less** (pooled share 0.41 -> 0.34) and **lose more to a fixed share of liars** (0.47 -> 0.54-0.58).
+
+**The numpy forecast, scored with its frozen rule: 1 of 2** (H14-5 not supported; [scale_score.json](scale_score.json)). Right on pooled share (falls; observed -0.065 [-0.081, -0.048], predicted -0.156); wrong on liar damage (predicted to fall, -0.134; observed to rise, +0.076 [0.013, 0.137]). A possible explanation, not tested here: rule agents weigh every post alike, so in a larger team a liar's posts are diluted by more true ones; Haiku agents may not dilute them this way, so a quarter of liars hurts at least as much in a large team as in a small one.

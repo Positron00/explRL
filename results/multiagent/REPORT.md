@@ -109,6 +109,13 @@ Fixes for the failures Anthropic's red team reported, each against a prompt-only
 
 Details: `specs/multiagent/phase13/README.md`, `results/multiagent/fix/full/report.md`, `results/multiagent/rl/eval_p13/report.md`; preprint draft in `paper/`.
 
+## 11. Phase 14: what makes trust information pay, and do the fixes scale? (exploratory)
+
+- **Publicity and being free each help a trust signal, about equally.** Liar damage recovered (four agents, one liar): public and free track record 0.32 [0.20, 0.44], public check 0.14 [-0.05, 0.30], private record 0.13 [-0.13, 0.29], private check -0.01 [-0.28, 0.19]; publicity effect 0.18 [0.04, 0.36], cost effect 0.16 [0.02, 0.30], difference 0.02 [-0.16, 0.20].
+- **Both fixes hold from 8 to 32 agents** (a quarter liars): the request board's gap closed -0.16 [-0.21, -0.12] at N = 8, -0.17 [-0.20, -0.15] at N = 16, -0.16 [-0.18, -0.15] at N = 32; the track record recovered 0.30 [0.19, 0.42] at N = 8, 0.22 [0.10, 0.33] at N = 16, 0.31 [0.26, 0.36] at N = 32. Larger teams pool less (pooled share 0.41, 0.38, 0.34) and lose more to the same share of liars (0.47, 0.58, 0.54); a numpy forecast frozen before the runs predicted the first trend and missed the second.
+
+Details: `specs/multiagent/phase14/README.md`, `results/multiagent/trust/full/report.md`, `results/multiagent/scale/full/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).
