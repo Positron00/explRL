@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/scale_grid.html.md"""
 __all__ = ['TRUST_ARMS', 'SCALE_N', 'SCALE_SEEDS', 'SCALE_CLEAN', 'SCALE_LIAR', 'TRUST_PLAN', 'SCALE_PLAN', 'trustGrid',
            'scaleGrid', 'scalePilotGrid', 'trustQuick', 'scaleQuick', 'scaleCached', 'scaleEstimate', 'costRule']
 
-# %% ../nbs/scale_grid.ipynb #cabb27a1
+# %% ../nbs/scale_grid.ipynb #fc827277
 import copy
 
 from .clue_grid import CLUE_SETTINGS
@@ -20,7 +20,7 @@ TRUST_ARMS = ('recordPrivate', 'verifyPublic')                    # new; record,
 SCALE_N, SCALE_SEEDS = (8, 16, 32), range(900, 905)
 SCALE_CLEAN, SCALE_LIAR = ('baseline', 'request'), ('baseline', 'record')
 TRUST_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40, N=4, channel='blackboard',
+    version=1, frozen=True, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40, N=4, channel='blackboard',
     arms=dict(new=list(TRUST_ARMS), reused=['baseline', 'record', 'verify'],
               world={a: FIX_ARMS[a] for a in ('baseline', 'record', 'verify', *TRUST_ARMS)},
               public=['record', 'verifyPublic'], private=['recordPrivate', 'verify'], free=['record', 'recordPrivate'],
