@@ -191,7 +191,7 @@ With `verify`, agents checked 14 clues per board and caught 13 false ones, yet w
 | `table` (affordance) | 0.22 [-0.02, 0.40], Holm p 0.29 | **0.75 [0.50, 1.00], Holm p 0.012** (win rate 0.97) |
 | `dissent` (instruction) | **0.39 [0.14, 0.59]**, p 0.008 (control) | -0.58 [-2.33, 0.13] |
 
-Members posted only about half of their private facts in every arm (0.48-0.50 in classic); the fixes changed the votes, not the disclosure: with the table, votes against the best option fell from 0.58 to 0.21 per episode in `lone`. H13-3 is supported for `table` (lone) only; the instruction control was not weaker than the affordances here, against K13-2's expectation.
+Members posted only about half of their private facts in every arm (0.48-0.50 in classic); the fixes changed the votes, not the disclosure: with the table, votes against the best option fell from 0.58 to 0.21 per episode in `lone`. H13-3 is supported for `table` (lone) only; the instruction control was not weaker than the affordances here, against K13-2's expectation. **On HiddenBench the table did not replicate** ([hiddenbench.md](hiddenbench.md)): the speak-up instruction helped instead, through disclosure.
 
 **Overall.** Of the five affordances, two worked (a public track record against a liar; a structured fact table in the vote), two backfired or did nothing (requests, enforced facts-first), one did nothing (private verification). What worked made the team's information easier to aggregate and trust at no cost in turns; what failed added work per agent. Haiku's hidden-profile baseline (0.54) is higher than the red team's 17-36% for most models, so this vote is easier than theirs; the gap and the fix are still measured against the same model's solo ceiling.
 

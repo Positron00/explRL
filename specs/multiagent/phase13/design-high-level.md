@@ -11,8 +11,9 @@
 | `nbs/clue_runs.ipynb`, `nbs/clue_train.ipynb`, `nbs/clue_roll.ipynb` | changed | the options pass from `cfg.world` (rows unchanged) |
 | `nbs/hidden_profile.ipynb` -> `explRL/hidden_profile.py` | new | `profileTask`, `factTotals`, `ProfileEnv` (with `endRound`), `POST_SCHEMA`, `voteSchema`, `parseVote`, `soloCeiling` (the hidden-profile vote) |
 | `nbs/profile_domains.ipynb` -> `explRL/profile_domains.py` | new (data only, split for size) | `DOMAINS`: names, fact templates and the rule-out sentence of the three domains |
-| `nbs/profile_runs.ipynb` -> `explRL/profile_runs.py` | new | `ARMS`, `profileCell`, `runProfile` (batched episodes through `claudePolicy`), rows and turn logs |
-| `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | new | `FIX_ARMS`, `fixCell`, `fixGrid`, `profileGrid`, their pilots and quick grids, `FIX_PLAN`; `phase11Cells`, `requestKey`, `cellCalls`, `fixEstimate` (calls and cost, Phase 11's cached cells free) |
+| `nbs/profile_runs.ipynb` -> `explRL/profile_runs.py` | new | `ARMS`, `profileCell`, `runProfile` (batched episodes through `claudePolicy`), rows and turn logs; cells with `bench='hiddenbench'` play a HiddenBench task |
+| `nbs/hidden_bench.ipynb` -> `explRL/hidden_bench.py` | new (replication) | `hbItems`, `hbTask`, `HBEnv`, `hbSolo`: HiddenBench's 65 tasks (vendored in `data/hiddenbench/`, MIT) in the vote's format |
+| `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | new | `FIX_ARMS`, `fixCell`, `fixGrid`, `profileGrid`, their pilots and quick grids, `FIX_PLAN`; `HB_PLAN`, `hbGrid`, `hbPilotGrid` (the HiddenBench replication); `phase11Cells`, `requestKey`, `cellCalls`, `fixEstimate` (calls and cost, Phase 11's cached cells free) |
 | `nbs/coop_grid.ipynb` -> `explRL/coop_grid.py` | changed | `RL13_ARMS`, `RL13_RUNS`, `RL13_PLAN`, `rl13Name`, `rl13Config`, `rl13Suite` beside `RL_PLAN` (Track B does not wait for Track A's code) |
 | `nbs/fix_report.ipynb` -> `explRL/fix_report.py` | new | `fixLogMetrics` (asks, checks, checked-false from turn logs), `fixSummaries` (gap closed, loss recovered, costs, mechanism), `writeFix`, `figFix` |
 | `nbs/fix_stats.ipynb` -> `explRL/fix_stats.py` | new (split from `fix_report` for size) | `gapClosed`, `lossRecovered` (bootstrap over the pairing units), `holmFamily` |
@@ -21,6 +22,7 @@
 | `nbs/clue_rl.ipynb`, `nbs/rl_control.ipynb`, `nbs/rl_torch.ipynb` | changed | `advantage`, `wrongPenalty`, `haltJump` in `RLConfig`, `runFields`; `invalidShare`, `jumpGuard` (roll-back on a jump, in `rl_control`); `configHash` unchanged for Phase 12 configurations |
 | `nbs/rl_report.ipynb` | changed | `armSeed`, `renameModel`, `bestArm`; per-arm means over training seeds, per-seed RL gains |
 | `nbs/demo_fix.ipynb` | new | Track A: quick (fake client), pilots and main (`llm`) |
+| `nbs/demo_hb.ipynb` | new (replication) | the A3 arms on HiddenBench: quick (fake client), pilot, main and cached rerun (`llm`), report |
 | `nbs/colab_clue_rl.ipynb`, `nbs/demo_rl.ipynb` | changed | Track B: `ARM`, `SEED`, `runs_p13/`; evaluation of the new adapters |
 | `nbs/demo_multiagent.ipynb` | changed | section 10 of `REPORT.md` (Phase 13) |
 | `nbs/sidebar.yml`, `nbs/index.ipynb`, `README.md` | changed | the new notebooks and links |

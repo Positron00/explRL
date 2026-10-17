@@ -32,6 +32,8 @@ Terms used below.
 - **FR-B3** `soloCeiling`: one agent with every fact votes after reading them (no rounds); its success rate is the ceiling.
 - **FR-B4** `runProfile(cells, client, logDir=None)` reserves the estimated cost on the client, runs episodes in batches through `claudePolicy` (each round's requests concurrent), returns one row per episode (`success`, votes, posts, facts posted per held fact, invalid replies, calls, cost) keyed with `cellRow`, and writes turn logs as Phase 11.
 
+- **FR-B5** (replication, added 2026-10-16) `hbTask(item, seed, N=4)`, `HBEnv`, `hbSolo` play HiddenBench's 65 tasks (vendored unchanged with their licence) through `runProfile` when a cell's world has `bench='hiddenbench'` and `item`; cells without it are unchanged.
+
 ### Part C: grids and plans (Track A)
 - **FR-C1** `fixGrid()` (study `fixA`): A1 arms (`baseline`, `request`, `table`, `evidence`) on the blackboard at N {4, 8}, and A2 arms (`baseline`, `record`, `verify`, `warn`) on the blackboard at N 4 with one liar (`nLiar=1`, Phase 11's `ClueLiar` in slot 0) and without, seeds 900-909, 40 turns, Haiku, Phase 11 settings. Baseline cells equal to Phase 11 cells reuse their cached replies.
 - **FR-C2** `profileGrid()` (study `profileA`): `baseline`, `factsFirst`, `table`, `dissent` x variants `classic`, `lone`, 100 episodes each (episode seeds 5000-5099, shared by the arms), plus the solo ceiling on the same seeds, Haiku.
@@ -90,6 +92,7 @@ Normal tests (offline):
 - **AC-1 Regression:** NFR-1; the full suite passes with and without `anthropic` and without `torch`.
 - **AC-2 Clue-board options:** defaults unchanged (schema, rules, observation, rows); the schema gains `ask` and `check` only with their options; `ask` is valid only for the asker's open subtask, posts, shows and lapses requests as specified and is a wait on the board; `table` lists each distinct clue once; `record` counts true and false shares of solved subtasks only; `check` reports the truth of a posted clue next turn, drops a false clue from the checker's known clues and keeps a true one; `fixLogMetrics` counts asks and checks from logs; the hints add their sentences.
 - **AC-3 Hidden profile:** for 1 000 seeds, the shared facts alone favour B and all facts favour A; `lone` adds one fact that rules B out; a scripted team that posts every fact and votes by total always succeeds, one that posts nothing never does (classic variant); `factsFirst` rejects round-1 opinions; the fact table deduplicates; votes and posts parse; option names and order vary with the seed.
+- **AC-3b HiddenBench adapter:** every task converts with the correct option marked and each agent holding all shared facts plus its own hidden one, verbatim; option and fact order vary with the seed; the environment states every option and keeps the ungrouped table; the runner plays HiddenBench cells with the fake client and reruns them identically; the grids have the planned sizes with seeds shared across arms.
 - **AC-4 RL logic:** `turnAdvantages` on hand-made rewards (equal groups -> 0; a late credit counts toward the sharing turn's reward-to-go); `wrongPenalty` only in training returns; Phase 12 configuration hashes unchanged; roll-back on a jump with stubs.
 - **AC-5 Report:** gap closed, loss recovered and their CIs on synthetic rows with known effects.
 

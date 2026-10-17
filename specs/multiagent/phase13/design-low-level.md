@@ -58,6 +58,8 @@ def runProfile(cells, client, logDir=None, batch=100, workers=8) -> list[dict]  
 
 `claudePolicy(client, workers=8, schema=CLUE_SCHEMA, task='clue')`: the vote passes its schemas and `task='profile'` (cache key and ledger task); defaults unchanged.
 
+**HiddenBench replication** (`hidden_bench`, [hiddenbench.md](hiddenbench.md)). `hbTask(item, seed, N=4)` turns a HiddenBench task into this section's task format: the options in a shuffled order (`best` = the correct one), the shared facts held by all, hidden fact j held by agent j (with three hidden facts, agent 3 holds only shared ones), facts without option or sign. `HBEnv(ProfileEnv)` replaces the rules (the task's own description, then the same protocol for any number of options), the fact table (one ungrouped list of the facts posted so far) and the vote prompt; `hbSolo(task)` is the ceiling prompt. `runProfile` dispatches on `cfg.world['bench'] == 'hiddenbench'` (task, environment, solo prompt); other cells are unchanged.
+
 ## 3. Grids and plans (`fix_grid`)
 
 ```python
@@ -71,6 +73,9 @@ def profilePilotGrid() -> list[dict]
 def fixQuick(), profileQuick()      # small grids for the fake-client pipeline check (6 turns; 4 episodes)
 def fixEstimate(cells) -> dict       # cells, calls and cost, all and new (requests Phase 11 already made are free)
 FIX_PLAN = dict(version=1, frozen=False, ...)      # the items of the requirements' FIX_PLAN; arms; seeds; profile settings; prices; Holm families
+
+HB_PLAN = dict(version=1, frozen=True, ...)        # the replication: 65 tasks x 3 reps, arms A3 + solo, bands, Holm pair
+def hbGrid(plan=HB_PLAN, tasks=None, reps=None, arms=None, study='hbA'), hbPilotGrid(plan=HB_PLAN)
 
 # in coop_grid, beside RL_PLAN:
 RL13_PLAN = dict(version=1, frozen=False, ...)     # arms, seeds, settings (RL_PLAN v2 overridden), evaluation, best-arm rule

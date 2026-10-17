@@ -69,6 +69,10 @@ Track A (T2-T7, Mac) and Track B (T8-T10, Colab) proceed side by side (P13-5).
 - **What**: README results and a plain-language figure guide; `RUN.md`; `REPORT.md` section 10 from `demo_multiagent`; the multi-agent plan's status and conclusions; links from `nbs/index.ipynb`, `README.md` and the sidebar.
 - **Done when**: docs updated; all checks pass.
 
+## T12. HiddenBench replication (added 2026-10-16; done)
+- **Files**: `data/hiddenbench/` (vendored, MIT), new `nbs/hidden_bench.ipynb`, `nbs/profile_runs.ipynb` (dispatch), `nbs/fix_grid.ipynb` (`HB_PLAN`, grids), new `nbs/demo_hb.ipynb`; plan and results in [hiddenbench.md](hiddenbench.md).
+- **Done**: AC-3b; pilot passed and `HB_PLAN` frozen (`a75f11f`); main run $3.46, cached rerun identical; results in the README, the preprint and `REPORT.md`.
+
 ## Acceptance criteria to task map
 
 | AC | Task |
@@ -76,6 +80,7 @@ Track A (T2-T7, Mac) and Track B (T8-T10, Colab) proceed side by side (P13-5).
 | AC-1 | T1, T2, T8, T11 |
 | AC-2 | T2 |
 | AC-3 | T4 |
+| AC-3b | T12 |
 | AC-4 | T8 |
 | AC-5 | T3 |
 | AC-6 | T5, T6 |
