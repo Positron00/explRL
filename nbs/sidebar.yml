@@ -101,4 +101,8 @@ website:
       - scale_grid.ipynb
       - scale_report.ipynb
       - demo_trust.ipynb
+      - liar_trace.ipynb
+      - liar_grid.ipynb
+      - liar_report.ipynb
+      - demo_liar.ipynb
       - demo_multiagent.ipynb
