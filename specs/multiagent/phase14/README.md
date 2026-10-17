@@ -94,3 +94,7 @@ API spent so far $60.73 of the $150 cap.
 | honest loss from liars | 0.74 | 0.74 | 0.70 | 0.60 | 0.53 |
 
 **Predicted signs, N 8 -> 32:** clean pooled share **falls** (-0.156 [-0.170, -0.141]); honest agents' loss from a quarter liars **falls** (-0.134 [-0.191, -0.074]). To be scored against the Haiku baseline cells with `tools/scale_forecast.py score` after Part B's main run.
+
+## Part B pilot and the SCALE_PLAN freeze (T5, 2026-10-17)
+
+N = 32, `baseline`, clean and with 8 liars, seed 900: 2 240 calls, $1.14, about 67 minutes (a 32-agent board plays its 1 280 turns in order). Invalid replies 0.22% (band: under 5%); cost per call $0.00051 (about twice the N = 4 price); projected main run $17.25 (the cut: $12.67), within the $40 budget: the cost rule's verdict is **run** (all five seeds). `SCALE_PLAN` frozen at `04f83ed` (`coopHash(SCALE_PLAN)` = `b886baefb2ef`). One-seed glimpse, not a result: with 8 liars the honest agents' welfare was -0.12 against +0.45 clean.
