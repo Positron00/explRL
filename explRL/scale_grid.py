@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/scale_grid.html.md"""
 __all__ = ['TRUST_ARMS', 'SCALE_N', 'SCALE_SEEDS', 'SCALE_CLEAN', 'SCALE_LIAR', 'TRUST_PLAN', 'SCALE_PLAN', 'trustGrid',
            'scaleGrid', 'scalePilotGrid', 'trustQuick', 'scaleQuick', 'scaleCached', 'scaleEstimate', 'costRule']
 
-# %% ../nbs/scale_grid.ipynb #fc827277
+# %% ../nbs/scale_grid.ipynb #504aef52
 import copy
 
 from .clue_grid import CLUE_SETTINGS
@@ -40,7 +40,7 @@ TRUST_PLAN = dict(
                   "'record a/b true' entries agents saw (parsed from observations)"),
     nboot=2000, ci=0.95, exploratory=True)
 SCALE_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40, channel='blackboard',
+    version=1, frozen=True, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40, channel='blackboard',
     N=list(SCALE_N), liarShare=0.25, liar=dict(nLiar='N // 4', slots='0 .. N // 4 - 1', agent='ClueLiar (scripted, Phase 11)'),
     arms=dict(clean=list(SCALE_CLEAN), liar=list(SCALE_LIAR), world={a: FIX_ARMS[a] for a in ('baseline', 'request', 'record')}),
     seeds=dict(scale=[900, 904], pilot=[900, 900], cached='N 8 clean baseline and request, seeds 900-904: Phase 13 cells'),
