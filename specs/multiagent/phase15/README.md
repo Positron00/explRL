@@ -1,6 +1,6 @@
 # Plan: Phase 15, why do larger Claude teams lose more to liars?
 
-Status: **implemented** (2026-10-17): T1 and T2 done (tracer, cache-only client, variants, measures, accounting, plan, demo; offline tests pass); next: freeze `TRACE_PLAN`, then the full traces ($0). Disclosure: before the freeze, debugging the tests showed the measures of a few small numpy runs (seeds 2000-2003: nearly every honest numpy submission was contaminated, and liars' first posts suppressed every true clue); one clean Haiku cell was replayed to check the cache (no liars, so no mechanism data); no Haiku liar cell was looked at, and the plan's measures, hypotheses and variants were not changed. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 14](../phase14/README.md) (the team-size sweep and its numpy forecast) and the companion preprint's simulation-first workflow (`paper2/`).
+Status: **done** (2026-10-17): the full traces ran ($0); Phase 14's dilution explanation is wrong; the forecast failed because the rule agents' clean performance falls faster with team size, leaving less for liars to take, while Haiku agents fall for lies more often in larger teams (results below). Part D not run (no variant passed H15-4). Docs and preprints updated (T5). Disclosure: before the freeze, debugging the tests showed the measures of a few small numpy runs (seeds 2000-2003: nearly every honest numpy submission was contaminated, and liars' first posts suppressed every true clue); one clean Haiku cell was replayed to check the cache (no liars, so no mechanism data); no Haiku liar cell was looked at, and the plan's measures, hypotheses and variants were not changed. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 14](../phase14/README.md) (the team-size sweep and its numpy forecast) and the companion preprint's simulation-first workflow (`paper2/`).
 
 ## Files in this spec
 
@@ -106,3 +106,33 @@ API spent so far $79.14 of the $150 cap.
 | No single mechanism explains the trend | The accounting (Part B) still says where the loss goes; a mixed answer is reported as such |
 | Retrodiction flatters the variants | Labelled retrodiction; only Part D tests a forecast |
 | The per-capita term (h) dominates and hides the mechanisms | It is reported as its own term, and H15-3 is stated against the total change, so it cannot hide |
+
+## Results (2026-10-17; exploratory)
+
+`TRACE_PLAN` frozen at `aa2bc8c` (`coopHash(TRACE_PLAN)` = `f5c25637acd0`) before any full trace. Full run: 29 s on the Mac, $0. AC-4 held: all 30 Haiku cells replayed from cache with no miss; rows equal Phase 14's `runs.csv`, turn logs equal its `turns.jsonl`; the 200 numpy rows equal `scale_numpy.json`; the eight terms sum to the honest loss on every board. Report: `results/multiagent/liar/full/report.md`; summaries copied here ([trace_summary.json](trace_summary.json), [variants.json](variants.json)).
+
+**Hypotheses** (N 8 -> 32, Phase 14 forecast rule):
+
+| ID | Result |
+|---|---|
+| H15-1 | **Not supported.** Haiku's contaminated share rises (0.79 -> 0.91; +0.12 [0.06, 0.18]), but the rule agents' does not fall: it rises slightly (0.97 -> 0.99; +0.02 [0.00, 0.03]) |
+| H15-2 | **Not supported.** Haiku agents almost never relay a liar's clue (at most 0.25% of liar posts at any N) |
+| H15-3 | **Supported.** Contaminated subtasks (terms a + c) carry 0.72 of Haiku's rise in honest loss (95% CI 0.16 to 3.2: wide, because the total change is small) |
+| H15-4 | **Not supported.** No variant gets the rising sign: `relay` -0.23, `first` -0.16, `repost` -0.05 (0) against Haiku's +0.08 (retrodiction). Part D is therefore not run (FR-D2) |
+
+**Where the loss goes** (means per honest agent-turn; terms as above):
+
+| | N 8 | N 32 | change |
+|---|---|---|---|
+| Haiku: contaminated subtasks (a + c) | 0.25 | 0.31 | +0.05 |
+| Haiku: untouched subtasks lost (d + f) | 0.26 | 0.27 | +0.02 |
+| Haiku: honest loss | 0.47 | 0.54 | +0.08 |
+| numpy: contaminated subtasks (a + c) | 0.37 | 0.37 | 0.00 |
+| numpy: untouched subtasks lost (d + f) | 0.37 | 0.23 | -0.14 |
+| numpy: honest loss | 0.74 | 0.60 | -0.13 |
+
+- **Phase 14's dilution explanation is wrong.** False posts are as visible at every size in both runners (`falseVisible` about 0.43-0.47, no trend), rule agents' exposure to lies does not fall, and Haiku agents do not spread lies either.
+- **The forecast failed for a different reason: the rule agents had less to lose.** Almost all of the numpy fall (-0.14 of -0.13) is in subtasks no lie touched (d + f). Rule teams pool clues worse as they grow even without liars (pooled share 0.51 -> 0.36), so there is less value for liars to take away. Haiku teams keep more of their clean performance (0.41 -> 0.34), so their liar-free losses do not shrink, and their losses on poisoned subtasks grow.
+- **Haiku agents fall for lies more often in larger teams.** Their share of answers built on a false clue rises from 0.79 to 0.91; such answers are wrong 95-97% of the time (rule agents: 100%), and the share of poisoned subtasks never solved rises from 0.54 to 0.64. Haiku is barely better than a rule agent at spotting a lie once it is in its known clues.
+- **Suppression is shared.** When a liar posts a slot first, the true clue is never posted afterwards in 89-94% of cases for Haiku (100% for rule agents): both treat a posted slot as done.
+- **Simulation-first lesson.** The rule agents got the size of the lie channel roughly right but the clean baseline's decline too steep, and the liar effect inherits that error. A screen should forecast the clean trend and the liar effect separately, and check the clean trend first.

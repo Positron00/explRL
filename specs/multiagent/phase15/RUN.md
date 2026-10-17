@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 14: [../phase14/RUN.md](../phase14/RUN.md).
 
-Status 2026-10-17: T1 and T2 implemented and tested; the full traces (T3) wait for the `TRACE_PLAN` freeze.
+Status 2026-10-17: T3 done (full traces in 29 s, $0, AC-4 held); T4 (Part D) not run: no variant passed H15-4.
 
 ## Tests
 

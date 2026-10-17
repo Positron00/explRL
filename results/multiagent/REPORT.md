@@ -116,6 +116,17 @@ Details: `specs/multiagent/phase13/README.md`, `results/multiagent/fix/full/repo
 
 Details: `specs/multiagent/phase14/README.md`, `results/multiagent/trust/full/report.md`, `results/multiagent/scale/full/report.md`.
 
+## 12. Phase 15: why do larger teams lose more to liars? (exploratory, $0)
+
+Phase 14's runs replayed from the response cache with a turn-by-turn tracer (plan `TRACE_PLAN`, hash f5c25637acd0), and the honest loss split into eight exactly additive terms.
+
+- **Not dilution.** False posts are as visible at 8 as at 32 agents (change in Haiku's share of open subtasks showing one: 0.02 [-0.01, 0.06]), and Haiku agents almost never pass a liar's clue on (at most 0.25% of liar posts).
+- **The numpy forecast failed on the clean trend.** Rule teams lose subtasks no lie touched by 0.37 per agent-turn at N = 8 and 0.23 at N = 32: they pool so much worse as they grow (clean pooled share 0.51 -> 0.36) that liars have less to take. Haiku teams keep more (0.41 -> 0.34), and their losses on poisoned subtasks grow (0.25 -> 0.31).
+- **Larger Haiku teams build on lies more often:** the share of answers resting on a false clue rises from 0.79 to 0.91; such answers are wrong 97% of the time. A liar's first post on a clue slot suppresses the true clue in 89%-94% of cases (rule agents: always).
+- **No rule-agent variant reproduces the rising damage** (honest-loss change N 8 -> 32: first -0.16, relay -0.23, repost -0.05; Haiku +0.08). For simulation-first screening: forecast the clean trend and the attack effect separately, and validate the clean trend first.
+
+Details: `specs/multiagent/phase15/README.md`, `results/multiagent/liar/full/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).
