@@ -9,7 +9,7 @@ Rules as Phase 13 (notebook first, export, one notebook per test call, modules u
 - **Tests**: AC-2: private record on hand-made boards; public check reaches every agent and their known clues; Phase 13 defaults byte-identical (the existing hash tests stay green); rollout rows and turn logs equal `runClue`'s with each new setting.
 
 ## T2. Grids, plans, analysis, demo
-- **Files**: `nbs/fix_grid.ipynb` (two `FIX_ARMS` entries), new `nbs/scale_grid.ipynb`, new `nbs/scale_report.ipynb`, new `nbs/demo_trust.ipynb`.
+- **Files**: `nbs/fix_grid.ipynb` (two `FIX_ARMS` entries; `fixCell` takes a number of liars), new `nbs/scale_grid.ipynb`, new `nbs/scale_report.ipynb`, new `nbs/demo_trust.ipynb`.
 - **Tests**: AC-3 (sizes, liar counts, reused cells); summaries on synthetic rows with known publicity and cost effects; the quick demo with the fake client.
 
 ## T3. Part A main run (live, about $2)
@@ -20,7 +20,7 @@ Rules as Phase 13 (notebook first, export, one notebook per test call, modules u
 - **What**: `tools/scale_forecast.py run`; run once; commit output and predicted signs (AC-5), before T5's pilot.
 
 ## T5. Part B pilot, freeze, main (live, up to $40)
-- **What**: pilot at N = 32 (AC-4), apply the cost rule (cut N = 32 to 3 seeds, or stop and ask), freeze `SCALE_PLAN`, commit; main run; cached rerun; score the forecast (`tools/scale_forecast.py score`); results.
+- **What**: pilot at N = 32 (AC-4: invalid under 5%, enforced again before the main run), apply the cost rule (cut N = 32 to 3 seeds, or stop and ask), freeze `SCALE_PLAN`, commit; main run; cached rerun; score the forecast (`tools/scale_forecast.py score`); results.
 - **Done when**: AC-4, AC-5, AC-6.
 
 ## T6. Docs and preprints

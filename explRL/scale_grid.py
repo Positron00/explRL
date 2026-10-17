@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/scale_grid.html.md"""
 __all__ = ['TRUST_ARMS', 'SCALE_N', 'SCALE_SEEDS', 'SCALE_CLEAN', 'SCALE_LIAR', 'TRUST_PLAN', 'SCALE_PLAN', 'trustGrid',
            'scaleGrid', 'scalePilotGrid', 'trustQuick', 'scaleQuick', 'scaleCached', 'scaleEstimate', 'costRule']
 
-# %% ../nbs/scale_grid.ipynb #64975285
+# %% ../nbs/scale_grid.ipynb #cabb27a1
 import copy
 
 from .clue_grid import CLUE_SETTINGS
@@ -53,8 +53,9 @@ SCALE_PLAN = dict(
     analyses=dict(
         request="per N: request's pooled-share gap closed vs baseline (clean, ceiling 1), paired on seed, bootstrap CI "
                 'over seeds; Holm over the 3 N (H14-3: below 0 at every N)',
-        record="per N: record's loss recovered = 1 - mean honest loss (welfareHonest clean - with N // 4 liars, same N, "
-               "seed and arm) / baseline's, bootstrap CI over seeds; Holm over the 3 N (H14-4: above 0 at every N)",
+        record="per N: record's loss recovered = 1 - mean honest loss / baseline's, bootstrap CI over seeds; honest loss = "
+               "welfareHonest clean - with N // 4 liars, same N and seed; record runs only with liars, so its clean "
+               "reference is the baseline's clean cell; Holm over the 3 N (H14-4: above 0 at every N)",
         baseline="the baseline's pooled share (clean) and honest loss per N; per arm, the trend across N",
         forecast='tools/scale_forecast.py score: the numpy forecast of the baseline trends N 8 -> 32 against the Haiku '
                  'baseline cells (H14-5)'),

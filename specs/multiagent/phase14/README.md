@@ -9,6 +9,7 @@ Status: **code done; live runs next** (2026-10-17). T1, T2 (settings, grids, pla
 | [requirements.md](requirements.md) | Terms, functional and quality requirements, the frozen analysis plans, acceptance criteria, out of scope |
 | [design.md](design.md) | Modules, the two new affordance settings, grids, the numpy forecast, report |
 | [tasks.md](tasks.md) | Ordered tasks with "done when" checks and the gates |
+| [RUN.md](RUN.md) | Tests, the runs in order, artifacts |
 
 ## Goal
 

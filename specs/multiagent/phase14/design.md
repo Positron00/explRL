@@ -6,13 +6,13 @@ Phase 14 is small, so one design document covers both levels.
 
 | Module | New / changed | Contents |
 |---|---|---|
-| `nbs/clue_fix.ipynb` -> `explRL/clue_fix.py` | changed | `trackRecord(a, board, viewer=None)` (with `viewer`: only subtasks the viewer solved); the public check: the result line for every agent and a shared checked set; the two rules sentences |
+| `nbs/clue_fix.ipynb` -> `explRL/clue_fix.py` | changed | `fixSettings(record, check)` (the values as stored; other strings fail), `fixChecked(env, i)` (the checks agent i's known clues use), `trackRecord(a, board, viewer=None)` (with `viewer`: only subtasks the viewer solved); the public check: the result line for every agent and a shared checked set; the two rules sentences |
 | `nbs/clue_text.ipynb` -> `explRL/clue_text.py` | changed | `record` takes `False`, `True` or `'private'`; `check` takes `False`, `True` or `'public'` (no aliases; booleans keep Phase 13 behaviour); under a public check it passes the shared checked set to `known` (`clue_agents` unchanged) |
-| `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | changed | `FIX_ARMS` gains `recordPrivate`, `verifyPublic` (two entries) |
-| `nbs/scale_grid.ipynb` -> `explRL/scale_grid.py` | new | `trustGrid`, `scaleGrid`, `scalePilotGrid`, `TRUST_PLAN`, `SCALE_PLAN` (`fix_grid` would pass 200 lines) |
-| `nbs/scale_report.ipynb` -> `explRL/scale_report.py` | new | `trustSummaries` (publicity and cost effects and their difference), `scaleSummaries` (per-N effects and trends) (`fix_report` is at 181 lines) |
+| `nbs/fix_grid.ipynb` -> `explRL/fix_grid.py` | changed | `FIX_ARMS` and `KIND` gain `recordPrivate`, `verifyPublic` (added after `FIX_PLAN`, whose arms and hash stay Phase 13's); `fixCell(..., liar)` takes False, True or a number of liars |
+| `nbs/scale_grid.ipynb` -> `explRL/scale_grid.py` | new | `trustGrid`, `scaleGrid(seeds, seeds32)`, `scalePilotGrid`, `trustQuick`, `scaleQuick`, `scaleCached`, `scaleEstimate`, `costRule(perCall)`, `TRUST_PLAN`, `SCALE_PLAN` (`fix_grid` would pass 200 lines) |
+| `nbs/scale_report.ipynb` -> `explRL/scale_report.py` | new | `trustLogMetrics`, `trustSummaries` (publicity and cost effects and their difference), `scaleSummaries` (per-N effects and trends), `writeTrust`, `writeScale`, `figScale` (`fix_report` is at 181 lines) |
 | `tools/scale_forecast.py` | new | `run`: the numpy forecast of the baseline trends with N; `score <runs.csv>`: scoring against the Haiku baseline |
-| `nbs/demo_trust.ipynb` | new | quick (fake client); Part A main; Part B pilot and main; cached reruns (`llm`) |
+| `nbs/demo_trust.ipynb` | new | quick (fake client); Part A main; Part B pilot (asserts the forecast exists) and main (re-checks the pilot's invalid band, then runs only the cells `costRule` allows); cached reruns (`llm`) |
 | `nbs/demo_multiagent.ipynb` | changed | a Phase 14 section in `REPORT.md` |
 
 ## The two new settings (`clue_fix`, `clue_text`)
