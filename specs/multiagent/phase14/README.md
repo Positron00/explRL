@@ -1,6 +1,6 @@
 # Plan: Phase 14, what makes trust information pay, and do the fixes scale?
 
-Status: **code done; live runs next** (2026-10-17). T1, T2 (settings, grids, plans, report, demo) and T4 (numpy forecast, frozen) done. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 13](../phase13/README.md) (fixes for Claude teams on the clue board) and the companion preprint's simulation-first workflow (`paper2/`).
+Status: **code done; live runs in progress** (2026-10-17). `TRUST_PLAN` frozen at `b875c5f` (`coopHash(TRUST_PLAN)` = `6d2818ae84c2`) before Part A's run. T1, T2 (settings, grids, plans, report, demo) and T4 (numpy forecast, frozen) done. Part of the multi-agent plan: [../README.md](../README.md). Builds on [Phase 13](../phase13/README.md) (fixes for Claude teams on the clue board) and the companion preprint's simulation-first workflow (`paper2/`).
 
 ## Files in this spec
 
