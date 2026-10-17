@@ -23,12 +23,12 @@ Clue board, blackboard, N = 4, one scripted liar (and the same cells without it)
 
 | | free (harness-computed) | costly (a turn per check) |
 |---|---|---|
-| **public** (everyone sees it) | `record` (Phase 13): each post shows its sender's track record over all solved subtasks | **`verifyPublic`** (new): a `check` whose result is posted to the board; every agent's known clues drop a clue found false |
+| **public** (everyone sees it) | `record` (Phase 13): each post shows its sender's track record over all solved subtasks | **`verifyPublic`** (new): a `check` whose result every agent sees in its next observation; every agent's known clues drop a clue found false |
 | **private** (only the agent sees it) | **`recordPrivate`** (new): each post shows its sender's track record over the subtasks *this agent* solved | `verify` (Phase 13): a `check` whose result only the checker sees |
 
 `record` and `verify` rows are reused from Phase 13 (same cells, cached replies); the baseline cells as well. New calls: 2 arms x 2 (liar, no liar) x 10 seeds x about 140 calls = about 5 600 calls, about $1.70.
 
-Metric: loss recovered, as Phase 13 (A2): 1 - arm's mean honest loss / baseline's, paired on seed. Analysis: the publicity effect (mean of the public arms minus mean of the private arms, in loss recovered) and the cost effect (free minus costly), each with a bootstrap CI over seeds; each new arm against the baseline as in Phase 13.
+Metric: loss recovered, as Phase 13 (A2): 1 - arm's mean honest loss / baseline's, paired on seed. Analysis: the publicity effect (mean of the public arms minus mean of the private arms, in loss recovered) and the cost effect (free minus costly), each with a bootstrap CI over seeds, and their difference (H14-2); each new arm against the baseline as in Phase 13. Mechanism: checks and checks found false; for the private record, how many checked shares stood behind the records agents saw.
 
 ## Part B: team-size sweep
 
@@ -39,16 +39,16 @@ Clue board, blackboard, N = 8, 16, 32 (the board grows with N: 2N + 2 open subta
 | clean | `baseline`, `request` | does the request board's harm persist, grow or vanish with N? |
 | a quarter of the agents liars (2, 4, 8) | `baseline`, `record` | does the track record's benefit hold as liars and posts multiply? |
 
-N = 8 cells for `baseline` and `request` (clean) at seeds 900-904 replay Phase 13's cached replies; everything else is new. Estimate: about 33 000 new calls; at N = 32 prompts are longer (66 open subtasks, many posts), so the cost per call is measured in the pilot. Budget: $40; if the pilot projects more, N = 32 runs 3 seeds instead of 5 (a pre-set rule, not a choice after seeing results).
+N = 8 cells for `baseline` and `request` (clean) at seeds 900-904 replay Phase 13's cached replies; everything else is new. Estimate: about 33 000 new calls; at N = 32 prompts are longer (66 open subtasks, many posts), so the cost per call is measured in the pilot. Budget: $40; if the pilot projects more, N = 32 runs 3 seeds instead of 5, and if that still projects more, stop and ask (a pre-set rule, not a choice after seeing results).
 
-**Numpy forecast first.** The Phase 11 rule agents (no affordances) play the same baseline cells, clean and with a quarter liars, at N = 4, 8, 16, 32 (and 64, for free), 20 seeds. The forecast, frozen and committed before any Part B LLM run: the sign of the change from N = 8 to N = 32 in (a) the clean team's pooled share and (b) the honest agents' loss from liars. Scored afterwards against the Haiku baseline cells with the Phase 13 forecast rule (intervals over seeds).
+**Numpy forecast first.** The Phase 11 rule agents (no affordances) play the same baseline cells, clean and with a quarter liars, at N = 4, 8, 16, 32 (and 64, for free), 20 seeds. The forecast, frozen and committed before any Part B LLM run: the sign of the change from N = 8 to N = 32 in (a) the clean team's pooled share and (b) the honest agents' loss from liars. Scored afterwards against the Haiku baseline cells with the Phase 13 forecast rule: each side's change is the mean at N = 32 minus the mean at N = 8, with a bootstrap interval resampling seeds within each N (boards differ by N, so seeds are not paired); a sign is + or - when the interval excludes 0, else 0.
 
 ## Hypotheses (directions frozen before the runs; exploratory)
 
 | ID | Prediction |
 |---|---|
 | H14-1 | Publicity matters: the public arms recover more of the liar's damage than the private arms (publicity effect above 0) |
-| H14-2 | Cost matters less than publicity: the cost effect (free minus costly) is smaller than the publicity effect |
+| H14-2 | Cost matters less than publicity: the publicity effect minus the cost effect is above 0 |
 | H14-3 | The request board lowers pooled share at every team size (8, 16, 32) |
 | H14-4 | The track record recovers part of the liars' damage at every team size |
 | H14-5 | The numpy forecast gets both baseline trends' signs right |
