@@ -9,7 +9,7 @@ __all__ = ['FIX_ARMS', 'A1', 'A2', 'A3', 'VARIANTS', 'KIND', 'FIX_SEEDS', 'PROFI
            'fixGrid', 'fixPilotGrid', 'profileGrid', 'profilePilotGrid', 'fixQuick', 'profileQuick', 'hbGrid',
            'hbPilotGrid', 'phase11Cells', 'requestKey', 'cellCalls', 'fixEstimate']
 
-# %% ../nbs/fix_grid.ipynb #b35dcc9f
+# %% ../nbs/fix_grid.ipynb #1e7dc0a8
 import copy
 
 from .clue_grid import BOARD, CLUE_SETTINGS, clueCell, clueLiarGrid, clueMainGrid
@@ -28,7 +28,7 @@ KIND = dict(request='affordance', table='affordance', record='affordance', verif
 FIX_SEEDS, PROFILE_SEEDS = range(900, 910), range(5000, 5100)
 FIX_PLAN = dict(
     version=1, frozen=True, model=HAIKU, settings=CLUE_SETTINGS, prices=PRICES, turns=40,
-    arms=dict(A1=list(A1), A2=list(A2), A3=list(A3), world=dict(FIX_ARMS), kind=KIND,
+    arms=dict(A1=list(A1), A2=list(A2), A3=list(A3), world=dict(FIX_ARMS), kind=dict(KIND),
               profile=dict(PROFILE_ARMS)),
     liar=dict(nLiar=1, slot=0, agent='ClueLiar (scripted, Phase 11)'),
     seeds=dict(fix=[900, 909], cached=[900, 904], cachedLiar=[900, 902], pilot=[900, 901], profile=[5000, 5099],
@@ -50,6 +50,8 @@ FIX_PLAN = dict(
         mechanism='asks, checks, checked-false (turn logs); shares per held clue; private facts posted per private fact '
                   'held; votes against the hidden best'),
     nboot=2000, ci=0.95, exploratory=True)
+FIX_ARMS.update(recordPrivate=dict(record='private'), verifyPublic=dict(check='public'))   # Phase 14 (FIX_PLAN keeps
+KIND.update(recordPrivate='affordance', verifyPublic='affordance')                         # Phase 13's arms)
 
 
 def _world(arm, s=CLUE_SETTINGS):
@@ -57,9 +59,10 @@ def _world(arm, s=CLUE_SETTINGS):
 
 
 def fixCell(study, arm, N, seed, liar=False, s=CLUE_SETTINGS, **cfg):
-    "One clue-board cell of an arm (level `<arm>` or `<arm>|liar`); the baseline's world is exactly Phase 11's."
-    kw = dict(nLiar=1) if liar else {}
-    return clueCell(study, arm + '|liar' * liar, N, seed, s=s, channel='blackboard', world=_world(arm, s), **kw, **cfg)
+    """One clue-board cell of an arm (level `<arm>` or `<arm>|liar`); the baseline's world is exactly Phase 11's.
+    liar: False, True (one liar) or the number of liars."""
+    kw = dict(nLiar=int(liar)) if liar else {}
+    return clueCell(study, arm + '|liar' * bool(liar), N, seed, s=s, channel='blackboard', world=_world(arm, s), **kw, **cfg)
 
 
 def fixGrid(s=CLUE_SETTINGS, seeds=FIX_SEEDS):

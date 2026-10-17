@@ -98,4 +98,7 @@ website:
       - fix_report.ipynb
       - demo_fix.ipynb
       - demo_hb.ipynb
+      - scale_grid.ipynb
+      - scale_report.ipynb
+      - demo_trust.ipynb
       - demo_multiagent.ipynb

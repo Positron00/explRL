@@ -7,11 +7,11 @@ Docs: https://Positron00.github.io/explRL/clue_text.html.md"""
 # %% auto #0
 __all__ = ['CLUE_SCHEMA', 'CLUE_RE', 'HINTS', 'TextClueEnv']
 
-# %% ../nbs/clue_text.ipynb #901ca946
+# %% ../nbs/clue_text.ipynb #43d77649
 import re
 
 from .clue_agents import ClueBoard, ClueLead, ClueMessages, candidates, known
-from .clue_fix import fixBoard, fixLines, fixParse, fixRules, fixSchema
+from .clue_fix import fixBoard, fixChecked, fixLines, fixParse, fixRules, fixSchema, fixSettings
 
 _STR = {'type': 'string'}
 CLUE_SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['action', 'target', 'answer', 'clue', 'notes'],
@@ -36,11 +36,13 @@ class TextClueEnv:
 
     def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False):
         """hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3); ask, table,
-        record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations)."""
+        record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations); record 'private'
+        and check 'public': the Phase 14 settings."""
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
-        self.ask, self.table, self.record, self.check = bool(ask), bool(table), bool(record), bool(check)
+        self.ask, self.table, (self.record, self.check) = bool(ask), bool(table), fixSettings(record, check)
         self.SCHEMA, self.checked, self._checks, self._did, self._chan = fixSchema(CLUE_SCHEMA, ask, check), {}, {}, {}, None
+        self.checkedAll, self._told = {}, {}                                  # a public check's results and lines
 
     def rules(self):
         b = self.world
@@ -79,7 +81,7 @@ class TextClueEnv:
         b = self.world
         b.advance(t)
         sug = channel.suggest(i, b) if isinstance(channel, ClueLead) else None   # before known: it may pass clues
-        o, kn = b.observe(i), known(i, b, channel, self.checked.get(i, {}) if self.check else None)
+        o, kn = b.observe(i), known(i, b, channel, fixChecked(self, i))
         self._chan = channel
         self._known[i] = kn
         lines = [f"Turn {t:g}. Your last action earned {o['lastReward']:.2f}.",
@@ -91,7 +93,7 @@ class TextClueEnv:
         if isinstance(channel, ClueBoard):
             view = channel.view(i, t, b)
             shown = set(view)
-            lines.append(fixBoard(self, t, view) if self.table or self.record else
+            lines.append(fixBoard(self, t, view, i) if self.table or self.record else
                          'Clues shared on the board: ' + ('; '.join(
                 f'T{k}: {_fmt(p, r)} (agent {a}, {t - ts:g} turns ago)' for k, xs in view.items() for _, p, r, a, ts in xs) or 'none'))
         elif isinstance(channel, ClueMessages):
