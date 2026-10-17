@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 12: [../phase12/RUN.md](../phase12/RUN.md).
 
-Status 2026-10-16: Track A and Track B run and evaluated; the numpy forecast scored. Earlier status 2026-10-15: code done (T1-T4, T8 and the evaluation code of T10); `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`); the live runs are next (T5 pilots on the Mac, the five Track B runs on Colab).
+Status 2026-10-16: Track A and Track B run and evaluated; the numpy forecast scored; the HiddenBench replication (T12) run. Earlier status 2026-10-15: code done (T1-T4, T8 and the evaluation code of T10); `RL13_PLAN` frozen at `962c4e1` (hash `3e50a4002c7b`); the live runs are next (T5 pilots on the Mac, the five Track B runs on Colab).
 
 ## Prerequisites
 
