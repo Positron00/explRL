@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/local_policy.html.md"""
 # %% auto #0
 __all__ = ['LORA_IDS', 'pickDevice', 'dtypeFor', 'adapterHash', 'promptText', 'encodePair', 'cacheKey', 'LocalPolicy']
 
-# %% ../nbs/local_policy.ipynb #758ad409
+# %% ../nbs/local_policy.ipynb #0e2cc2d7
 import hashlib
 import importlib.util
 import itertools
@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 
 from .clue_policy import asReply, userText
+from .clue_text import CLUE_SCHEMA
 from .llm_client import ResponseCache
 
 LORA_IDS = itertools.count(1)             # vLLM caches LoRA adapters by id: never reuse one
@@ -68,9 +69,10 @@ def cacheKey(model, aHash, text, temperature, maxNew, seed, occurrence=0):
 class LocalPolicy:
     """A policy backed by an open-weight model: Hugging Face batched generation (cuda, mps, cpu) or vLLM (cuda), an
     optional LoRA adapter, an optional reply cache (a ResponseCache directory). Libraries and weights load on first use;
-    `hf` and `tokenizer` reuse a loaded (training) model, `adapterName` selects one of its adapters."""
+    `hf` and `tokenizer` reuse a loaded (training) model, `adapterName` selects one of its adapters. guided (Phase 17, vLLM
+    only): replies sampled under the reply JSON schema (structured outputs)."""
     def __init__(self, model, adapter=None, device='auto', maxNew=160, temperature=1.0, seed=0, cache=None,
-                 engine='auto', gpuShare=0.35, batch=32, hf=None, tokenizer=None, adapterName=None, share=None):
+                 engine='auto', gpuShare=0.35, batch=32, hf=None, tokenizer=None, adapterName=None, share=None, guided=False):
         self.model, self.maxNew, self.temperature, self.seed = model, int(maxNew), float(temperature), int(seed)
         self.device, self.gpuShare, self.batch, self.calls = pickDevice(device), float(gpuShare), int(batch), 0
         cuda = self.device == 'cuda' and importlib.util.find_spec('vllm') is not None
@@ -78,6 +80,9 @@ class LocalPolicy:
         self.cache = ResponseCache(cache) if cache else None
         self.hf, self.tokenizer, self.adapterName, self.llm, self.loraId = hf, tokenizer, adapterName, None, 0
         self.share = share                 # another LocalPolicy whose vLLM engine this one uses (per-role adapters)
+        self.guided = bool(guided)
+        if self.guided and self.engine != 'vllm':
+            raise ValueError('guided (constrained) replies need the vLLM engine')
         self.setAdapter(adapter)
 
     def setAdapter(self, path):
@@ -146,11 +151,22 @@ class LocalPolicy:
         from vllm import SamplingParams
         from vllm.lora.request import LoRARequest
         sps = [SamplingParams(temperature=self.temperature, top_p=1.0, max_tokens=self.maxNew,
-                              seed=self.seed * 1_000_003 + self.calls * 10_007 + n) for n in range(len(texts))]
+                              seed=self.seed * 1_000_003 + self.calls * 10_007 + n, **self._structured()) for n in range(len(texts))]
         lr = LoRARequest(f'a{self.loraId}', self.loraId, self.adapter) if self.adapter else None
         res = self._engine().generate(texts, sps, lora_request=lr, use_tqdm=False)
         return [(o.outputs[0].text, len(o.prompt_token_ids), len(o.outputs[0].token_ids),
                  'max_tokens' if o.outputs[0].finish_reason == 'length' else 'end_turn') for o in res]
+
+    def _structured(self):
+        "SamplingParams keywords for guided replies (vLLM structured outputs; the older guided-decoding name as fallback)."
+        if not self.guided:
+            return {}
+        try:
+            from vllm.sampling_params import StructuredOutputsParams
+            return dict(structured_outputs=StructuredOutputsParams(json=CLUE_SCHEMA))
+        except ImportError:
+            from vllm.sampling_params import GuidedDecodingParams
+            return dict(guided_decoding=GuidedDecodingParams(json=CLUE_SCHEMA))
 
     def _generate(self, texts):
         "-> [(text, prompt tokens, reply tokens, stop reason)]; every request sampled independently."
@@ -161,7 +177,8 @@ class LocalPolicy:
         seen, keys = {}, []
         for t in texts:                    # repeated prompts in one call (a GRPO group) are distinct samples
             seen[t] = seen.get(t, -1) + 1
-            keys.append(cacheKey(self.model, self.aHash, t, self.temperature, self.maxNew, self.seed + self.calls, seen[t]))
+            keys.append(cacheKey(self.model + '|guided' * self.guided, self.aHash, t, self.temperature, self.maxNew,
+                                 self.seed + self.calls, seen[t]))
         got = [self.cache.get(k) if self.cache else None for k in keys]
         miss = [n for n, g in enumerate(got) if g is None]
         for n, r in zip(miss, self._generate([texts[n] for n in miss]) if miss else []):

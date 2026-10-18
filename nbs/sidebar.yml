@@ -108,4 +108,9 @@ website:
       - rl16_grid.ipynb
       - rl16_report.ipynb
       - demo_rl16.ipynb
+      - rl17_grid.ipynb
+      - rl17_update.ipynb
+      - rl17_train.ipynb
+      - rl17_report.ipynb
+      - demo_rl17.ipynb
       - demo_multiagent.ipynb
