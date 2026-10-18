@@ -41,6 +41,7 @@ From the training environment, `nbdev-test --n-workers 0 --flags train nbs/clue_
 | T12 HiddenBench pilot, freeze, main | Mac | `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_hb.ipynb` (pilot; the main section waits for `HB_PLAN` to be frozen; then the same command runs the main and the cached rerun) | measured: pilot $0.10; main $3.46 (12 675 calls); cached rerun identical |
 | Forecast (before T10) | Mac | `python tools/rl_forecast.py $PWD results/multiagent/forecast/numpy.json` (50 s; byte-identical on rerun), then `python tools/forecast_score.py $PWD` (predictions and the retrodiction against Phase 12) | none; done 2026-10-16 |
 | T10 evaluation | Colab, then Mac | the "Phase 13 evaluation" section, then Pack; download and `unzip -o` into `results/multiagent/rl/colab/`; on the Mac from `.venv-train`: `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags train nbs/demo_rl.ipynb` (its Phase 13 cell picks the best arm and runs its cross-play); then score the frozen forecast: `python tools/forecast_score.py $PWD results/multiagent/rl/colab/eval_p13/runs.csv` | measured: about 1.6 GPU hours; cross-play $0.31 |
+| Summary figure (Phases 12-13) | Mac | `python tools/incentive_figure.py $PWD`: clues shared per clue held, solves made without a shared clue and welfare per trained team, each training seed its own row, with Claude Haiku and rule agents on the same boards as references | none |
 
 API spend goes through the Phase 10 client and ledger under the $150 API cap; GPU spend under its own $150 cap.
 
