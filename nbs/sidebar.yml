@@ -105,4 +105,7 @@ website:
       - liar_grid.ipynb
       - liar_report.ipynb
       - demo_liar.ipynb
+      - rl16_grid.ipynb
+      - rl16_report.ipynb
+      - demo_rl16.ipynb
       - demo_multiagent.ipynb

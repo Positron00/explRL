@@ -109,6 +109,11 @@ for a, name in (('credit', 'Credit'), ('credturn', 'Credturn'), ('indpen', 'Indp
         M['Welfare' + name + sn] = f"{S13['main'][f'{a}_s{sd}']['welfare']['mean']:.3f}"
         M['ShareHeld' + name + sn] = f"{S13['info'][f'{a}_s{sd}']['sharePerHeld']['mean']:.2f}"
         M['SoloShare' + name + sn] = f"{S13['info'][f'{a}_s{sd}']['soloShare']['mean'] * 100:.0f}"
+# The loophole fix against the same reward without it (Phase 12's individual run), paired on board seed
+from explRL.llm_report import _paired, _stat
+for sd, sn in ((1, 'One'), (2, 'Two')):
+    ci('IndpenMinusIndividual' + sn, _stat(_paired([r for r in ev13 if r['level'] == f'indpen_s{sd}|main'],
+                                                   [r for r in ev if r['level'] == 'individual|main'], 'welfare')))
 best = max(S13['main'], key=lambda m: S13['main'][m]['welfare']['mean'] if m != 'warm' else -1)
 M['BestWelfare'] = f"{S13['main'][best]['welfare']['mean']:.2f}"
 M['BestGainPct'] = f"{100 * (S13['main'][best]['welfare']['mean'] / S13['main']['warm']['welfare']['mean'] - 1):.0f}"
