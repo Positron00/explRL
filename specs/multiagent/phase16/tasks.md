@@ -1,6 +1,6 @@
 # Tasks: Phase 16
 
-Status (2026-10-17): T1-T3 done (offline; `rl16_grid` 60 lines, `rl16_report` 180; full suite green; the Colab batch cell and its subprocess code checked offline, not on a GPU). Next: T4 (freeze, commit, push), then T5 on Colab.
+Status (2026-10-17): T1-T3 done (offline; `rl16_grid` 60 lines, `rl16_report` 180; full suite green; the Colab batch cell and its subprocess code checked offline, not on a GPU). T4 done (`RL16_PLAN` frozen at `0d0b7dc`, hash `082b3b7c9a31`, pushed). Next: T5 on Colab.
 
 Rules as Phase 15 (notebook first, export, one notebook per test call, modules under 200 lines, offline tests without `anthropic`, `torch` or a GPU; Phase 5-15 cached reruns byte-identical). Gates: no Phase 16 run before `RL16_PLAN` is frozen, committed and pushed; the full analysis only on all nine runs plus the warm start; no API calls.
 

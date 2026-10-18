@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phase 13: [../phase13/RUN.md](../phase13/RUN.md).
 
-Status 2026-10-17: T1-T3 implemented and tested offline; next T4 (freeze `RL16_PLAN`, commit, push), then the Colab batch.
+Status 2026-10-17: T1-T3 implemented and tested offline; T4 done (`RL16_PLAN` frozen at `0d0b7dc`, hash `082b3b7c9a31`); next the Colab batch.
 
 ## Tests
 

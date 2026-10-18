@@ -1,6 +1,6 @@
 # Plan: Phase 16, more training seeds for the incentive result (core)
 
-Status: **implemented, not run** (2026-10-17): T1-T3 done and tested offline; `RL16_PLAN` not yet frozen; no runs. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-13 (RL of a 3B team on the clue board; [../phase13/README.md](../phase13/README.md), Track B).
+Status: **ready to run** (2026-10-17): T1-T4 done; `RL16_PLAN` frozen at `0d0b7dc` (`coopHash(RL16_PLAN)` = `082b3b7c9a31`) and pushed; next: the Colab batch (T5). Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-13 (RL of a 3B team on the clue board; [../phase13/README.md](../phase13/README.md), Track B).
 
 ## Files in this spec
 
