@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **implemented, not run** (2026-10-18): T1-T3 done and tested offline (the trainer equals `trainRL` at its defaults on the tiny model); no plan frozen; step 0 waits for Phase 16. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-16 (RL of a 3B team on the clue board) and Phase 14 (team size with Claude Haiku). Next idea in line: [Phase 18](../phase18/README.md) (stub).
+Status: **pilot ready** (2026-10-18): T1-T3 done and tested offline (the trainer equals `trainRL` at its defaults on the tiny model); `PILOT17_PLAN` frozen at `626bead` (`coopHash(PILOT17_PLAN)` = `f4b4bd036996`) and pushed; the pilot may run on a second account now; step 0 after Phase 16; `RL17_PLAN` not frozen. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-16 (RL of a 3B team on the clue board) and Phase 14 (team size with Claude Haiku). Next idea in line: [Phase 18](../phase18/README.md) (stub).
 
 ## Files in this spec
 
