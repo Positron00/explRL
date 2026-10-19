@@ -7,14 +7,14 @@ Docs: https://Positron00.github.io/explRL/circuit_agent.html.md"""
 # %% auto #0
 __all__ = ['circuitPolicy', 'Saccade', 'circuitAgent', 'CircuitRL']
 
-# %% ../nbs/circuit_agent.ipynb #5bd6ec64
+# %% ../nbs/circuit_agent.ipynb #f8b46b63
 import math
 from dataclasses import dataclass
 import numpy as np
 from .agents import Agent, Policy, RL
 from .circuit import outputs, compassStep, goalStep, jumpProb
 
-# %% ../nbs/circuit_agent.ipynb #367deb88
+# %% ../nbs/circuit_agent.ipynb #a34d01d9
 class circuitPolicy(Policy):
     "Goal weights wG (N,) and compass weights wC (N, N), all in [0, 1]."
     def __init__(self, wG, wC):
@@ -35,7 +35,7 @@ class Saccade:
     size: float      # radians (drawn in degrees, then converted)
     steps: int       # grid steps, at least 1
 
-# %% ../nbs/circuit_agent.ipynb #a4aecaf9
+# %% ../nbs/circuit_agent.ipynb #378238f7
 class circuitAgent(Agent):
     "Agent with integer arena heading a and compass heading c on the nCirc grid."
     def __init__(self, a, policy, rl, params, rng=None):
@@ -74,7 +74,7 @@ class circuitAgent(Agent):
         nuF = outputs(self.policy.wG, self.c, p)['nuF']
         return float(self.rng.wald(p.aF / nuF, p.aF ** 2 / p.sigF ** 2))
 
-# %% ../nbs/circuit_agent.ipynb #12442985
+# %% ../nbs/circuit_agent.ipynb #dff30e5e
 class CircuitRL(RL):
     "Hebbian learning of compass and goal weights, with switches for each update and for jumps."
     def __init__(self, policy, learnC=True, learnG=True, jumps=True):

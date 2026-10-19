@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_rl.html.md"""
 # %% auto #0
 __all__ = ['RL13_DEFAULTS', 'RLConfig', 'runFields', 'configHash', 'adapterNames', 'stepSeeds', 'trainRL']
 
-# %% ../nbs/clue_rl.ipynb #49c4dfea
+# %% ../nbs/clue_rl.ipynb #ed9ee2f1
 import hashlib
 import json
 import time

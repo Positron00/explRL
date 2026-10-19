@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/profile_runs.html.md"""
 # %% auto #0
 __all__ = ['ARMS', 'SOLO_SYSTEM', 'NAN', 'profileCell', 'runProfile']
 
-# %% ../nbs/profile_runs.ipynb #70b404b6
+# %% ../nbs/profile_runs.ipynb #6edaa63c
 import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path

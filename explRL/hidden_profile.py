@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/hidden_profile.html.md"""
 __all__ = ['POST_SCHEMA', 'DISSENT', 'profileTask', 'factTotals', 'voteSchema', 'parseVote', 'ProfileEnv', 'soloCeiling',
            'DOMAINS']
 
-# %% ../nbs/hidden_profile.ipynb #7fa6ea70
+# %% ../nbs/hidden_profile.ipynb #d147aa67
 import numpy as np
 
 from .profile_domains import DOMAINS
@@ -51,7 +51,7 @@ def factTotals(task, idx=None):
         t[task['facts'][k]['option']] += task['facts'][k]['sign']
     return t
 
-# %% ../nbs/hidden_profile.ipynb #518cb617
+# %% ../nbs/hidden_profile.ipynb #84432126
 _STR = {'type': 'string'}
 POST_SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['kind', 'fact', 'text', 'notes'],
                'properties': {'kind': {'type': 'string', 'enum': ['fact', 'opinion']}, 'fact': _STR, 'text': _STR,

@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/rl17_report.html.md"""
 __all__ = ['METRICS', 'RUNS', 'boards', 'honest', 'curves', 'gains', 'haikuRefs', 'rl17Summaries', 'writeRL17', 'figRL17',
            'syntheticRows17']
 
-# %% ../nbs/rl17_report.ipynb #5ac2e34a
+# %% ../nbs/rl17_report.ipynb #63299dc6
 import matplotlib
 
 matplotlib.use('Agg')
@@ -74,7 +74,7 @@ def haikuRefs(clue, scale, fix):
         out[N] = dict(welfare=mean(cl, 'welfare'), pooledShare=mean(cl, 'pooledShare'), honestLoss=float(np.mean(hl)) if hl else NAN)
     return out
 
-# %% ../nbs/rl17_report.ipynb #f3f96175
+# %% ../nbs/rl17_report.ipynb #e25bf47e
 def rl17Summaries(rows, s0rows=None, refs=None, nboot=2000):
     """RL17_PLAN: curves; per run the gains; H17-1 to H17-5 (exact tests over runs), Holm within each family,
     hierarchical intervals; the warm start's rows may come from step 0 (s0rows)."""
@@ -104,7 +104,7 @@ def rl17Summaries(rows, s0rows=None, refs=None, nboot=2000):
     per = {r: dict(gain4=_m(g(r, 4)), gain32=_m(g(r, 32)), pooled32=_m(g(r, 32, 'pooledShare'))) for r in runs}
     return dict(curves=curves(rows, ['warm'] + runs), runs=per, hyp=H, refs=refs or {})
 
-# %% ../nbs/rl17_report.ipynb #2cbc3aaa
+# %% ../nbs/rl17_report.ipynb #507296a7
 def _g(x, d=3):
     return 'n/a' if x is None or x != x else f'{x:.{d}f}'
 

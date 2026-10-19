@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/tiny_model.html.md"""
 # %% auto #0
 __all__ = ['tinyModel']
 
-# %% ../nbs/tiny_model.ipynb #685bd685
+# %% ../nbs/tiny_model.ipynb #ba3ae022
 def tinyModel(d, vocab=400):
     "A tiny random Qwen2-style model with a byte-level BPE tokenizer and a chat template, saved to d (no download; smoke tests)."
     from pathlib import Path

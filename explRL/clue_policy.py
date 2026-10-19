@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_policy.html.md"""
 # %% auto #0
 __all__ = ['USAGE0', 'historyBlocks', 'renderPrompt', 'userText', 'parseReply', 'asReply', 'scriptedPolicy', 'claudePolicy']
 
-# %% ../nbs/clue_policy.ipynb #316f29bf
+# %% ../nbs/clue_policy.ipynb #298d2959
 import json
 from concurrent.futures import ThreadPoolExecutor
 

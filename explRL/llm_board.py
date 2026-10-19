@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_board.html.md"""
 # %% auto #0
 __all__ = ['TextBoardEnv']
 
-# %% ../nbs/llm_board.ipynb #ead4c4b7
+# %% ../nbs/llm_board.ipynb #0f50f3c8
 from .board_agents import BoardLead, ClaimBoard
 from .harness import MessageBus
 from .llm_env import BOARD_SCHEMA

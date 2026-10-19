@@ -8,10 +8,10 @@ Docs: https://Positron00.github.io/explRL/circuit.html.md"""
 __all__ = ['grid', 'rEB', 'rFB', 'fbNorm', 'goalStats', 'sinGoal', 'outputs', 'ringActivity', 'jumpProb', 'hebb', 'antiHebbGoal',
            'compassStep', 'goalStep']
 
-# %% ../nbs/circuit.ipynb #4fca6d5d
+# %% ../nbs/circuit.ipynb #6cc97ee9
 import numpy as np
 
-# %% ../nbs/circuit.ipynb #e3802ae3
+# %% ../nbs/circuit.ipynb #461e41ad
 def grid(N):
     "Grid headings in radians for indices 0..N-1."
     return 2 * np.pi * np.arange(N) / N
@@ -29,7 +29,7 @@ def fbNorm(N):
     "Normalization D in Eq. 30."
     return float((rFB(0, N) ** 2).sum())
 
-# %% ../nbs/circuit.ipynb #28fb49e7
+# %% ../nbs/circuit.ipynb #8e775bae
 def goalStats(wG):
     "Circular mean angle, resultant length, weight sum, and strength from goal weights wG."
     N = len(wG)
@@ -55,7 +55,7 @@ def outputs(wG, c, p):
     dS = 0.5 * (1 + rR - rL)
     return dict(dS=dS, nuF=max(rF, 0.0) + p.BF, rF=rF)
 
-# %% ../nbs/circuit.ipynb #2a4d6103
+# %% ../nbs/circuit.ipynb #682735cc
 def ringActivity(a, N, symmetric):
     "Ring-neuron activity at arena heading a (one or two bumps)."
     act = np.zeros(N)

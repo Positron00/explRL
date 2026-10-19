@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_env.html.md"""
 # %% auto #0
 __all__ = ['FORAGE_SCHEMA', 'BOARD_SCHEMA', 'locationNames', 'TextForagingEnv']
 
-# %% ../nbs/llm_env.ipynb #888510a4
+# %% ../nbs/llm_env.ipynb #eab5d4d8
 import math
 
 import numpy as np

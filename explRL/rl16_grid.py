@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl16_grid.html.md"""
 # %% auto #0
 __all__ = ['RL16_ARMS', 'RL16_RUNS', 'RL16_REUSED', 'RL16_ALL', 'RL16_PLAN', 'rl16Name', 'rl16Config', 'rl16Suite']
 
-# %% ../nbs/rl16_grid.ipynb #57e89f7b
+# %% ../nbs/rl16_grid.ipynb #6824a17d
 from .clue_rl import RLConfig
 from .coop_grid import MAIN_SEEDS, RL13_ARMS, RL13_PLAN, RL_PLAN, coopHash, evalSuite
 

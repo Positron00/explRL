@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl_control.html.md"""
 # %% auto #0
 __all__ = ['nanMean', 'warmLr', 'nextLr', 'stepLine', 'progressBar', 'haltReason', 'invalidShare', 'jumpGuard', 'microBatches']
 
-# %% ../nbs/rl_control.ipynb #287d441b
+# %% ../nbs/rl_control.ipynb #bd539ae9
 import numpy as np
 
 

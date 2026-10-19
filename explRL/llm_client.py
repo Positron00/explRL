@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_client.html.md"""
 # %% auto #0
 __all__ = ['RETRIES', 'RetryCounter', 'loadEnvFile', 'requestKey', 'LLMReply', 'ResponseCache', 'LLMClient']
 
-# %% ../nbs/llm_client.ipynb #f14353aa
+# %% ../nbs/llm_client.ipynb #6981ecc6
 import hashlib
 import json
 import logging

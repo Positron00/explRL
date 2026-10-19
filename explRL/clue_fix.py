@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_fix.html.md"""
 __all__ = ['FIX', 'FIX_RULES', 'fixOptions', 'fixSettings', 'fixChecked', 'fixSchema', 'trackRecord', 'fixRules', 'fixBoard',
            'fixLines', 'fixParse']
 
-# %% ../nbs/clue_fix.ipynb #32491b5a
+# %% ../nbs/clue_fix.ipynb #f7732090
 import copy
 import re
 

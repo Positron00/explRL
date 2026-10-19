@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/llm_report.html.md"""
 __all__ = ['NAN', 'mainTable', 'harnessBenefit', 'sizeContrast', 'armTable', 'budgetTable', 'interfaceTable', 'summaries',
            'writeReport']
 
-# %% ../nbs/llm_report.ipynb #b2d8819a
+# %% ../nbs/llm_report.ipynb #bd72c7a8
 import math
 
 import numpy as np

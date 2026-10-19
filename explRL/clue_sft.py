@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/clue_sft.html.md"""
 __all__ = ['teacherNote', 'teacherReply', 'sftExamples', 'SFTConfig', 'libVersions', 'loraConfig', 'loadModel', 'trainSFT',
            'mergeAdapter', 'warmCheck']
 
-# %% ../nbs/clue_sft.ipynb #9159f7e3
+# %% ../nbs/clue_sft.ipynb #6211e902
 import json
 import time
 from dataclasses import asdict, dataclass

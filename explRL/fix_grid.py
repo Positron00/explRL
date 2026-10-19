@@ -9,7 +9,7 @@ __all__ = ['FIX_ARMS', 'A1', 'A2', 'A3', 'VARIANTS', 'KIND', 'FIX_SEEDS', 'PROFI
            'fixGrid', 'fixPilotGrid', 'profileGrid', 'profilePilotGrid', 'fixQuick', 'profileQuick', 'hbGrid',
            'hbPilotGrid', 'phase11Cells', 'requestKey', 'cellCalls', 'fixEstimate']
 
-# %% ../nbs/fix_grid.ipynb #1e7dc0a8
+# %% ../nbs/fix_grid.ipynb #930d3eff
 import copy
 
 from .clue_grid import BOARD, CLUE_SETTINGS, clueCell, clueLiarGrid, clueMainGrid

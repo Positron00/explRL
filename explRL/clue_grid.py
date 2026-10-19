@@ -9,7 +9,7 @@ __all__ = ['CHANNELS', 'CLUE_SETTINGS', 'BOARD', 'CLUE_PLAN', 'CLUE_GRIDS', 'CLU
            'chooseClueSettings', 'sweepIncentives', 'cluePilotGrid', 'clueMainGrid', 'clueNumpyGrid', 'clueFramingGrid',
            'clueLiarGrid', 'clueEffortGrid', 'clueScaleGrid', 'clueQuick']
 
-# %% ../nbs/clue_grid.ipynb #aa73e47a
+# %% ../nbs/clue_grid.ipynb #5efc6ac8
 import hashlib
 import json
 

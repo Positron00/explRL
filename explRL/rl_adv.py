@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl_adv.html.md"""
 # %% auto #0
 __all__ = ['wrongTimes', 'trainingReturns', 'groupAdvantages', 'turnRewards', 'rewardsToGo', 'turnAdvantages', 'stepSamples']
 
-# %% ../nbs/rl_adv.ipynb #d73aa45e
+# %% ../nbs/rl_adv.ipynb #5d2d96d2
 import numpy as np
 
 

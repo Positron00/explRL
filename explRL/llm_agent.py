@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_agent.html.md"""
 # %% auto #0
 __all__ = ['FRAMING', 'BELIEF_SCHEMA', 'MEMORY', 'LLMMember', 'elicitBeliefs', 'BoardLiar', 'ScriptedLiarText', 'runTurns']
 
-# %% ../nbs/llm_agent.ipynb #ea4522b9
+# %% ../nbs/llm_agent.ipynb #95f3d082
 import heapq
 import math
 

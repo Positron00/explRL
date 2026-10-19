@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_report.html.md"""
 # %% auto #0
 __all__ = ['CH', 'INFO', 'summaries', 'writeReport', 'writeFigures']
 
-# %% ../nbs/clue_report.ipynb #8bc697e6
+# %% ../nbs/clue_report.ipynb #a235eb2e
 import matplotlib
 
 matplotlib.use('Agg')

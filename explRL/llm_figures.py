@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_figures.html.md"""
 # %% auto #0
 __all__ = ['COLORS', 'figWelfare', 'figModel', 'figTokens', 'figNumpy', 'figArms', 'figTeamTotal', 'writeFigures']
 
-# %% ../nbs/llm_figures.ipynb #64beafe3
+# %% ../nbs/llm_figures.ipynb #f2ada2b0
 import matplotlib
 
 matplotlib.use('Agg')

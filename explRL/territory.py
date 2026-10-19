@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/territory.html.md"""
 # %% auto #0
 __all__ = ['homeRanges', 'squadHomes', 'TerritoryBandit', 'homeShare']
 
-# %% ../nbs/territory.ipynb #702f1eb4
+# %% ../nbs/territory.ipynb #6c57f759
 from collections import deque
 
 import numpy as np

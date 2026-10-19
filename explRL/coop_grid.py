@@ -9,7 +9,7 @@ __all__ = ['MODELS', 'TRACKA', 'TRACKA_PLAN', 'LOCAL', 'MAIN_SEEDS', 'RL_PLAN', 
            'trackAGrid', 'trackAPilotGrid', 'trackAQuick', 'evalCell', 'evalSuite', 'coopHash', 'rl13Name',
            'rl13Config', 'rl13Suite']
 
-# %% ../nbs/coop_grid.ipynb #e49b678e
+# %% ../nbs/coop_grid.ipynb #5b741e54
 import hashlib
 import json
 from dataclasses import asdict

@@ -10,7 +10,7 @@ __all__ = ['SIZES', 'BIG_SEEDS', 'STEP0_MODELS', 'RL17_DEFAULTS', 'BASE17', 'RL1
            'runFields17', 'configHash17', 'rl17Config', 'pilotConfig', 'pilotChoice', 'chosenRecipe', 'projectHours',
            'claim']
 
-# %% ../nbs/rl17_grid.ipynb #7d582f1f
+# %% ../nbs/rl17_grid.ipynb #00ce6344
 import hashlib
 import json
 import os
@@ -40,7 +40,7 @@ def teamSizeSuite(models):
             cells += [evalCell(m, f'n{N}liar', 'blackboard', N, sd, nLiar=N // 4) for sd in BIG_SEEDS]
     return cells
 
-# %% ../nbs/rl17_grid.ipynb #794e66bb
+# %% ../nbs/rl17_grid.ipynb #e4d23b4d
 @dataclass
 class RL17Config(RLConfig):
     guided: bool = False        # replies constrained to the reply schema while sampling (vLLM structured outputs)
@@ -64,7 +64,7 @@ def configHash17(cfg):
     d = {k: v for k, v in runFields17(cfg).items() if k not in ('out', 'device', 'ckptEvery', 'microBatch', 'steps', 'gradCkpt')}
     return hashlib.sha256(json.dumps(d, sort_keys=True).encode()).hexdigest()[:12]
 
-# %% ../nbs/rl17_grid.ipynb #120c9555
+# %% ../nbs/rl17_grid.ipynb #e54bef82
 BASE17 = dict(scheme='credit', wrongPenalty=2.5, haltJump=0.15, guided=True, turns=20)   # credit, loophole priced
 RL17_ARMS = dict(r17mix=dict(mixN=((4, 0.5), (8, 0.5)), liarShare=0.25), r17four=dict(mixN=((4, 1.0),), liarShare=0.0))
 PILOT17 = dict(p17a=dict(epochs=1, clip=None, kl=0.04, klTarget=0.003),
@@ -139,7 +139,7 @@ def projectHours(stepSeconds, steps=MAIN_STEPS, seeds=RL17_SEEDS, fourRatio=2 / 
     mix = stepSeconds * steps / 3600
     return dict(r17mix=mix, r17four=mix * fourRatio, total=seeds['r17mix'] * mix + seeds['r17four'] * mix * fourRatio)
 
-# %% ../nbs/rl17_grid.ipynb #5f4657a3
+# %% ../nbs/rl17_grid.ipynb #3466ae05
 def claim(runDir, host, takeover=()):
     """Claim runDir for `host` (claim.json): free -> claimed; ours -> True; another host's -> False unless the run's name
     is in `takeover`. A folder with progress but no claim (a run started by a cell without claiming) counts as held by

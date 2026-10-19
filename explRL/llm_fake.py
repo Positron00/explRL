@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_fake.html.md"""
 # %% auto #0
 __all__ = ['FakeClient', 'fakeReply']
 
-# %% ../nbs/llm_fake.ipynb #d7dec875
+# %% ../nbs/llm_fake.ipynb #6bbe29fb
 import hashlib
 import json
 import re

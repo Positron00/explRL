@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_train.html.md"""
 # %% auto #0
 __all__ = ['BOARD', 'ClueEpisodes', 'exportTrajectories', 'readTrajectories', 'teacherAction']
 
-# %% ../nbs/clue_train.ipynb #f91c2144
+# %% ../nbs/clue_train.ipynb #86b0e802
 import heapq
 import json
 from pathlib import Path

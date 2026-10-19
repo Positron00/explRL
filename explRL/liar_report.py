@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/liar_report.html.md"""
 # %% auto #0
 __all__ = ['MEASURES', 'TERMS', 'mechanics', 'lossAccount', 'traceSummaries', 'writeTrace', 'figTrace']
 
-# %% ../nbs/liar_report.ipynb #78bc9876
+# %% ../nbs/liar_report.ipynb #f5d4e669
 import matplotlib
 
 matplotlib.use('Agg')
@@ -96,7 +96,7 @@ def lossAccount(clean, liar):
     T['g'] = -sum(v / dL for k, v in sL.items() if k not in sC)
     return dict(T, total=sum(T.values()), loss=clean.rows[0]['welfareHonest'] - liar.rows[0]['welfareHonest'])
 
-# %% ../nbs/liar_report.ipynb #694d42fc
+# %% ../nbs/liar_report.ipynb #a1345478
 def traceSummaries(haiku, numpy, variants=None):
     """TRACE_PLAN: per runner and N the measures, the terms and the honest loss (mean, CI, per seed); their changes
     N 8 -> 32 (and, secondary, N 16 and 32 pooled against N 8); Haiku's change minus numpy's; H15-1 to H15-4. haiku, numpy: {key: TraceRun}; variants: {name: rows}."""
@@ -131,7 +131,7 @@ def traceSummaries(haiku, numpy, variants=None):
                    supported=any(x['honestLoss']['change']['sign'] == hc['loss']['sign'] for x in S['variants'].values())))
     return S
 
-# %% ../nbs/liar_report.ipynb #6f5ece67
+# %% ../nbs/liar_report.ipynb #30a82af7
 def _g(x, d=2):
     return 'n/a' if x is None or x != x else f'{x:.{d}f}'
 

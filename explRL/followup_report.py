@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/followup_report.html.md"""
 __all__ = ['HAIKU', 'SONNET', 'hardTable', 'effortTable', 'roundsNumpyTable', 'roundsLLMTable', 'summaries', 'writeReport',
            'figBars', 'figRounds', 'writeFigures']
 
-# %% ../nbs/followup_report.ipynb #9c02f7b2
+# %% ../nbs/followup_report.ipynb #4a04e565
 import matplotlib
 
 matplotlib.use('Agg')

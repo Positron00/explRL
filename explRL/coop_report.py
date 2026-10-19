@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/coop_report.html.md"""
 # %% auto #0
 __all__ = ['SUGGEST', 'KNOWN', 'MECH', 'logMetrics', 'trackASummaries', 'writeTrackA', 'figTrackA']
 
-# %% ../nbs/coop_report.ipynb #a0bb2774
+# %% ../nbs/coop_report.ipynb #f35bb187
 import re
 
 import matplotlib

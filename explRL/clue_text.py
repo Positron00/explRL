@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_text.html.md"""
 # %% auto #0
 __all__ = ['CLUE_SCHEMA', 'CLUE_RE', 'HINTS', 'TextClueEnv']
 
-# %% ../nbs/clue_text.ipynb #43d77649
+# %% ../nbs/clue_text.ipynb #02cdb27f
 import re
 
 from .clue_agents import ClueBoard, ClueLead, ClueMessages, candidates, known

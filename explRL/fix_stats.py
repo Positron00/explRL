@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/fix_stats.html.md"""
 # %% auto #0
 __all__ = ['bootStat', 'gapClosed', 'lossRecovered', 'holmFamily']
 
-# %% ../nbs/fix_stats.ipynb #237f7036
+# %% ../nbs/fix_stats.ipynb #fdf378f3
 import numpy as np
 
 from .bench_stats import holm, signFlipP

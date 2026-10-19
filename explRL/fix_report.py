@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/fix_report.html.md"""
 # %% auto #0
 __all__ = ['CHECK', 'KIND', 'COLORS', 'MECH', 'P11', 'TITLES', 'fixLogMetrics', 'fixSummaries', 'writeFix', 'figFix']
 
-# %% ../nbs/fix_report.ipynb #a0a88873
+# %% ../nbs/fix_report.ipynb #29481c25
 import json
 import re
 

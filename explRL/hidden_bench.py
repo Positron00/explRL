@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/hidden_bench.html.md"""
 # %% auto #0
 __all__ = ['HB_PATH', 'hbItems', 'hbTask', 'HBEnv', 'hbSolo']
 
-# %% ../nbs/hidden_bench.ipynb #3f04754f
+# %% ../nbs/hidden_bench.ipynb #8c9e8fa3
 import json
 from pathlib import Path
 

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_roll.html.md"""
 # %% auto #0
 __all__ = ['SUGGEST', 'Rollout', 'rollout', 'coopMetrics', 'coopRows', 'runEval', 'evalModels']
 
-# %% ../nbs/clue_roll.ipynb #213db4e6
+# %% ../nbs/clue_roll.ipynb #bc6487d6
 import json
 import re
 import time

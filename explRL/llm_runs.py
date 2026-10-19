@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'DELTA', 'LLMConfig', 'setup', 'taskMetrics', 'llmStats', 'runLLM', 'makeClient', 'cellRow', 'runLLMCell']
 
-# %% ../nbs/llm_runs.ipynb #9c333a25
+# %% ../nbs/llm_runs.ipynb #1fe0f9f7
 import json
 import os
 import time

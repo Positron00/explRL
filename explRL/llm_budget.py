@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/llm_budget.html.md"""
 # %% auto #0
 __all__ = ['PRICES', 'TOKEN_PROFILE', 'USAGE', 'BudgetExceeded', 'costOf', 'estimateCost', 'maxCallCost', 'Budget']
 
-# %% ../nbs/llm_budget.ipynb #eb522cf8
+# %% ../nbs/llm_budget.ipynb #41ef7653
 import fcntl
 import json
 from pathlib import Path

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/taskboard.html.md"""
 # %% auto #0
 __all__ = ['OPS', 'Puzzle', 'makePuzzle', 'Task', 'TaskBoardEnv', 'TaskBoardSim']
 
-# %% ../nbs/taskboard.ipynb #3b3eea14
+# %% ../nbs/taskboard.ipynb #8a869fc1
 from dataclasses import dataclass
 
 import numpy as np

@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/liar_trace.html.md"""
 __all__ = ['TraceRun', 'Entry', 'VARIANTS', 'falseOpen', 'Tracer', 'knownFirst', 'VariantAgent', 'CacheMiss', 'cacheOnlyClient',
            'traceRun', 'traceCells']
 
-# %% ../nbs/liar_trace.ipynb #ff30dbe0
+# %% ../nbs/liar_trace.ipynb #382f03de
 import multiprocessing as mp
 from collections import namedtuple
 from concurrent.futures import ProcessPoolExecutor
@@ -56,7 +56,7 @@ class Tracer:
                               len(falseOpen(world, t)), len(world.open)))
         return m.event(world, t)
 
-# %% ../nbs/liar_trace.ipynb #a6154067
+# %% ../nbs/liar_trace.ipynb #45670aa5
 def knownFirst(i, b, channel):
     "known() on the blackboard with the earliest sighting winning; own clues still win."
     if not isinstance(channel, ClueBoard):
@@ -127,7 +127,7 @@ class VariantAgent(RuleAgent):
             return ('submit', int(c[int(self.rng.integers(len(c)))]))
         return ('wait', None)
 
-# %% ../nbs/liar_trace.ipynb #465493bb
+# %% ../nbs/liar_trace.ipynb #1f00f491
 class CacheMiss(RuntimeError):
     "A request the response cache does not hold (the cache-only client never calls the API)."
 

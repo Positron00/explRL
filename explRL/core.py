@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/core.html.md"""
 # %% auto #0
 __all__ = ['loadAgent', 'loadEnv', 'loadPrestructuredAgent', 'loadCircuitAgent']
 
-# %% ../nbs/00_core.ipynb #8e74794d
+# %% ../nbs/00_core.ipynb #1c2059c6
 import numpy as np
 from .params import Params
 from .basis import vonMisesBasis
@@ -18,7 +18,7 @@ from .circuit import sinGoal
 from .circuit_agent import circuitPolicy, circuitAgent, CircuitRL
 
 
-# %% ../nbs/00_core.ipynb #53563d02
+# %% ../nbs/00_core.ipynb #6cc36234
 def loadAgent(params=None, goal=None, seed=None):
     'Build a flexiblePolicy, PolicyGradientRL, and flexibleAgent at a random heading.'
     if params is None:

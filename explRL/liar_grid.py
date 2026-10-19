@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/liar_grid.html.md"""
 __all__ = ['FORECAST_N', 'FORECAST_SEEDS', 'D_N', 'TRACE_PLAN', 'traceGrid', 'forecastCells', 'liarShareGrid', 'nChange',
            'numpyChanges', 'liarForecast']
 
-# %% ../nbs/liar_grid.ipynb #0a16c7a7
+# %% ../nbs/liar_grid.ipynb #836390c9
 import numpy as np
 
 from .clue_grid import CLUE_SETTINGS, _board, clueCell

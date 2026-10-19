@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/followup_grid.html.md"""
 __all__ = ['FW', 'BETAS', 'SEEDS', 'FOLLOWUP_PLAN', 'runFollowupCell', 'followupHash', 'hardPilotGrid', 'chooseHard', 'hardGrid',
            'effortGrid', 'roundsNumpyGrid', 'chooseBeta', 'roundsGrid', 'followupQuick']
 
-# %% ../nbs/followup_grid.ipynb #2b97122f
+# %% ../nbs/followup_grid.ipynb #ae0b7c9e
 import copy
 import hashlib
 import json

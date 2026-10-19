@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/profile_domains.html.md"""
 # %% auto #0
 __all__ = ['DOMAINS']
 
-# %% ../nbs/profile_domains.ipynb #b3552669
+# %% ../nbs/profile_domains.ipynb #bb5f243c
 DOMAINS = dict(   # per domain: option names, the decision, >= 12 positive and >= 6 negative fact templates, the rule-out
     hiring=dict(
         names=['Avery', 'Blake', 'Casey', 'Devon', 'Ellis', 'Finley', 'Harper', 'Jordan'], noun='candidate',

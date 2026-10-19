@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl17_train.html.md"""
 # %% auto #0
 __all__ = ['makePolicies17', 'trainRL17']
 
-# %% ../nbs/rl17_train.ipynb #ed408695
+# %% ../nbs/rl17_train.ipynb #5f9e40db
 import json
 import time
 from pathlib import Path

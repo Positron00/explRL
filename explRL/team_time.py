@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/team_time.html.md"""
 # %% auto #0
 __all__ = ['teamRates', 'teamColumns', 'marginalGain', 'teamRateCell', 'teamRateGrids']
 
-# %% ../nbs/team_time.ipynb #5787ac00
+# %% ../nbs/team_time.ipynb #5d2679ac
 import math
 
 import numpy as np

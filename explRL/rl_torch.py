@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/rl_torch.html.md"""
 __all__ = ['replyLogps', 'saveMemory', 'freeGPU', 'policyUpdate', 'makePolicies', 'probeLogps', 'probeKL', 'snapshot', 'restore',
            'saveCheckpoint', 'loadCheckpoint']
 
-# %% ../nbs/rl_torch.ipynb #62dcc170
+# %% ../nbs/rl_torch.ipynb #38a9faa7
 import json
 from pathlib import Path
 

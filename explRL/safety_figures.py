@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/safety_figures.html.md"""
 # %% auto #0
 __all__ = ['KINDS', 'CHANS', 'DEFS', 'safetyFigures']
 
-# %% ../nbs/safety_figures.ipynb #522a6a0e
+# %% ../nbs/safety_figures.ipynb #75826792
 import matplotlib.pyplot as plt
 import numpy as np
 

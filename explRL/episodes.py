@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/episodes.html.md"""
 # %% auto #0
 __all__ = ['LEVELS', 'ARMS', 'LevelBandit', 'episodeRow', 'runEpisodes']
 
-# %% ../nbs/episodes.ipynb #e5cfed01
+# %% ../nbs/episodes.ipynb #5a2288b5
 import numpy as np
 
 from .bench_metrics import discoveries, freeRiding

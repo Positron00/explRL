@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/rl_report.html.md"""
 # %% auto #0
 __all__ = ['INFO', 'SCHEMES', 'ARM', 'armSeed', 'renameModel', 'rlSummaries', 'bestArm', 'writeRL', 'writeRLFigures']
 
-# %% ../nbs/rl_report.ipynb #10409ea8
+# %% ../nbs/rl_report.ipynb #e7a16120
 import re
 
 import matplotlib

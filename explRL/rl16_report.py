@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/rl16_report.html.md"""
 __all__ = ['METRICS', 'NEW', 'boardValues', 'runValues', 'permTest', 'signFlip', 'hierBoot', 'rl16Summaries', 'writeRL16',
            'figRL16', 'syntheticRows']
 
-# %% ../nbs/rl16_report.ipynb #08215928
+# %% ../nbs/rl16_report.ipynb #90a6b682
 import itertools
 
 import matplotlib
@@ -82,7 +82,7 @@ def hierBoot(groups, stat, nboot=2000, seed=0):
     out = out[np.isfinite(out)]
     return [float(np.percentile(out, 2.5)), float(np.percentile(out, 97.5))] if len(out) else [NAN, NAN]
 
-# %% ../nbs/rl16_report.ipynb #bba3c1a7
+# %% ../nbs/rl16_report.ipynb #42b1c0a5
 def rl16Summaries(rows12, rows13, rows16, nboot=2000):
     """RL16_PLAN: per run its values and gain; H16-1 to H16-4 (exact tests, Holm over the primary three, hierarchical
     intervals); the claim verdicts; the drift count; per arm and metric the seed standard deviation."""
@@ -116,7 +116,7 @@ def rl16Summaries(rows12, rows13, rows16, nboot=2000):
                       between=float(np.mean(arm(m, 'indpen')) - np.mean(arm(m, 'individual')))) for m in METRICS}
     return dict(runs=runs, hyp=H, claims=claims, drift=int(drift), spread=spread)
 
-# %% ../nbs/rl16_report.ipynb #569cb12b
+# %% ../nbs/rl16_report.ipynb #933874c0
 def _g(x, d=3):
     return 'n/a' if x is None or x != x else f'{x:.{d}f}'
 

@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_runs.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'BOARD_KEYS', 'clueSetup', 'clueMetrics', 'runClueNumpy', 'runClue', 'runClueAny']
 
-# %% ../nbs/clue_runs.ipynb #7bf48f6f
+# %% ../nbs/clue_runs.ipynb #0d610cae
 import numpy as np
 
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent

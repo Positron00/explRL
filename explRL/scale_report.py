@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/scale_report.html.md"""
 __all__ = ['RECORD', 'TRUST', 'MECH', 'trustLogMetrics', 'trustSummaries', 'scaleSummaries', 'writeTrust', 'writeScale',
            'figScale']
 
-# %% ../nbs/scale_report.ipynb #fd6f8155
+# %% ../nbs/scale_report.ipynb #db6eae44
 import re
 
 import matplotlib

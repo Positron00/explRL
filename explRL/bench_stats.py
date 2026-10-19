@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/bench_stats.html.md"""
 # %% auto #0
 __all__ = ['NAN', 'bootCI', 'signFlipP', 'holm', 'cohenDz', 'scalingFit']
 
-# %% ../nbs/bench_stats.ipynb #97ba8925
+# %% ../nbs/bench_stats.ipynb #0755cd56
 import numpy as np
 
 NAN = float('nan')

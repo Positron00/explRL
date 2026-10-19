@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clue_agents.html.md"""
 # %% auto #0
 __all__ = ['ClueBoard', 'ClueMessages', 'ClueLead', 'known', 'candidates', 'RuleAgent', 'ClueLiar']
 
-# %% ../nbs/clue_agents.ipynb #45c524ff
+# %% ../nbs/clue_agents.ipynb #d340f3bd
 from collections import defaultdict
 
 from .multi import Outcome

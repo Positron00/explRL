@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/clueboard.html.md"""
 # %% auto #0
 __all__ = ['Subtask', 'ClueBoardEnv']
 
-# %% ../nbs/clueboard.ipynb #13d12264
+# %% ../nbs/clueboard.ipynb #7c49a397
 from dataclasses import dataclass
 
 import numpy as np

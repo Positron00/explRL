@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/cluetask.html.md"""
 # %% auto #0
 __all__ = ['PRIMES', 'CLUE_PAIRS', 'primeSets', 'ClueTask', 'makeClueTask']
 
-# %% ../nbs/cluetask.ipynb #b660457a
+# %% ../nbs/cluetask.ipynb #afa744d6
 import math
 from dataclasses import dataclass
 from itertools import combinations

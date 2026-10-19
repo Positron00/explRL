@@ -7,7 +7,7 @@ Docs: https://Positron00.github.io/explRL/local_policy.html.md"""
 # %% auto #0
 __all__ = ['LORA_IDS', 'pickDevice', 'dtypeFor', 'adapterHash', 'promptText', 'encodePair', 'cacheKey', 'LocalPolicy']
 
-# %% ../nbs/local_policy.ipynb #0e2cc2d7
+# %% ../nbs/local_policy.ipynb #3b805cc4
 import hashlib
 import importlib.util
 import itertools
