@@ -19,7 +19,7 @@ Rules as Phase 16 (notebook first, export, one notebook per test call, modules u
 ## T4. Step 0 (Colab, about 8 A100 hours; an L4 works)
 - **What**: push; run the step-0 cell (models not yet on Drive are skipped; rerun after Phase 16 to add them; the zip is written when all 15 are done); unzip; baseline curves on the Mac (descriptive).
 
-## T5. Pilot (Colab, about 50 A100 hours; may run before or alongside T4, on a second account)
+## T5. Pilot (Colab, about 50 A100 hours; may run before or alongside T4; one or two accounts split the runs by claims)
 - **What**: freeze `PILOT17_PLAN`, push; run the pilot cell; apply the selection rule; `projectHours` from the measured step times replaces the README's estimates; **report the projected main-run hours to the user and wait for confirmation**.
 
 ## T6. Freeze and main runs (Colab, about 850 A100 hours at four passes, about a third at one; one or two accounts)

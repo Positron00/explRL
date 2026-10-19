@@ -30,7 +30,7 @@ def claim(runDir, host, takeover=()) -> bool                         # write run
 def projectHours(stepSeconds, steps=200, seeds=RL17_SEEDS) -> dict   # from the chosen pilot run's mean seconds per step; r17four at 2/3
 ```
 
-`claim`: if `claim.json` is absent, write it (to a temporary name, then rename) with the host and time, read it back, and return whether the host is ours; if present and the host differs, return False unless the run is in `takeover` (then overwrite). Simulated in tests with two hosts on a temporary folder.
+`claim`: a folder with progress (metrics, checkpoints or `final/`) but no claim counts as another host's (a run started by a cell that does not claim) unless listed in `takeover`; if `claim.json` is absent otherwise, write it (to a temporary name, then rename) with the host and time, read it back, and return whether the host is ours; if present and the host differs, return False unless the run is in `takeover` (then overwrite). Simulated in tests with two hosts on a temporary folder.
 
 ## `rl17_train.trainRL17` (step pieces in `rl17_update`: `boardGroups`, `clippedTerm`, `ppoUpdate`, `saveTurns`)
 
@@ -63,8 +63,8 @@ H17-2 per run: `gains(n32) - gains(n4)`; H17-4 per run: warm's honest loss at N 
 ## Colab cells
 
 - **Configuration:** `HOST = 'account-a'` (set per account), `RUNS17 = OUT / 'runs_p17'`, `TAKEOVER = []`; prints both plans' hashes and frozen states.
-- **Phase 17 step 0** (one cell): `evalModels(teamSizeSuite(STEP0_MODELS), ...)` into `eval_p17s0`, in its own process; zip.
-- **Phase 17 pilot** (one cell): asserts `PILOT17_PLAN['frozen']`; trains `p17a`-`p17c` (each its own process, resumable), applies the rule to pick `p17d`'s base, trains `p17d`; prints the selection table (halted, last-10 invalid, steps 21-30 welfare, seconds per step); zip.
+- **Phase 17 step 0** (one cell; two accounts may share it): per model not yet evaluated and claimable (`eval_p17s0/claims/<model>`), `evalModels` for that model in its own process; when all 15 are evaluated, the account that wins `claims/_pack` writes `runs.csv` (all read back) and the zip.
+- **Phase 17 pilot** (one cell; two accounts may share it): asserts `PILOT17_PLAN['frozen']`; trains the claimable runs among `p17a`-`p17c` (each its own process, resumable); once `p17b` and `p17c` are done, picks `p17d`'s base and trains `p17d` if claimable; when all are done, the account that wins `runs_p17pilot/_select` prints the selection table (halted, last-10 invalid, steps 21-30 welfare, seconds per step), writes `selection.json` and the zip.
 - The configuration cell also defines `stream` (a child process per run) and `packZip` for the Phase 17 cells.
 - **Phase 17 main** (one cell; asserts `RL17_PLAN['recipe']` and `['userConfirmed']` too): asserts `RL17_PLAN['frozen']`; for each run in `RL17_RUNS`: skip if final, skip if `claim` refuses, else train (own process); when every run is final and this host wins `claim(OUT / 'eval_p17', HOST)`: evaluate all 13 adapters (own process; resumes per model), zip; otherwise print which runs or which evaluation other hosts hold.
 - **Configuration:** sets `HOST` (`claim` refuses an empty one); the second account sets a different `HOST`.
