@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen (`runs_p17pilot3/`); step 0 running; `RL17_PLAN` not frozen.
+Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); step 0 running; `RL17_PLAN` not frozen.
 
 ## Files in this spec
 
