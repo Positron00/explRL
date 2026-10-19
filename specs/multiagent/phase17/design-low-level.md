@@ -32,7 +32,7 @@ def projectHours(stepSeconds, steps=200, seeds=RL17_SEEDS) -> dict   # from the 
 
 `claim`: a folder with progress (metrics, checkpoints or `final/`) but no claim counts as another host's (a run started by a cell that does not claim) unless listed in `takeover`; if `claim.json` is absent otherwise, write it (to a temporary name, then rename) with the host and time, read it back, and return whether the host is ours; if present and the host differs, return False unless the run is in `takeover` (then overwrite). Simulated in tests with two hosts on a temporary folder.
 
-## `rl17_train.trainRL17` (step pieces in `rl17_update`: `boardGroups`, `clippedTerm`, `ppoUpdate`, `saveTurns`)
+## `rl17_train.trainRL17` (step pieces in `rl17_update`: `boardGroups`, `clippedTerm`, `valueMask`, `tokenTerm`, `cutCount`, `ppoUpdate`, `saveTurns`)
 
 Structure as `trainRL`, with these differences:
 
@@ -42,6 +42,7 @@ Structure as `trainRL`, with these differences:
 4. **`epochs` passes** over the samples (the first pass in micro-batch order, as Phase 12; later passes shuffled with a seed from the run and step): loss per reply = -min(r A, clip(r, 1-eps, 1+eps) A) with r = exp(mean log pi - mean old log pi) per reply (reply-level ratio, matching the reply-level mean used since Phase 12), plus `kl` x k3 to the adapter-free model; with `clip=None` and `epochs=1` the loss is Phase 12's `-A * mean log pi + kl * k3`.
 5. **Controller:** the per-step change is measured after all passes; `lrFixed` switches the controller off (the rate stays fixed except that a roll-back of the jump rule halves it, as in Phase 13).
 6. **Constrained replies:** `makePolicies` passes `guided` to `LocalPolicy`.
+7. **Pilot v3's fix (`FIX17`, in `BASE17`; user-approved 2026-10-19 after pilot v2):** `valueOnly` weights each reply's loss and k3 by `valueMask` (1 on tokens that overlap a value of the reply's JSON object: a string's content and closing quote, a number; 0 on keys, punctuation, opening quotes and eos, which the schema fixes, so they carry no decision; a reply that is not a JSON object counts every token); `tokenClip` replaces the reply-level ratio with PPO's per-token ratio, -mean_t min(r_t A, clip(r_t) A) over the weighted tokens (`tokenTerm`), so no single token can fall more than the clip allows per batch; `maxLen` 3,072 (8-agent prompts reach about 2,200 tokens); `cutCount` logs `cut` per step (prompts longer than the window; the pilot rule requires 0) and, with `valueOnly`, `klAll` (k3 over every token) beside `kl` (value tokens, used by the halt rule).
 
 Stopping rules, checkpoints (every 5 steps; turn logs of every board group via `saveTurns`), resume and `final` as `trainRL`; the configuration hash is `configHash17`. One shared adapter and board-level advantages only (`perRole` and `advantage='turn'` refused).
 

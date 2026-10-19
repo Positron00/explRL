@@ -1,4 +1,4 @@
-"""Phase 17: `trainRL17`, `trainRL`'s GRPO loop (its step pieces in `rl17_update`) with three changes: each step's boards are split across team sizes (`mixN`) with scripted liars on a share of them (`liarShare`); the reference and old log-probabilities are computed once per step and reused by `epochs` update passes with a clipped reply-level ratio (`clip`); replies can be sampled under the reply schema (`guided`), and `lrFixed` switches the per-step controller off. At the defaults one step equals `trainRL`'s (tested on the tiny model). Training needs the `[train]` extra; the offline tests do not.
+"""Phase 17: `trainRL17`, `trainRL`'s GRPO loop (its step pieces in `rl17_update`) with three changes: each step's boards are split across team sizes (`mixN`) with scripted liars on a share of them (`liarShare`); the reference and old log-probabilities are computed once per step and reused by `epochs` update passes with a clipped reply-level ratio (`clip`); replies can be sampled under the reply schema (`guided`), and `lrFixed` switches the per-step controller off; pilot v3's fix (`valueOnly`, `tokenClip`, a longer `maxLen`) and a per-step count of cut prompts (`cut`). At the defaults one step equals `trainRL`'s apart from the added `cut` (tested on the tiny model). Training needs the `[train]` extra; the offline tests do not.
 
 Docs: https://Positron00.github.io/explRL/rl17_train.html.md"""
 
@@ -24,7 +24,7 @@ from .rl_adv import groupAdvantages, stepSamples, trainingReturns
 from .rl_control import haltReason, invalidShare, jumpGuard, microBatches, nanMean, nextLr, progressBar, stepLine, warmLr
 from .rl_torch import freeGPU, loadCheckpoint, probeKL, probeLogps, restore, saveCheckpoint, saveMemory, snapshot
 from .rl17_grid import configHash17, runFields17
-from .rl17_update import boardGroups, ppoUpdate, saveTurns
+from .rl17_update import boardGroups, cutCount, ppoUpdate, saveTurns
 
 
 def makePolicies17(cfg, model, tok, dev):
@@ -106,7 +106,8 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
             before = probeLogps(model, tok, probe, ['default'], False, cfg.maxLen, dev)
             snap = snapshot(params, opt) if ctl.klTarget or cfg.haltJump is not None else None
             stats = ppoUpdate(model, tok, opt, params, samples, microBatches(samples, cfg), cfg.kl, cfg.maxLen, dev,
-                              cfg.epochs, cfg.clip, seed=cfg.trainSeed * 100_003 + s)
+                              cfg.epochs, cfg.clip, seed=cfg.trainSeed * 100_003 + s, valueOnly=cfg.valueOnly,
+                              tokenClip=cfg.tokenClip)
             stepKL = probeKL(before, probeLogps(model, tok, probe, ['default'], False, cfg.maxLen, dev))
             lrNext, rejected = nextLr(lr, stepKL, ctl, warming=s + 1 < cfg.warmup, trained=bool(samples))
             if rejected:
@@ -117,7 +118,8 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
                      meanReturn=float(np.mean(np.concatenate([r.ravel() for r in Rs]))),
                      welfare=float(np.mean([r['welfare'] for r in rows])), sharePerHeld=float(np.mean([r['sharePerHeld'] for r in rows])),
                      invalid=invalidShare(rows), soloShare=nanMean([r['soloShare'] for r in rows]), signalTurns=signal,
-                     samples=len(samples), lr=warmLr(lr, s, cfg.warmup), stepKL=stepKL, rejected=rejected, lrNext=lrNext,
+                     samples=len(samples), cut=cutCount(tok, samples, cfg.maxLen), lr=warmLr(lr, s, cfg.warmup), stepKL=stepKL,
+                     rejected=rejected, lrNext=lrNext,
                      gradCkpt=bool(getattr(model, 'is_gradient_checkpointing', False)), **stats,
                      **({} if cfg.haltJump is None else dict(rolledBack=back)))
             log.write(json.dumps(m) + '\n')

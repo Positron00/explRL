@@ -7,7 +7,7 @@ Part of [README.md](README.md); requirements in [requirements.md](requirements.m
 | Component | New / changed | Role |
 |---|---|---|
 | `nbs/rl17_grid.ipynb` -> `explRL/rl17_grid.py` | new | `teamSizeSuite`, step-0 model list, `RL17Config`, pilot and main run lists, `PILOT17_PLAN`, `RL17_PLAN`, claim helpers |
-| `nbs/rl17_update.ipynb` -> `explRL/rl17_update.py` | new | the step's pieces: `boardGroups`, `clippedTerm`, `ppoUpdate`, `saveTurns` |
+| `nbs/rl17_update.ipynb` -> `explRL/rl17_update.py` | new | the step's pieces: `boardGroups`, `clippedTerm`, `valueMask`, `tokenTerm`, `cutCount`, `ppoUpdate`, `saveTurns` |
 | `nbs/rl17_train.ipynb` -> `explRL/rl17_train.py` | new | `trainRL17`, `makePolicies17`: mixed team sizes and liars per step, `epochs` clipped-ratio updates, `lrFixed`; reuses `rl_adv`, `rl_torch`, `rl_control` |
 | `nbs/local_policy.ipynb` -> `explRL/local_policy.py` | changed | `guided=True`: vLLM structured outputs with the reply schema (default off: unchanged behaviour) |
 | `nbs/rl17_report.ipynb` -> `explRL/rl17_report.py` | new | `rl17Summaries`, `writeRL17`, `figRL17`, `syntheticRows17`; tests from `rl16_report` |

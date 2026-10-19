@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **pilot v2** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); step 0 waits for its run; `RL17_PLAN` not frozen.
+Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen (`runs_p17pilot3/`); step 0 running; `RL17_PLAN` not frozen.
 
 ## Files in this spec
 
@@ -110,3 +110,20 @@ If the pilot picks one pass per batch, the main runs cost about a third of this.
 The frozen rule picked `p17a`. **Cause, found in the turn logs:** the warm start writes `{"notes": ..., "action": ..., "target": ..., "answer": ..., "clue": ...}` in 99.9% of 10,880 unconstrained replies; the constrained decoder followed the schema's order and forced `action` first, a token the model almost never produces there. The trainer scores sampled tokens without the constraint, so these forced tokens carry huge negative log-probabilities: the first updates jump (undone by the controller), repeated clipped passes amplify the jump into the KL halts, some constrained replies drift into gibberish, and invalid replies stayed at 1-2% (Phase 16's unconstrained runs started near 0%).
 
 **Deviation, chosen by the user (2026-10-19):** not to train the main runs on `p17a` (about 370 A100 hours on a recipe with the same flaw), but to re-pilot the same four recipes with the constraint in the model's own key order (`guided='model'`, `local_policy.GUIDED_SCHEMA`): `PILOT17_PLAN` v2, the same selection rule, runs in `runs_p17pilot2/` (v1's stay), zip `explRL_rl17pilot2.zip`. The configuration hash includes the new setting, so no v2 run can resume a v1 checkpoint.
+
+## Pilot v2 and its diagnosis (2026-10-19)
+
+`PILOT17_PLAN` v2 ran on two Colab accounts (about 7 GPU hours; `results/multiagent/rl/colab/runs_p17pilot2/`). The rule chose nothing.
+
+| Pilot | Outcome | Seconds per step |
+|---|---|---|
+| `p17a` (1 pass) | halted at step 28: KL to the warm start 0.65 (0.01-0.04 before; one step jumped) | 560 |
+| `p17b` (4 clipped passes, KL 0.01) | halted at step 1: KL 0.64 | 1,416 |
+| `p17c` (4 clipped passes, no KL) | halted at step 2: KL 4.6 million | 1,377 |
+
+**Diagnosis on the Mac** (no GPU run; the logged replies replayed through the real rollout rebuild every training prompt exactly, then the 3B model scores them with and without the run's adapter):
+
+1. **Log-probability sink.** The KL is carried by single tokens the warm start writes with probability about 1, pushed down by 4-16 nats: in `p17a` before its halt, the key `target` after `"action": "submit", "` (12 of 40 sampled 8-agent replies), a token the constrained decoder forces anyway; in `p17c`, the empty value `""` after `"target":` and `"clue":`. Lowering such a token lowers the probability of the penalized submit replies without changing what is sampled, so the gradient takes this free route. The reply-level ratio clip does not stop it: it bounds the mean log-ratio over about 50 tokens, so one token can fall about 10 nats inside a 0.2 clip.
+2. **Cut prompts.** The training window (`maxLen` 1,536 tokens) cuts prompts from the left: 89% of 8-agent prompts (median 1,810 tokens, up to 2,169) lost the start of the system message (the rules), so the trainer scored replies on prompts the policy never saw. Phases 13 and 16 trained on 4 agents only (about 4% cut). With the full prompt, the per-sample KL of `p17c`'s adapter on 8-agent replies fell from 43,000 to 73 (mean of 40): a real bug and an amplifier, not the root cause.
+
+**Fix, approved by the user (2026-10-19), pilot v3 (`FIX17` in every Phase 17 run; `PILOT17_PLAN` v3, the same recipes and selection rule plus: a recipe that cuts any prompt fails):** loss and KL only on value tokens (keys and punctuation are fixed by the schema: no decision, so no gradient), a per-token clipped ratio (standard PPO) instead of the reply-level one, and a training window that holds the longest prompt, with cut samples counted (must be 0).
