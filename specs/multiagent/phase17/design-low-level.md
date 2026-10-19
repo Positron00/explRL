@@ -47,7 +47,7 @@ Stopping rules, checkpoints (every 5 steps; turn logs of every board group via `
 
 ## `local_policy` change
 
-`LocalPolicy(..., guided=False)`: with `guided=True` and the vLLM engine, each request's `SamplingParams` carries structured outputs with `CLUE_SCHEMA` (`StructuredOutputsParams`, with the older `GuidedDecodingParams` as a fallback); the HF engine raises `ValueError`; guided replies get their own cache keys. Default unchanged (cache keys and sampling parameters as before; tested).
+`LocalPolicy(..., guided=False)`: with `guided='model'` (Phase 17 from pilot v2) the structured outputs use `GUIDED_SCHEMA`, `CLUE_SCHEMA` reordered to the warm start's own key order (notes first, as in 99.9% of its replies); with `guided=True` (pilot v1) `CLUE_SCHEMA` itself. Otherwise each request's `SamplingParams` carries structured outputs with the schema (`StructuredOutputsParams`, with the older `GuidedDecodingParams` as a fallback); the HF engine raises `ValueError`; guided replies get their own cache keys. Default unchanged (cache keys and sampling parameters as before; tested).
 
 ## `rl17_report`
 

@@ -20,6 +20,7 @@ Rules as Phase 16 (notebook first, export, one notebook per test call, modules u
 - **What**: push; run the step-0 cell (models not yet on Drive are skipped; rerun after Phase 16 to add them; the zip is written when all 15 are done); unzip; baseline curves on the Mac (descriptive).
 
 ## T5. Pilot (Colab, about 50 A100 hours; may run before or alongside T4; one or two accounts split the runs by claims)
+- **v1 (2026-10-19)**: ran; found the key-order flaw of constrained decoding (README); the user chose to re-pilot with the model's own key order (`PILOT17_PLAN` v2, `runs_p17pilot2/`).
 - **What**: freeze `PILOT17_PLAN`, push; run the pilot cell; apply the selection rule; `projectHours` from the measured step times replaces the README's estimates; **report the projected main-run hours to the user and wait for confirmation**.
 
 ## T6. Freeze and main runs (Colab, about 850 A100 hours at four passes, about a third at one; one or two accounts)

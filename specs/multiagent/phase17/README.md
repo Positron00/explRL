@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **pilot ready** (2026-10-18): T1-T3 done and tested offline (the trainer equals `trainRL` at its defaults on the tiny model); `PILOT17_PLAN` frozen at `626bead` (`coopHash(PILOT17_PLAN)` = `f4b4bd036996`) and pushed; the pilot may run on a second account now; step 0 after Phase 16; `RL17_PLAN` not frozen. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-16 (RL of a 3B team on the clue board) and Phase 14 (team size with Claude Haiku). Next idea in line: [Phase 18](../phase18/README.md) (stub).
+Status: **pilot v2** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2); step 0 waits for its run; `RL17_PLAN` not frozen.
 
 ## Files in this spec
 
@@ -79,7 +79,7 @@ If the pilot picks one pass per batch, the main runs cost about a third of this.
 | P17-1 | Control | **The existing warm start** (imitation); the Phase 12-16 runs are reported in step 0 as references |
 | P17-2 | Reward | **Credit with the loophole priced** (`wrongPenalty` 2.5): the incentive that kept sharing intact; board-level advantages (per-turn added nothing in Phase 13) |
 | P17-3 | Recipe choice | **A frozen pilot with a fixed selection rule**, on training boards only; held-out evaluation boards are never used to choose |
-| P17-4 | Format failures | **Constrained decoding** (replies forced into the reply schema during sampling); the small bias from sampling under the constraint is accepted and reported |
+| P17-4 | Format failures | **Constrained decoding in the model's own key order** (`guided='model'`: notes, action, target, answer, clue, as in 99.9% of the warm start's replies). Revised 2026-10-19 after pilot v1, whose schema-order constraint forced a first key the model never writes (below); the remaining bias from sampling under the constraint is accepted and reported |
 | P17-5 | New trainer | **Separate modules** (`rl17_train` for the loop, `rl17_update` for the step's pieces: one module would pass 200 lines), so Phase 12-16 training is untouched and byte-identical |
 | P17-9 | Long runs on Colab | **One cell per step of the work, run in the background; a checkpoint every step.** Training, evaluation and packing run from one cell each (as Phase 16), with Pro+ background execution. Colab ends a session after about 24 hours while a main run takes days, so runs checkpoint every step (the interval is outside the configuration hash) and the same cell resumes them; the gates between step 0, the pilot and the main runs (freezes, cost confirmation) are deliberate |
 | P17-8 | Seeds | **`r17mix` 8, `r17four` 5**: the exact tests' smallest p must leave room for Holm (above) |
@@ -95,3 +95,18 @@ If the pilot picks one pass per batch, the main runs cost about a third of this.
 | 32-agent evaluation is slow or runs out of memory | Step 0 tests it on existing adapters first; boards per size can be cut by a rule fixed in `RL17_PLAN` |
 | Constrained decoding changes what the policy learns | Pilot `p17a` isolates it against Phases 12-16; reported as a design choice |
 | The gain does not grow with N | A clear negative answer to the posting's central question is still a result; H17-5 tells whether training size mattered |
+
+## Pilot v1 and the deviation (2026-10-19)
+
+`PILOT17_PLAN` v1 (frozen at `626bead`, hash `f4b4bd036996`) ran on two Colab accounts (about 9 GPU hours in all; `results/multiagent/rl/colab/runs_p17pilot/`).
+
+| Pilot | Outcome | Seconds per step | Training welfare, steps 21-30 |
+|---|---|---|---|
+| `p17a` (1 pass) | 30 steps; its first three updates were undone (per-step change 0.34, 0.14, 0.03 against a target of 0.003) | 586 | 0.031 |
+| `p17b` (4 clipped passes, KL 0.01) | halted at step 2: KL to the warm start 12.8 | 1,499 | n/a |
+| `p17c` (4 clipped passes, no KL) | halted at step 1: KL 23,720 | 1,421 | n/a |
+| `p17d` | not trained (neither `p17b` nor `p17c` passed the rule) | | |
+
+The frozen rule picked `p17a`. **Cause, found in the turn logs:** the warm start writes `{"notes": ..., "action": ..., "target": ..., "answer": ..., "clue": ...}` in 99.9% of 10,880 unconstrained replies; the constrained decoder followed the schema's order and forced `action` first, a token the model almost never produces there. The trainer scores sampled tokens without the constraint, so these forced tokens carry huge negative log-probabilities: the first updates jump (undone by the controller), repeated clipped passes amplify the jump into the KL halts, some constrained replies drift into gibberish, and invalid replies stayed at 1-2% (Phase 16's unconstrained runs started near 0%).
+
+**Deviation, chosen by the user (2026-10-19):** not to train the main runs on `p17a` (about 370 A100 hours on a recipe with the same flaw), but to re-pilot the same four recipes with the constraint in the model's own key order (`guided='model'`, `local_policy.GUIDED_SCHEMA`): `PILOT17_PLAN` v2, the same selection rule, runs in `runs_p17pilot2/` (v1's stay), zip `explRL_rl17pilot2.zip`. The configuration hash includes the new setting, so no v2 run can resume a v1 checkpoint.
