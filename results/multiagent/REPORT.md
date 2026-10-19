@@ -105,7 +105,7 @@ Fixes for the failures Anthropic's red team reported, each against a prompt-only
 - **Public reputation beats private verification.** A harness-computed track record of each sender recovered 0.32 [0.20, 0.44] of a liar's damage at no cost without a liar (0.006 [-0.012, 0.026]); a costly private check caught lies but recovered -0.01 [-0.28, 0.19]; a warning did nothing (0.03 [-0.16, 0.20]).
 - **On our vote, aggregation without more disclosure.** In a hidden-profile vote, a table of the posted facts closed 0.75 [0.50, 1.00] of the lone-dissenter gap without raising disclosure; enforcing facts first did nothing (-0.02 [-0.31, 0.18]); asking members to speak up closed 0.39 [0.14, 0.59] of the classic gap.
 - **The table did not replicate on HiddenBench** (65 tasks, Li, Naito, Shirado, ICML 2026): gap closed -0.07 [-0.69, 0.30]; the speak-up instruction helped instead, through disclosure (hidden facts posted 0.74 -> 0.88; gap closed 0.41 [0.00, 0.71]), so aggregation without disclosure is not a general result.
-- **A mechanism fix keeps trained agents cooperative; gains over imitation are seed-dependent.** Pooled over boards and two training seeds, credit reward gained 0.068 [0.026, 0.112] over the warm start and credit with per-turn advantages 0.069 [0.018, 0.120]; individual reward with a training-only cost per wrong answer kept agents sharing (the loophole priced) and gained 0.053 [0.000, 0.106]. The same credit configuration gained 0.015 with one seed and 0.120 with another: these intervals resample boards, not training runs, and each design had one seed near +0.1 and one near 0, so RL beating imitation is not established; the loophole fix's effect on sharing held in both seeds.
+- **A mechanism fix kept two trained seeds cooperative; gains over imitation are seed-dependent** (revised by section 13: with five seeds the sharing effect did not hold up). Pooled over boards and two training seeds, credit reward gained 0.068 [0.026, 0.112] over the warm start and credit with per-turn advantages 0.069 [0.018, 0.120]; individual reward with a training-only cost per wrong answer kept agents sharing (the loophole priced) and gained 0.053 [0.000, 0.106]. The same credit configuration gained 0.015 with one seed and 0.120 with another: these intervals resample boards, not training runs, and each design had one seed near +0.1 and one near 0, so RL beating imitation is not established; the loophole fix's effect on sharing held in both seeds.
 
 Details: `specs/multiagent/phase13/README.md`, `results/multiagent/fix/full/report.md`, `results/multiagent/rl/eval_p13/report.md`; preprint draft in `paper/`.
 
@@ -126,6 +126,16 @@ Phase 14's runs replayed from the response cache with a turn-by-turn tracer (pla
 - **No rule-agent variant reproduces the rising damage** (honest-loss change N 8 -> 32: first -0.16, relay -0.23, repost -0.05; Haiku +0.08). For simulation-first screening: forecast the clean trend and the attack effect separately, and validate the clean trend first.
 
 Details: `specs/multiagent/phase15/README.md`, `results/multiagent/liar/full/report.md`.
+
+## 13. Phase 16: more training seeds for the incentive result (exploratory)
+
+Four runs of individual reward and five of individual reward with wrong answers priced (`indpen`), the training run as the unit (plan `RL16_PLAN`, hash 082b3b7c9a31).
+
+- **No hypothesis survived Holm.** Priced minus unpriced: clues shared per held 0.37 [0.04, 0.67] (exact p 0.056, Holm 0.111); solo share, unpriced minus priced 0.39 [0.07, 0.66] (exact p 0.032, Holm 0.095); welfare 0.13 [0.00, 0.24] (exact p 0.063, Holm 0.111). Priced runs against the warm start: -0.05 [-0.16, 0.05] (exact p 0.781).
+- **Seed-dependent in both arms:** individual reward drifted selfish in 2 of 4 runs (solo share 0.74, 0.79, 0.25, 0.40); the priced runs shared 1.00, 0.83, 0.47, 0.75, 0.10 of their held clues, one of them drifting selfish.
+- **Post hoc, pricing reliably cut guessing** (49-90 guesses per board in every unpriced run, 0.1-15 in every priced run), but whether that kept agents sharing depended on the seed. The earlier claim that pricing the loophole kept agents sharing is withdrawn; the direction holds on average.
+
+Details: `specs/multiagent/phase16/README.md`, `results/multiagent/rl/eval_p16/report.md`.
 
 ## Limitations
 

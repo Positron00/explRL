@@ -25,7 +25,7 @@ ROWS = (  # (label, eval dir, level, colour)
     ('credit, per-turn (seed 2)', 'eval_p13', 'credturn_s2', '#5dade2'),
 )
 PANELS = (('sharePerHeld', 'clues shared / clues held'), ('soloShare', 'solves made without a shared clue'),
-          ('welfare', 'welfare per agent-turn'))
+          ('guesses', 'guesses per board'), ('welfare', 'welfare per agent-turn'))
 
 
 def main(repo):
@@ -46,7 +46,7 @@ def main(repo):
     ref = lambda study, runner: _stat(r['welfare'] for r in clue if r['study'] == study and r['runner'] == runner and
                                       r['channel'] == 'blackboard' and int(r['N']) == 4 and 900 <= int(r['seed']) <= 904)['mean']
     REFS = dict(welfare=((ref('clue', 'llm'), 'Claude Haiku 5.5'), (ref('clueNumpy', 'numpy'), 'rule agents')))
-    fig, axs = plt.subplots(1, 3, figsize=(13, 4.2 + 0.3 * (len(rows) - len(ROWS))), sharey=True)
+    fig, axs = plt.subplots(1, len(PANELS), figsize=(16, 4.2 + 0.3 * (len(rows) - len(ROWS))), sharey=True)
     for ax, (m, title) in zip(axs, PANELS):
         for y, (label, d, lv, col) in enumerate(rows):
             v = _stat(r[m] for r in data[d] if r['level'] == f'{lv}|main')
@@ -61,8 +61,8 @@ def main(repo):
         ax.grid(axis='x', alpha=0.3)
     axs[0].set_yticks(range(len(rows)), [r[0] for r in rows], fontsize=9)
     axs[0].invert_yaxis()
-    fig.suptitle('Trained 3B teams: the guessing loophole, not the reward alone, decided whether agents cooperated',
-                 fontsize=12)
+    fig.suptitle('Trained 3B teams under five reward designs, every training seed shown: guessing separates the arms; '
+                 'sharing and welfare vary from seed to seed', fontsize=12)
     fig.text(0.5, 0.005, 'Qwen2.5-3B-Instruct, 4 agents sharing one LoRA adapter, GRPO; 15 held-out boards; '
              'means with 95% bootstrap intervals over boards; each training seed shown separately', ha='center', fontsize=8)
     fig.tight_layout(rect=(0, 0.03, 1, 0.95))

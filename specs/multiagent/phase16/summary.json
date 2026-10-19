@@ -1,0 +1,142 @@
+{
+ "claims": {
+  "beatsImitation": false,
+  "driftReplicated": false,
+  "scoreContrastTested": false,
+  "sharingTested": false
+ },
+ "commit": "d8d4820",
+ "drift": 2,
+ "gpuHours": 12.7,
+ "hyp": {
+  "H16_1": {
+   "ci": [
+    0.03929665407967335,
+    0.6749012561244132
+   ],
+   "diff": 0.36947935641774554,
+   "metric": "sharePerHeld",
+   "p": 0.05555555555555555,
+   "pHolm": 0.1111111111111111,
+   "primary": true,
+   "supported": false
+  },
+  "H16_2": {
+   "ci": [
+    0.06945317185475844,
+    0.6630011908451995
+   ],
+   "diff": 0.3861582457171135,
+   "metric": "soloShare",
+   "p": 0.031746031746031744,
+   "pHolm": 0.09523809523809523,
+   "primary": true,
+   "supported": false
+  },
+  "H16_3": {
+   "ci": [
+    0.002061718750000022,
+    0.24246875000000007
+   ],
+   "diff": 0.12665625,
+   "metric": "welfare",
+   "p": 0.06349206349206349,
+   "pHolm": 0.1111111111111111,
+   "primary": true,
+   "supported": false
+  },
+  "H16_4": {
+   "ci": [
+    -0.16143125000000003,
+    0.05118437499999989
+   ],
+   "mean": -0.051416666666666666,
+   "metric": "gain",
+   "p": 0.78125,
+   "pHolm": NaN,
+   "primary": false,
+   "supported": false
+  }
+ },
+ "mode": "full",
+ "planHash": "082b3b7c9a31",
+ "runs": {
+  "individual_s1": {
+   "gain": -0.17083333333333334,
+   "sharePerHeld": 0.15196158709429688,
+   "soloShare": 0.7438745336842914,
+   "welfare": 0.1025
+  },
+  "individual_s2": {
+   "gain": -0.2660416666666667,
+   "sharePerHeld": 0.10724228075904228,
+   "soloShare": 0.7905834361716714,
+   "welfare": 0.007291666666666667
+  },
+  "individual_s3": {
+   "gain": -0.13333333333333333,
+   "sharePerHeld": 0.3750239414396361,
+   "soloShare": 0.24555080936921594,
+   "welfare": 0.14
+  },
+  "individual_s4": {
+   "gain": -0.14208333333333334,
+   "sharePerHeld": 0.4122043173336872,
+   "soloShare": 0.400262105578828,
+   "welfare": 0.13125
+  },
+  "indpen_s1": {
+   "gain": 0.09729166666666668,
+   "sharePerHeld": 1.0029708436770266,
+   "soloShare": 0.0,
+   "welfare": 0.37062500000000004
+  },
+  "indpen_s2": {
+   "gain": 0.009375,
+   "sharePerHeld": 0.8345450906536415,
+   "soloShare": 0.048464061841872935,
+   "welfare": 0.2827083333333333
+  },
+  "indpen_s3": {
+   "gain": -0.13729166666666667,
+   "sharePerHeld": 0.4658282697323134,
+   "soloShare": 0.1424325797659131,
+   "welfare": 0.13604166666666667
+  },
+  "indpen_s4": {
+   "gain": 0.004166666666666667,
+   "sharePerHeld": 0.754947610255902,
+   "soloShare": 0.0699999421608617,
+   "welfare": 0.27749999999999997
+  },
+  "indpen_s5": {
+   "gain": -0.230625,
+   "sharePerHeld": 0.09714512605317202,
+   "soloShare": 0.5336507936507936,
+   "welfare": 0.042708333333333334
+  },
+  "warm": {
+   "gain": 0.0,
+   "sharePerHeld": 0.9169756148009797,
+   "soloShare": 0.0027777777777777775,
+   "welfare": 0.2733333333333333
+  }
+ },
+ "spread": {
+  "sharePerHeld": {
+   "between": 0.36947935641774554,
+   "individual": 0.1542655045767628,
+   "indpen": 0.3561736273561584
+  },
+  "soloShare": {
+   "between": -0.3861582457171135,
+   "individual": 0.2648780611125878,
+   "indpen": 0.2156721235711801
+  },
+  "welfare": {
+   "between": 0.12665625,
+   "individual": 0.06079416904262558,
+   "indpen": 0.130756877873063
+  }
+ }
+}

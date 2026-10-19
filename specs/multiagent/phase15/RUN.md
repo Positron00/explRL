@@ -28,3 +28,7 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command; none
 
 - `results/multiagent/liar/{quick,full}/`: `trace_summary.json`, `accounting.csv`, `variants.json`, `report.md`, `liar.png`; `full/traces/` (all of `results/multiagent/` is git-ignored); `trace_summary.json` and `variants.json` copied to this folder with the results.
 - Optional `results/multiagent/liarD/`: `runs.csv`, per-run turn logs in `turns/`, `score.json`; `specs/multiagent/phase15/liar_predictions.json`.
+
+## Summary figure (Phases 13-15)
+
+`python tools/scale_figure.py $PWD` -> `results/multiagent/report/trust_scale.png`: the public track record's share of liars' damage recovered and the request board's pooling gap closed against team size (Phases 13-14), and the share of honest answers built on a false clue, Claude Haiku against rule agents (Phase 15). Reads the saved results only.

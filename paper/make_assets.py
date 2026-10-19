@@ -146,6 +146,20 @@ for N, w in ((8, 'Eight'), (16, 'Sixteen'), (32, 'ThirtyTwo')):
     M['ScalePool' + w] = f"{SS['baseline'][N]['pooledShare']['mean']:.2f}"
     M['ScaleLoss' + w] = f"{SS['baseline'][N]['honestLoss']['mean']:.2f}"
 
+# Phase 16: more training seeds for the incentive result (results/multiagent/rl/eval_p16)
+S16 = json.loads((R / 'rl/eval_p16/summary.json').read_text())
+for k, name in (('H16_1', 'Share'), ('H16_2', 'Solo'), ('H16_3', 'Welfare'), ('H16_4', 'Gain')):
+    v = S16['hyp'][k]
+    M['Sixteen' + name] = f"{v.get('diff', v.get('mean')):+.2f}"
+    M['Sixteen' + name + 'CI'] = f"[{v['ci'][0]:.2f}, {v['ci'][1]:.2f}]"
+    M['Sixteen' + name + 'P'] = f"{v['p']:.3f}"
+    if v['pHolm'] == v['pHolm']:
+        M['Sixteen' + name + 'Holm'] = f"{v['pHolm']:.2f}"
+M['SixteenDrift'] = str(S16['drift'])
+r16 = S16['runs']
+M['SixteenPenShareMin'] = f"{min(v['sharePerHeld'] for n, v in r16.items() if n.startswith('indpen')):.2f}"
+M['SixteenPenShareMax'] = f"{max(v['sharePerHeld'] for n, v in r16.items() if n.startswith('indpen')):.2f}"
+
 # Phase 15: tracing why larger teams lose more to liars (results/multiagent/liar/full)
 TL = json.loads((R / 'liar/full/trace_summary.json').read_text())
 TV = json.loads((R / 'liar/full/variants.json').read_text())

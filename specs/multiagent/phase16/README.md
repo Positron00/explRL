@@ -1,6 +1,6 @@
 # Plan: Phase 16, more training seeds for the incentive result (core)
 
-Status: **ready to run** (2026-10-17): T1-T4 done; `RL16_PLAN` frozen at `0d0b7dc` (`coopHash(RL16_PLAN)` = `082b3b7c9a31`) and pushed; next: the Colab batch (T5). Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-13 (RL of a 3B team on the clue board; [../phase13/README.md](../phase13/README.md), Track B).
+Status: **done** (2026-10-18): six runs trained and evaluated (`RL16_PLAN` frozen at `0d0b7dc`, hash `082b3b7c9a31`); no hypothesis supported after Holm: the incentive effect's direction holds on average but varies from seed to seed, and the selfish drift replicated in 2 of 4 runs (results below). Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 12-13 (RL of a 3B team on the clue board; [../phase13/README.md](../phase13/README.md), Track B).
 
 ## Files in this spec
 
@@ -79,3 +79,37 @@ No API spend.
 | `individual` seeds do not drift | Reported as the main result (claim rule above: fewer than 3 of 4 runs with solo share above 0.5) |
 | The permutation tests cannot reach significance with 4 against 5 runs unless the groups separate almost completely | Known in advance (smallest p 0.008; Holm needs p at most 0.017 for the smallest); report effect sizes and intervals regardless |
 | Colab disconnects | Runs resume from checkpoints; the batch cell skips finished runs and evaluated adapters; outputs are on Google Drive, so nothing is lost with the runtime |
+
+## Results (2026-10-18; exploratory)
+
+Six new runs on Colab (an A100 for the first three, a G4 after the restart; 12.7 GPU hours of training, about $17), resumed across sessions exactly as designed; two halted under the frozen stopping rules and were evaluated from their final adapters (`individual_s2`: invalid replies above 10% for 3 steps at step 43; `indpen_s3`: the jump rule at step 40). Frozen analysis: `results/multiagent/rl/eval_p16/report.md`, summary copied here ([summary.json](summary.json)).
+
+| Run | Clues shared per held | Solo share | Welfare | Guesses per board* | Invalid replies* |
+|---|---|---|---|---|---|
+| warm start | 0.92 | 0.00 | 0.273 | 0.7 | 0.000 |
+| individual s1 (Phase 12) | 0.15 | 0.74 | 0.102 | 90.3 | 0.005 |
+| individual s2 (halted) | 0.11 | 0.79 | 0.007 | 50.5 | 0.298 |
+| individual s3 | 0.38 | 0.25 | 0.140 | 57.7 | 0.015 |
+| individual s4 | 0.41 | 0.40 | 0.131 | 49.2 | 0.024 |
+| indpen s1 (Phase 13) | 1.00 | 0.00 | 0.371 | 0.1 | 0.006 |
+| indpen s2 (Phase 13) | 0.83 | 0.05 | 0.283 | 6.9 | 0.010 |
+| indpen s3 (halted) | 0.47 | 0.14 | 0.136 | 14.7 | 0.214 |
+| indpen s4 | 0.75 | 0.07 | 0.277 | 11.4 | 0.033 |
+| indpen s5 | 0.10 | 0.53 | 0.043 | 14.6 | 0.018 |
+
+\* Descriptive, added after the freeze (not in `RL16_PLAN`).
+
+| Hypothesis | Estimate [95% CI] | Exact p | Holm p | Supported |
+|---|---|---|---|---|
+| H16-1: indpen shares more per held clue | +0.37 [0.04, 0.68] | 0.056 | 0.111 | no |
+| H16-2: individual solves alone more | +0.39 [0.07, 0.66] | 0.032 | 0.095 | no |
+| H16-3: indpen scores higher | +0.13 [0.00, 0.24] | 0.064 | 0.111 | no |
+| H16-4: indpen beats the warm start | -0.05 [-0.16, 0.05] | 0.78 | n/a | no |
+
+**Claim verdicts (rules fixed in advance):** the sharing result is **not tested** (H16-1 and H16-2 fail after Holm), the score contrast **not tested**, RL beating imitation **seed-dependent**, and the selfish drift **not replicated** (2 of 4 individual runs above 0.5 solo share).
+
+- **The direction holds on average; it is not established.** Priced-loophole runs shared more (0.63 against 0.26 per held clue), solved alone less (16% against 55%) and scored higher (0.22 against 0.10), but run-to-run variance is as large as the effect: one priced run (`s5`) drifted selfish (0.10 shared, 53% solo, with few invalid replies), and two individual runs drifted only partly.
+- **Individual reward cost welfare in every run** (gain over the warm start -0.13 to -0.27 in all four); priced runs ranged from -0.23 to +0.10.
+- **Post hoc, guessing separates the arms completely:** every individual run guessed 49-90 times per board, every priced run 0.1-15. Pricing wrong answers reliably suppressed the behaviour it priced, but whether that kept agents sharing depended on the seed. This was not a planned test and is hypothesis-generating only.
+- **Format collapse in the halted runs** (21-30% invalid replies) confounds their sharing numbers; Phase 17's constrained replies address this.
+- **Consequences:** the preprint, `REPORT.md` and the summary page drop "pricing the loophole kept agents sharing" as a headline; it becomes "direction consistent, seed-dependent". The variance itself supports Phase 17's design (the training run as the unit, 8 seeds for the main arm).
