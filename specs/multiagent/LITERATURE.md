@@ -91,7 +91,7 @@ Ideal free distribution (Fretwell and Lucas) and its computational study with ev
 2. A public, harness-computed track record recovers a third of a liar's damage at no cost; private costly verification detects lies but does not help.
 3. In our templated hidden-profile vote, a structured fact table improved decisions without increasing disclosure; enforcing facts first did not. (On HiddenBench the table did not replicate; see phase13/hiddenbench.md.)
 4. Obedience to a coordinator hurts; information routing by it helps.
-5. Under individual reward, RL on a cooperation task finds a guessing loophole and abandons sharing; credit reward avoids this, and pricing the loophole under individual reward does too (both seeds); welfare gains over imitation at 3B and 60 steps were seed-dependent (Phase 13).
+5. Under individual reward, RL on a cooperation task finds a guessing loophole and abandons sharing; credit reward avoids this; pricing the loophole under individual reward kept two seeds sharing (Phase 13) but was seed-dependent with five (Phase 16), while cutting guessing in every run; welfare gains over imitation at 3B and 60 steps were seed-dependent (Phase 13).
 6. A cheap rule-agent simulation ranks LLM harness designs well on information-sharing tasks and fails on foraging.
 
 **Claims to avoid.** That LLM teams fail hidden profiles, conform, or are vulnerable to liars (known); that RL "does not help" (scale too small to say); that the fixes generalize beyond these tasks (untested; HiddenBench is the obvious next test).
