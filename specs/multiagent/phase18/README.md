@@ -221,6 +221,8 @@ Closest LLM work ([60-75]): faulty agents and Challenger/Inspector defences in 3
 
 **What Phase 18 can and cannot claim as new.** That counting independent agreement defeats a faulty minority is known (classic Byzantine fault tolerance and several LLM papers), as are verifier roles and free-riding under shared reward; colluding liars beating q = 2 is expected, a bound to report. What we did not find, and Phase 18 can claim if the results hold: a harness-computed, oracle-free agreement display (tally, quorum and contest labels) on a shared board that agents are free to ignore, tested in a continuing task where checking costs work, with its clean cost and its benefit measured against team size (8 to 64) under faulty members (H18-5), and, in Part B, emergent division of labour among copies of one shared adapter under team reward (H18-B2), where [70] predicts difficulty. One caution for P18-3 and Part C: counting any distinct sender is open to relayed or correlated agreement ([64], [67]).
 
+**After the runs (2026-10-20).** The claim that held is the guard role: an oracle-free peer role that beats an oracle reputation signal against scripted, mistaken, colluding and Claude liars at 8-32 agents, adopted only when assigned. The agreement display (the colony rules proper) did not beat a one-sentence instruction. Details and the verdict-by-verdict update: [../LITERATURE.md](../LITERATURE.md) section 15.
+
 ## Risks
 
 | Risk | Mitigation |
