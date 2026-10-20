@@ -1,6 +1,6 @@
 # Tasks: Phase 18
 
-Status (2026-10-19): T1, T2, T3, T4 and T7 done (offline; full suite green; Part 0 run, `colony_predictions.json` written and to be committed before the pilot); AC-6 revised after measuring (README). `COLONY_PLAN` frozen at `fc01882` (hash `58e842277a3e`). T5 done (2026-10-20: pilot $0.84, Stage 1 $24.89; H18-1, 2, 4 supported, H18-3 not; go/no-go: stop, so T6 not run unless the user decides to deviate). Next: T10 docs; T8 after Phase 17's recipe is frozen.
+Status (2026-10-19): T1, T2, T3, T4 and T7 done (offline; full suite green; Part 0 run, `colony_predictions.json` written and to be committed before the pilot); AC-6 revised after measuring (README). `COLONY_PLAN` frozen at `fc01882` (hash `58e842277a3e`). T5 done (2026-10-20: pilot $0.84, Stage 1 $24.89; H18-1, 2, 4 supported, H18-3 not; go/no-go: stop). T6 replaced by a user-approved deviation (T6b, guards at 32 agents with three faulty-member kinds, `COLONY32_PLAN`). Next: T6b; T8 after Phase 17's recipe is frozen.
 
 Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one notebook per test call, modules under 200 lines, offline tests without a network, key, `anthropic` or `torch`; Phase 5-17 cached reruns byte-identical and Phase 12-17 hashes unchanged. Gates: no Haiku cell before the Part 0 forecast is committed; no main cell before its plan is frozen and its hash recorded; Stage 2 only on a `go` verdict and a raised API cap; Part B only after Phase 17's recipe is frozen, Stage 1 is done and the user confirms the GPU hours.
 
@@ -26,6 +26,10 @@ Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one no
 ## T6. Stage 2 (Mac, about $77-108; only on `go` and a raised cap)
 - **What**: the user raises the cap; freeze `COLONY2_PLAN` with the chosen arm, commit and push; the Stage 2 cost rule; run; cached rerun; tracing; the trend test; rescore the forecast for H18-5.
 - **Done when**: AC-10 for `COLONY2_PLAN`.
+
+## T6b. Guards at 32 agents (deviation, 2026-10-20; Mac, about $35-45, cap $200)
+- **Files**: new `nbs/colony32.ipynb` (`stage32Grid`, `COLONY32_PLAN`, `stage32Summaries`, `writeStage32`); a `stage32` section in `nbs/demo_colony.ipynb`.
+- **What**: freeze `COLONY32_PLAN`, commit and push, record the hash; run (`EXPLRL_COLONY_STAGE=stage32`); cached rerun; results in the README.
 
 ## T7. Part B code (about 1.5 days; may start after T2)
 - **Files**: `nbs/rl17_grid.ipynb`, `nbs/rl17_train.ipynb` (`world`, the `longest` metric), `nbs/rl17_update.ipynb` (`pairLengths`), `nbs/clue_roll.ipynb` (Phase 18 columns in `coopRows`); new `nbs/rl18_grid.ipynb`, `nbs/rl18_report.ipynb`, `nbs/demo_rl18.ipynb`; the two Colab cells in `nbs/colab_clue_rl.ipynb`.

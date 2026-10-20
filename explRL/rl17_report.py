@@ -1,4 +1,4 @@
-"""Phase 17 analysis (`RL17_PLAN`): team-size curves per model (`curves`: welfare, pooled share, honest loss, sharing, invalid replies at N 4-32), per-run gains over the warm start (`gains`), H17-1 to H17-5 with the exact tests of `rl16_report` (the training run as the unit) and Holm within each family (`rl17Summaries`), Claude Haiku references from Phases 11, 13 and 14 (`haikuRefs`; full memory, so references only), `writeRL17`, `figRL17` and `syntheticRows17`. Exploratory.
+"""Phase 17 analysis (`RL17_PLAN`): team-size curves per model (`curves`: welfare, pooled share, honest loss, sharing, invalid replies at N 4-32), per-run gains over the warm start (`gains`), H17-1 to H17-4 (H17-5 only if the dropped `r17four` runs exist) with the exact tests of `rl16_report` (the training run as the unit) and Holm within each family (`rl17Summaries`), Claude Haiku references from Phases 11, 13 and 14 (`haikuRefs`; full memory, so references only), `writeRL17`, `figRL17` and `syntheticRows17`. Exploratory.
 
 Docs: https://Positron00.github.io/explRL/rl17_report.html.md"""
 
@@ -94,10 +94,11 @@ def rl17Summaries(rows, s0rows=None, refs=None, nboot=2000):
         H17_2=dict(signFlip([_m(g(r, 32)) - _m(g(r, 4)) for r in mix]), ci=hierBoot({'a': d24}, lambda d: d['a'].mean(), nboot)),
         H17_3=dict(signFlip([_m(g(r, 32, 'pooledShare')) for r in mix]),
                    ci=hierBoot({'a': {r: g(r, 32, 'pooledShare') for r in mix}}, lambda d: d['a'].mean(), nboot)),
-        H17_4=dict(signFlip([_m(hl[r]) for r in mix]), ci=hierBoot({'a': hl}, lambda d: d['a'].mean(), nboot)),
-        H17_5=dict(permTest([_m(g(r, 32)) for r in mix], [_m(g(r, 32)) for r in four]),
-                   ci=hierBoot({'a': {r: g(r, 32) for r in mix}, 'b': {r: g(r, 32) for r in four}},
-                               lambda d: d['a'].mean() - d['b'].mean(), nboot)))
+        H17_4=dict(signFlip([_m(hl[r]) for r in mix]), ci=hierBoot({'a': hl}, lambda d: d['a'].mean(), nboot)))
+    if four:                                       # r17four was dropped from the main runs (2026-10-20); kept for the record
+        H['H17_5'] = dict(permTest([_m(g(r, 32)) for r in mix], [_m(g(r, 32)) for r in four]),
+                          ci=hierBoot({'a': {r: g(r, 32) for r in mix}, 'b': {r: g(r, 32) for r in four}},
+                                      lambda d: d['a'].mean() - d['b'].mean(), nboot))
     for fam, keys in RL17_PLAN['families'].items():
         for k, q in zip(keys, holm([H[k]['p'] for k in keys])):
             H[k].update(family=fam, pHolm=float(q), supported=bool(q < RL17_PLAN['alpha']))

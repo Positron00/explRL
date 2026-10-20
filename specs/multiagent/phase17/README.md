@@ -155,3 +155,7 @@ Every trained 3B team loses most of its pooling as the team grows (the warm star
 | `p17d` | not trained (neither `p17b` nor `p17c` passed) | | |
 
 The fix worked for the single-pass recipe (pilot v2's `p17a` halted at step 28 on KL 0.65; v3's stayed near 0.01) but not for repeated passes, which still drift (p17b) or blow up (p17c). **The rule chose `p17a`.** Projected main runs (`projectHours` from its 644 s per step, 200 steps): 35.8 A100 hours per `r17mix` run, 23.8 per `r17four` run, **about 405 A100 hours in all** (8 + 5 runs; about half the earlier four-pass estimate). Next: the user confirms these hours; then `RL17_PLAN` is frozen with `p17a`'s recipe (`FIX17` included) and the main runs start on both accounts.
+
+## Main runs, amended and frozen (2026-10-20)
+
+The user confirmed a shorter main run instead of the projected 405 A100 hours: **`r17mix` only (mixed 4- and 8-agent teams with liars), 8 seeds, 60 steps** (as Phases 13-16; the pilot was still improving at step 30), with pilot v3's `p17a` recipe (one pass, `FIX17`). `r17four` (5 seeds) and its hypothesis H17-5 (does the mix itself matter?) are dropped; H17-1 to H17-4 are unchanged. Projected: 10.7 A100 hours per run, about 86 for training plus about 9 for evaluation. `RL17_PLAN` frozen with `recipe`, `projectedHours`, `userConfirmed` and an `amended` record (hash in the status line once committed). Next: the "Phase 17 main" cell on both accounts.

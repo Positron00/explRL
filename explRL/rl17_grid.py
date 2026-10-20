@@ -85,8 +85,8 @@ RL17_ARMS = dict(r17mix=dict(mixN=((4, 0.5), (8, 0.5)), liarShare=0.25), r17four
 PILOT17 = dict(p17a=dict(epochs=1, clip=None, kl=0.04, klTarget=0.003),
                p17b=dict(epochs=4, clip=0.2, kl=0.01, klTarget=0.01),
                p17c=dict(epochs=4, clip=0.2, kl=0.0, klTarget=0.0, lrFixed=1e-4))   # p17d: the better of b, c with turns 40
-PILOT_STEPS, MAIN_STEPS = 30, 200
-RL17_SEEDS = dict(r17mix=8, r17four=5)   # 8: exact sign-flip p down to 1/256, so Holm over 3 can reach 0.012 (5 seeds: 1/32 x 3 > 0.05)
+PILOT_STEPS, MAIN_STEPS = 30, 60        # main steps amended 200 -> 60 by the user (2026-10-20), as Phases 13-16
+RL17_SEEDS = dict(r17mix=8, r17four=0)   # 8: exact sign-flip p down to 1/256, so Holm over 3 can reach 0.012; r17four dropped (user, 2026-10-20)
 RL17_RUNS = [(a, s) for s in range(1, 9) for a in RL17_ARMS if s <= RL17_SEEDS[a]]   # interleaved
 SELECT = dict(maxInvalid=0.05, last=10, window=(21, 30), tie=0.02, maxCut=0)
 PILOT17_PLAN = dict(
@@ -98,16 +98,16 @@ PILOT17_PLAN = dict(
               'configuration: paired); within 0.02 of the best, the lowest mean seconds per step; a screen, one seed',
     measures='per step: rolloutSeconds, updateSeconds, samples, welfare, invalid, cut, kl (value tokens), klAll, halts', exploratory=True)
 RL17_PLAN = dict(
-    version=1, frozen=False, recipe=None, arms=RL17_ARMS, seeds=RL17_SEEDS, runs=[list(r) for r in RL17_RUNS], steps=MAIN_STEPS,
+    version=1, frozen=True, recipe=dict(PILOT17['p17a']), arms=RL17_ARMS, seeds=RL17_SEEDS, runs=[list(r) for r in RL17_RUNS], steps=MAIN_STEPS,
     common=BASE17, seedRule='r17mix 8 seeds: with 5, an exact sign-flip test cannot go below 1/32, so Holm over the primary three '
-    'could never reach 0.05; r17four 5 seeds (H17-5, a permutation test of 8 against 5, reaches 1/1287)',
-    projectedHours=None, userConfirmed=False, control='the Phase 12 warm start (step-0 rows)',
+    'could never reach 0.05; r17four not run (amended by the user on 2026-10-20, with H17-5, to cut the main runs from about 405 to about 86 A100 hours)',
+    projectedHours=dict(r17mix=10.73, total=85.9, perStepSeconds=643.9, steps=60, runs=8, evaluation='about 9 more'), userConfirmed=True,
+    amended=dict(date='2026-10-20', by='user', what='steps 200 -> 60; r17four (5 seeds) and H17-5 dropped; recipe p17a (pilot v3) with FIX17'), control='the Phase 12 warm start (step-0 rows)',
     evaluation='teamSizeSuite: clean N 4 (15 main seeds), N 8/16/32 (900-909); N // 4 liars at every N (900-909); 40 turns',
     hypotheses=dict(H17_1='signFlip(gain_n4[r17mix]) > 0', H17_2='signFlip(gain_n32 - gain_n4 [r17mix]) > 0',
                     H17_3='signFlip(pooledShare_n32[r17mix] - warm) > 0',
-                    H17_4='signFlip(honestLoss_n32[warm] - honestLoss_n32[r17mix]) > 0',
-                    H17_5='permTest(gain_n32[r17mix], gain_n32[r17four]) > 0'),
-    families=dict(primary=['H17_1', 'H17_2', 'H17_3'], secondary=['H17_4', 'H17_5']), alpha=0.05,
+                    H17_4='signFlip(honestLoss_n32[warm] - honestLoss_n32[r17mix]) > 0'),
+    families=dict(primary=['H17_1', 'H17_2', 'H17_3'], secondary=['H17_4']), alpha=0.05,
     intervals='hierarchical bootstrap (runs, then boards), descriptive', haiku='references only (full memory)',
     cutRule='if a 32-agent evaluation cell runs out of memory: N 32 on seeds 900-905 only, for every model', exploratory=True)
 

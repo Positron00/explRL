@@ -51,6 +51,9 @@ Terms:
 
 ## Analysis plans (frozen before the runs they cover; exploratory)
 
+`COLONY32_PLAN` (added 2026-10-20, a user-approved deviation from `COLONY_PLAN`'s go/no-go; `colony32`): plain and colonyGuards at N 32, clean and with independent liars, mistaken members and colluding liars, seeds 1800-1807; primary H18-7 (guards beat plain with independent liars at N 32, one-sided exact sign-flip); secondary H18-8, H18-9, the clean tax and the 8-32 trend; cap $200.
+
+
 `COLONY_PLAN` (Part 0's forecast reference, pilot, Stage 1, go/no-go, Stage 2's arm rule): arms, seeds, settings, measures, H18-1 to H18-6 with their tests and Holm family, the cost rules, the go/no-go rule; frozen with its `coopHash` recorded before the pilot. `COLONY2_PLAN` (Stage 2): the chosen arm, seeds, the trend test, the Stage 2 cost rule; frozen after the go verdict and the user's raise of the API cap. `RL18_PLAN` (Part B): arms, seeds, recipe, steps, `maxLen`, projected GPU hours, `userConfirmed`, H18-B1 to H18-B4; frozen after the speed check and the user's confirmation.
 
 ## Quality requirements

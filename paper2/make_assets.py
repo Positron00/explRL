@@ -99,6 +99,7 @@ M['TracePlanHash'] = TL['planHash']
 SP = json.loads(Path('specs/multiagent/phase18/colony_predictions.json').read_text())['predictions']
 SC = json.loads(Path('specs/multiagent/phase18/colony_score.json').read_text())
 M['ColonyRight'], M['ColonyWrong'], M['ColonyNoCall'] = str(SC['right']), str(SC['wrong']), str(SC['noCall'])
+M['ColonyCalled'] = str(SC['right'] + SC['wrong'])
 M['ColonyPredGuards'] = f"{SP['H18_4']['estimate']:+.3f}"
 M['ColonyPredBoard'] = f"{SP['H18_1']['estimate']:+.2f}"
 

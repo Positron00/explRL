@@ -22,12 +22,12 @@ Rules as Phase 16 (notebook first, export, one notebook per test call, modules u
 ## T5. Pilot (Colab, about 50 A100 hours; may run before or alongside T4; one or two accounts split the runs by claims)
 - **v1 (2026-10-19)**: ran; found the key-order flaw of constrained decoding (README); the user chose to re-pilot with the model's own key order (`PILOT17_PLAN` v2, `runs_p17pilot2/`).
 - **v2 (2026-10-19)**: ran; every recipe halted on KL; diagnosed on the Mac (README: a log-probability sink on schema-fixed and near-certain tokens, and cut 8-agent prompts); the user approved the fix (`FIX17`) and pilot v3 (`runs_p17pilot3/`). Implemented and tested (`valueMask`, `tokenTerm`, `cutCount`, the `cut` rule).
-- **v3 (2026-10-20)**: ran; `p17a` chosen (stable, KL about 0.01); the four-pass recipes halted again; projected main runs about 405 A100 hours, waiting for the user's confirmation.
+- **v3 (2026-10-20)**: ran; `p17a` chosen (stable, KL about 0.01); the four-pass recipes halted again; projected main runs about 405 A100 hours; the user chose a shorter main run instead (T6).
 - **What**: freeze `PILOT17_PLAN`, push; run the pilot cell; apply the selection rule; `projectHours` from the measured step times replaces the README's estimates; **report the projected main-run hours to the user and wait for confirmation**.
 
-## T6. Freeze and main runs (Colab, about 850 A100 hours at four passes, about a third at one; one or two accounts)
+## T6. Freeze and main runs (Colab; amended 2026-10-20: `r17mix` only, 8 seeds, 60 steps, about 86 A100 hours plus evaluation; one or two accounts)
 - **What**: after the user's confirmation, freeze `RL17_PLAN` with the chosen recipe and cost levers, push; run the main cell on each account (`HOST` set per account); when all runs are final, the account that wins the evaluation claim evaluates and writes the zip.
-- **Done when**: 13 final adapters (halted runs reported), `eval_p17/runs.csv`.
+- **Done when**: 8 final adapters (halted runs reported), `eval_p17/runs.csv`.
 
 ## T7. Analysis and docs
 - **What**: `demo_rl17` full; README results; `REPORT.md`; preprint; summary figure and page; wording as `RL17_PLAN`'s families and claim rules decide.
