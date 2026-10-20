@@ -1,6 +1,6 @@
 # Tasks: Phase 18
 
-Status (2026-10-19): T1, T2, T3, T4 and T7 done (offline; full suite green; Part 0 run, `colony_predictions.json` written and to be committed before the pilot); AC-6 revised after measuring (README). Next: T5 (freeze `COLONY_PLAN`, commit, pilot and Stage 1) on the user's go-ahead; T8 after Phase 17's recipe is frozen.
+Status (2026-10-19): T1, T2, T3, T4 and T7 done (offline; full suite green; Part 0 run, `colony_predictions.json` written and to be committed before the pilot); AC-6 revised after measuring (README). `COLONY_PLAN` frozen at `fc01882` (hash `58e842277a3e`). Next: T5's pilot and Stage 1; T8 after Phase 17's recipe is frozen.
 
 Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one notebook per test call, modules under 200 lines, offline tests without a network, key, `anthropic` or `torch`; Phase 5-17 cached reruns byte-identical and Phase 12-17 hashes unchanged. Gates: no Haiku cell before the Part 0 forecast is committed; no main cell before its plan is frozen and its hash recorded; Stage 2 only on a `go` verdict and a raised API cap; Part B only after Phase 17's recipe is frozen, Stage 1 is done and the user confirms the GPU hours.
 
