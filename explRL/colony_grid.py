@@ -10,7 +10,7 @@ __all__ = ['WORLD18', 'COLONY_ARMS', 'PART0_ARMS', 'COLONY_SEEDS', 'PILOT_SEED',
            'stage2Grid', 'part0Grid', 'stage1Quick', 'colonyEstimate', 'costRule1', 'costRule2', 'goNoGo',
            'syntheticRows18']
 
-# %% ../nbs/colony_grid.ipynb #531e9387
+# %% ../nbs/colony_grid.ipynb #659ddd55
 import copy
 
 import numpy as np
@@ -79,7 +79,7 @@ def stage1Quick(turns=3):
     "Stage 1's cells at seed 1800, a few turns (the fake-client pipeline check)."
     return _short(stage1Grid([1800]), turns)
 
-# %% ../nbs/colony_grid.ipynb #125949ef
+# %% ../nbs/colony_grid.ipynb #ff2523f1
 def colonyEstimate(cells):
     "fixEstimate with the pilot's cells as cached (no earlier phase's cell is reused: the deal differs at r = 2)."
     return fixEstimate(cells, colonyPilotGrid())
@@ -118,9 +118,9 @@ def goNoGo(rows, alpha=0.05, sizes=STAGE1_N):
     go = bool(p < alpha and a16 >= a8)
     return dict(verdict='go' if go else 'stop', arm=arm, p=p, adv=dict(zip(sizes, (a8, a16))))
 
-# %% ../nbs/colony_grid.ipynb #c16c8f36
+# %% ../nbs/colony_grid.ipynb #04e77422
 COLONY_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, prices=PRICES, world=WORLD18, turns=40, channel='blackboard', memory='full',   # as Phases 11-15 (the cost estimate uses their prices)
+    version=1, frozen=True, model=HAIKU, prices=PRICES, world=WORLD18, turns=40, channel='blackboard', memory='full',   # as Phases 11-15 (the cost estimate uses their prices)
     armsWorld={a: COLONY_ARMS[a] for a in COLONY_ARMS}, faults=dict(nLiar='N // 4', slots='0 .. N // 4 - 1',
         independent='ClueLiar', collude='ColludingLiar', error='MistakenAgent (p 0.3)'),
     seeds=dict(stage1=COLONY_SEEDS, pilot=PILOT_SEED, part0=PART0_SEEDS), sizes=STAGE1_N,
@@ -159,7 +159,7 @@ COLONY2_PLAN = dict(version=1, frozen=False, arm=None, capRaised=False, cap=None
                           'Stage 1 data (reported)', collude='descriptive: colluding against independent liars per N',
                     exploratory=True)
 
-# %% ../nbs/colony_grid.ipynb #b5c02ca7
+# %% ../nbs/colony_grid.ipynb #3a6bba5f
 def syntheticRows18(effects=None, seeds=range(1800, 1808), sizes=(8, 16), noise=0.02, seed=0):
     """Rows with known effects on honestPooled, contamination and pooledShare: effects {arm: (attack gain, clean change,
     contamination change, slope per log2 N)} against plain (0.4 clean, 0.25 with liars, 0.3 contamination)."""
