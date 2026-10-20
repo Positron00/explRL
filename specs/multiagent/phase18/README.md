@@ -1,6 +1,6 @@
 # Plan: Phase 18, colony rules for large Claude teams
 
-Status: **implemented, Part 0 run** (2026-10-19): T1 (literature), T2-T3 (board options, agents, tracing, grids, plans, analysis, demo), T4 (Part 0 numpy screen and forecast, results below; `colony_predictions.json` written, to be committed before the pilot) and T7 (Part B code and Colab cells) done, full suite green; AC-6 revised after measuring (below). `COLONY_PLAN` frozen at `fc01882` (`coopHash` = `58e842277a3e`) after the forecast was committed (`73557ea`); next: the pilot (T5, about $1), then Stage 1 (about $25) once the pilot's verdict is recorded. Replaces the earlier draft (learning whom to trust across games), which restated Phase 14's publicity result at a single team size. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 11-15 (the clue board, liars, the public track record, team size, the lie traces) and Phases 12-17 (RL of a 3B team).
+Status: **implemented, Part 0 run** (2026-10-19): T1 (literature), T2-T3 (board options, agents, tracing, grids, plans, analysis, demo), T4 (Part 0 numpy screen and forecast, results below; `colony_predictions.json` written, to be committed before the pilot) and T7 (Part B code and Colab cells) done, full suite green; AC-6 revised after measuring (below). `COLONY_PLAN` frozen at `fc01882` (`coopHash` = `58e842277a3e`) after the forecast was committed (`73557ea`); the pilot ran (2026-10-20, $0.84) and Stage 1 ran (2026-10-20, $24.89; results below): H18-1, H18-2 and H18-4 supported after Holm, H18-3 not; the frozen go/no-go rule says **stop** (Stage 2 not run). Replaces the earlier draft (learning whom to trust across games), which restated Phase 14's publicity result at a single team size. Part of the multi-agent plan: [../README.md](../README.md). Builds on Phases 11-15 (the clue board, liars, the public track record, team size, the lie traces) and Phases 12-17 (RL of a 3B team).
 
 ## Files in this spec
 
@@ -99,6 +99,8 @@ Rule agents are far more gullible than Claude (contamination 0.94-1.00 on the pl
 
 **Plan first:** `COLONY_PLAN` (arms, seeds, measures, hypotheses, the go/no-go and cost rules) is frozen and its `coopHash` recorded before the pilot, so the cost rule cannot be chosen after seeing the pilot. **Pilot (not analysed):** N = 16, `plain` and `colony`, clean and with independent liars, one seed outside the main seeds. Checks: invalid replies under 5%, cost per call (the cost rule), and that liars still cost the plain board something at `r = 2` (descriptive; if the pilot's plain board shows no honest loss, stop and ask before Stage 1).
 
+**Pilot verdict (2026-10-20; N = 16, seed 1890, 2,240 calls, $0.84; not analysed).** Invalid replies 0.09% (band: under 5%); cost per call $0.00038 (2,771 input and 501 output tokens per call); liars still cost the plain board a clear share at `r = 2` (honest welfare per agent-turn 0.458 clean against -0.045 with liars: a loss of 0.50); the cost rule projects Stage 1 at $26.71, within $35: **run, 8 seeds**. API spent so far: $79.98 of $150. One-seed glimpse, not a result: with liars the colony board's honest pooled share was 0.19 against the plain board's -0.04, contamination 0.44 against 0.78; clean, 0.38 against 0.43.
+
 **Stage 1 (N = 8 and 16, within the current cap).** With independent liars: `plain`, `confirm`, `colony`, `colony+guards`, `record` (public track record, the oracle ceiling). With mistaken members: `plain`, `colony`. Clean: `plain`, `confirm`, `colony`, `colony+guards`. 8 seeds, the same seed numbers at both sizes.
 
 | ID | Hypothesis (direction frozen before the run) |
@@ -113,6 +115,33 @@ Rule agents are far more gullible than Claude (contamination 0.94-1.00 on the pl
 Tests: the seed-and-size pair as the unit (16 pairs per test, paired on seed within a size), exact paired sign-flip tests (H18-3 on the difference plus 0.05), Holm over H18-1 to H18-4; bootstrap intervals over seeds. Secondary, outside the Holm family: H18-6, `colony` against `confirm` (what the display adds over the instruction), the share of `record`'s benefit the oracle-free arms reach, and goal drift per arm.
 
 **Go/no-go for Stage 2, frozen with the plan:** run Stage 2 only if `colony` or `colony+guards` beats `plain` under attack at N = 16 (one-sided sign-flip p below 0.05 over the 8 seeds at that size) and the chosen arm's advantage at 16 is not below its advantage at 8. The chosen arm is the one with the higher honest pooled share under attack at N = 16 (`colony` on a tie); because it is chosen on Stage 1 data, Stage 2's trend test is reported with that selection noted. Otherwise report the null and stop; a null at small N is itself an answer about test-time scaling with agents.
+
+**Stage 1 results (2026-10-20; 176 boards, 71,040 calls, $24.89, invalid replies 0.12%; cached rerun byte-identical; API spent $104.86 of $150; `results/multiagent/colony/stage1/report.md`).** Honest pooled share (means over 8 seeds and both sizes):
+
+| arm | clean | independent liars | mistaken members |
+|---|---|---|---|
+| plain | 0.44 | 0.02 | 0.34 |
+| confirm (instruction only) | 0.37 | 0.10 | |
+| colony | 0.36 | 0.10 | 0.34 |
+| colony + guards | 0.36 | **0.25** | |
+| record (oracle track record) | | 0.14 | |
+
+| hypothesis | estimate | 95% interval | exact p | Holm | verdict |
+|---|---|---|---|---|---|
+| H18-1 colony > plain with liars | +0.075 | [0.048, 0.102] | 0.005 | 0.013 | supported |
+| H18-2 colony lowers contamination | -0.13 (0.73 to 0.60) | [0.088, 0.171] | 0.004 | 0.013 | supported |
+| H18-3 clean tax under 0.05 | tax 0.076 | | 0.999 | 0.999 | not supported |
+| H18-4 guards > colony with liars | +0.155 | [0.135, 0.183] | < 0.001 | < 0.001 | supported |
+| H18-5 (exploratory) colony advantage larger at 16 | -0.084 (0.117 at 8, 0.033 at 16) | [-0.186, 0.020] | 0.91 | | no |
+| H18-6 (secondary) colony > plain with mistaken members | +0.006 | [-0.033, 0.044] | 0.39 | | no |
+
+- **Guards are the active ingredient.** Guards spend twice the share of turns sharing (0.37 against 0.18), contest more false values (0.31 per false value against 0.21 on the colony board, 0.06 on the plain board) and confirm fewer (0.05 against 0.09). Colony + guards recovers 0.72 of the liars' damage, twice the public track record's 0.34 (which needs the harness to know the truth), and lowers contamination to 0.25-0.37 (plain 0.72-0.73, colony 0.52-0.67, record 0.44-0.54); its advantage over the plain board is 0.26 at N 8 and 0.20 at N 16 (p 0.004 at each size).
+- **The display adds nothing over the instruction.** Colony and confirm are equal (difference -0.001, p 0.53); both help at N 8 (+0.12) and fade by N 16 (+0.03, p 0.16-0.19).
+- **Safety costs output on clean boards.** Every colony arm loses about 0.07 pooled share without liars (0.36-0.37 against 0.44): above the 0.05 margin.
+- **A new failure mode: honest agents vote for lies.** On the colony board honest agents post false values (6-8 per 100 shares, plain 0-0.4), mostly reposting a lie they do not hold to "confirm" it (relay 0.07-0.08 per false value): the quorum risk noted in P18-3 and [64], seen live.
+- **Mistaken members are no threat to Claude here.** Honest pooled share 0.34 on both boards; the colony board halves contamination at N 16 (0.14 against 0.30).
+- **Go/no-go (frozen rule): stop.** The chosen arm (colony + guards) beats plain at N 16 (p 0.004), but its advantage shrinks from 8 to 16 (0.26 to 0.20), which the rule does not allow; Stage 2 is not run. Running it anyway (for example guards at N 32-64, about $80-110 with a raised cap) would be a deviation from the frozen plan, for the user to decide.
+- **Forecast score:** 3 right (H18-1, H18-2, H18-3), 1 wrong (numpy predicted guards would not pay: rule-agent guards only shared, while Claude guards contest lies), 2 no call (H18-6, colony - confirm); H18-5 not scored (no Stage 2) (`colony_score.json`).
 
 **Stage 2 (N = 32 and 64; needs a higher cap).** `plain` and the chosen arm, each clean, with independent liars and with colluding liars (mistaken members stay at Stage 1 and in Part 0, for cost); the same 8 seed numbers (cut to 5 at N = 64 by the cost rule). `record` is not rerun. **H18-5 becomes confirmatory** as the trend test: per seed, the slope over log2 N of the chosen arm's advantage under independent liars across 8, 16, 32 and 64; a one-sided sign-flip test on the slopes. Colluding liars are reported against independent ones (where the quorum's protection ends).
 

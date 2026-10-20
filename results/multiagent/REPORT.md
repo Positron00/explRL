@@ -137,6 +137,24 @@ Four runs of individual reward and five of individual reward with wrong answers 
 
 Details: `specs/multiagent/phase16/README.md`, `results/multiagent/rl/eval_p16/report.md`.
 
+## 14. Phase 17: trained 3B teams against team size (descriptive)
+
+Step 0 evaluated every Phase 12-16 adapter at 4-32 agents. Every trained team loses most of its pooling as the team grows: the warm start's pooled share falls from 0.22 at N = 4 to 0.07 at N = 32 (the best adapter at N = 32, indpen_s4, keeps 0.11), while Claude Haiku 5.5 keeps 0.34 of 0.45, so the gap widens with size.
+- **Recipe pilot (v3, after two diagnosed failures):** the single-pass recipe trained stably (KL to the warm start about 0.01, training welfare 0.28 over steps 21-30); recipes with four update passes per batch halted again. Chosen: p17a; projected main runs 405 A100 hours (to be confirmed).
+
+Details: `specs/multiagent/phase17/README.md`, `results/multiagent/rl/eval_p17s0/report.md`.
+
+## 15. Phase 18: colony rules for Claude teams with faulty members (exploratory)
+
+Each clue held by two agents, a quarter of the agents scripted liars; a board that counts how many agents posted each value (confirmed at two, contested when values disagree), an instruction-only control, and assigned guard roles, against the plain board and the oracle track record; N = 8 and 16, 8 seeds, Claude Haiku 5.5 (`COLONY_PLAN` frozen before the runs; exact paired sign-flip tests, Holm over four).
+
+- **Guards are what works:** colony + guards beats the colony board alone by 0.155 [0.135, 0.183] (exact p < 0.001, Holm < 0.001) and the plain board by 0.26 [0.23, 0.29] at N = 8 and 0.20 [0.15, 0.25] at N = 16 (honest pooled share with liars); it recovers 0.72 of the liars' damage against the oracle track record's 0.34, with no ground truth.
+- **The board helps a little and the display adds nothing over the instruction:** colony minus plain 0.075 [0.048, 0.102] (exact p 0.005, Holm 0.013), falling from 0.12 [0.06, 0.17] at N = 8 to 0.03 [-0.03, 0.09] at N = 16; colony minus instruction-only -0.001. Contamination falls (H18-2: 0.130 [0.088, 0.171] (exact p 0.004, Holm 0.013)).
+- **Safety costs output on clean boards:** about 0.07 pooled share (H18-3, non-inferiority at 0.05, not supported: -0.026 [-0.038, -0.011] (exact p 0.999, Holm 0.999)). Honest agents on the colony board also reposted lies to confirm them (6-8 false posts per 100 shares).
+- **Go/no-go (frozen): stop.** The guard advantage shrank from N = 8 to 16 (0.26 to 0.20), so the 32-64 agent stage did not run; the numpy forecast called 3 of 4 signs right and missed the guards.
+
+Details: `specs/multiagent/phase18/README.md`, `results/multiagent/colony/stage1/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).

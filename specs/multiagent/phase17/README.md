@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); step 0 done (below); `RL17_PLAN` not frozen.
+Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); pilot v3 ran (2026-10-20): `p17a` (one pass) chosen, about 405 A100 hours projected for the main runs, waiting for the user's confirmation; step 0 done (below); `RL17_PLAN` not frozen.
 
 ## Files in this spec
 
@@ -142,3 +142,16 @@ All 15 adapters on `teamSizeSuite` (account B, about 16 hours on Colab; `results
 | Claude Haiku 5.5 | 0.45 | 0.41 | 0.38 | 0.34 |
 
 Every trained 3B team loses most of its pooling as the team grows (the warm start keeps 0.30 of its N 4 pooled share at N 32; Haiku keeps 0.76), so the gap to Haiku widens with size: the problem Phase 17's training mix targets. Invalid replies rise with N for every adapter (warm 0.000 at N 4 to 0.031 at N 32; credturn_s1 to 0.13, indpen_s3 to 0.49). Honest loss to liars is mostly smaller than Haiku's at N 16-32 because there is less to lose. Individual-reward adapters stay selfish at every size (shares per held clue 0.06-0.39 against the warm start's 0.84-0.94).
+
+## Pilot v3 (2026-10-20)
+
+`PILOT17_PLAN` v3 (frozen at `8f3a506`, hash `2d3565364f29`) ran on two Colab accounts (`results/multiagent/rl/colab/runs_p17pilot3/`; selection reproduced on the Mac, `results/multiagent/rl/pilot_p17/selection.json`).
+
+| Pilot | Outcome | Training welfare, steps 21-30 | Seconds per step |
+|---|---|---|---|
+| `p17a` (1 pass) | 30 steps, no halt; KL to the warm start 0.008-0.017 at the end (value tokens; 0.01-0.02 over all tokens); 2 steps undone; no prompt cut | 0.284 (0.226 over steps 1-5) | 644 |
+| `p17b` (4 clipped passes, KL 0.01) | halted at step 21: invalid replies above 0.1 for 3 steps; KL had climbed to 0.34-0.40 | 0.149 | 1,716 |
+| `p17c` (4 clipped passes, no KL) | halted at step 4: KL 1.28 | n/a | 1,675 |
+| `p17d` | not trained (neither `p17b` nor `p17c` passed) | | |
+
+The fix worked for the single-pass recipe (pilot v2's `p17a` halted at step 28 on KL 0.65; v3's stayed near 0.01) but not for repeated passes, which still drift (p17b) or blow up (p17c). **The rule chose `p17a`.** Projected main runs (`projectHours` from its 644 s per step, 200 steps): 35.8 A100 hours per `r17mix` run, 23.8 per `r17four` run, **about 405 A100 hours in all** (8 + 5 runs; about half the earlier four-pass estimate). Next: the user confirms these hours; then `RL17_PLAN` is frozen with `p17a`'s recipe (`FIX17` included) and the main runs start on both accounts.
