@@ -26,7 +26,10 @@ Requirements: [requirements.md](requirements.md). Plan and decisions: [README.md
 | `nbs/colony_grid.ipynb` -> `explRL/colony_grid.py` | new | `COLONY_ARMS`, grids (Part 0, pilot, Stage 1, Stage 2), `COLONY_PLAN`, `COLONY2_PLAN`, cost rules, `goNoGo`, estimates |
 | `nbs/colony_report.ipynb` -> `explRL/colony_report.py` | new | measures per cell, exact paired sign-flip tests, Holm, the trend test, bootstrap intervals, summaries, report, figure |
 | `tools/colony_forecast.py` | new | Part 0 run and score |
-| `nbs/demo_colony.ipynb` | new | the Part 0 summary, quick, pilot, Stage 1, go/no-go, Stage 2, cached reruns |
+| `nbs/colony32.ipynb` -> `explRL/colony32.py` | new (T6b) | guards at 32 agents: `stage32Grid`, `COLONY32_PLAN`, `stage32Summaries`, `writeStage32` |
+| `nbs/colony3.ipynb` -> `explRL/colony3.py` | new (T6c) | Stage 3: `stage3Grid`, `stage3PilotGrid`, `stage3Estimate`, `costRule3`, `complianceGate`, liar and volunteering measures, `runStage3Cell`, `COLONY3_PLAN`, `stage3Summaries`, `writeStage3` |
+| `nbs/clue_colony.ipynb`, `nbs/clue_text.ipynb`, `nbs/clue_runs.ipynb`, `nbs/colony_trace.ipynb`, `nbs/clue_roll.ipynb` | changed (T6c) | the deceiver and volunteer sentences; `fault = 'adaptive'` (Claude agents in the liar slots, the share exemption, call counting) in every LLM runner; `volunteer` |
+| `nbs/demo_colony.ipynb` | new | the Part 0 summary, quick, pilot, Stage 1, go/no-go, Stage 2, the 32-agent run (`stage32`), Stage 3 (`stage3pilot`, `stage3`), cached reruns |
 | `nbs/rl17_grid.ipynb`, `nbs/rl17_train.ipynb` | changed (small) | `RL17Config.world` (default `()`, outside the hash at the default), passed to every rollout; `trainRL17` logs `longest` (`rl17_update.pairLengths`) for the speed check |
 | `nbs/rl18_grid.ipynb` -> `explRL/rl18_grid.py` | new | Part B arms, runs, `colonySuite`, `RL18_PLAN`, `rl18Config`, hours projection |
 | `nbs/rl18_report.ipynb` -> `explRL/rl18_report.py` | new | H18-B1 to H18-B4, report, figure (the specialization index and its null come in the evaluation rows, from `colony_trace`) |
@@ -40,6 +43,9 @@ Part 0 (Mac, numpy) --forecast committed--> COLONY_PLAN frozen --> pilot (Mac, H
    --cost rule--> Stage 1 (Mac, Haiku, N 8 and 16, 8 seeds) --> tracing ($0) --> colonySummaries, forecast score
    --goNoGo--> stop (report)  |  go --> user raises the cap --> COLONY2_PLAN frozen --> Stage 2 (Mac, Haiku, N 32 and 64)
                                                                                          --> trend test, forecast rescore
+   stop, decline not significant --> user-approved deviation: COLONY32_PLAN frozen --> guards at N 32, three faulty-member kinds
+   --> Stage 3: regression gate --> COLONY3_PLAN frozen --> pilot (N 16, compliance gate, cost rule) --> Stage 3 (N 16, adaptive
+       liars and volunteers; Stage 1's references replayed from the cache, $0) --> stage3Summaries
 Phase 17 recipe frozen + Stage 1 done --> Part B speed check (Colab: seconds per step, maxLen, projected hours) --> user confirms --> RL18_PLAN frozen
    --> Part B main (Colab, accounts A and B: claimed runs, then claimed evaluation models) --> explRL_rl18.zip --> Mac analysis
 ```
@@ -51,9 +57,10 @@ As Phase 17: both accounts share `MyDrive/explRL_rl` (the second through a Drive
 ## Gates
 
 1. No Haiku cell before the forecast is committed (FR-03).
-2. No main cell before the plan covering it is frozen and its hash recorded (`COLONY_PLAN`, `COLONY2_PLAN`, `RL18_PLAN`).
+2. No main cell before the plan covering it is frozen and its hash recorded (`COLONY_PLAN`, `COLONY2_PLAN`, `COLONY32_PLAN`, `COLONY3_PLAN`, `RL18_PLAN`).
 3. Stage 2 only on a `go` verdict and after the user raises the API cap.
-4. Part B only after `RL17_PLAN` is frozen with a recipe (Phase 17's pilot v3) and Stage 1 is done (the colony option tested live), and after the user confirms the projected GPU hours.
+4. Stage 3: no live cell before the regression gate (AC-11) passes and `COLONY3_PLAN` is frozen; no main cell unless the pilot passes the compliance gate and the cost rule; each live step behind its own `EXPLRL_COLONY_STAGE` value (`stage3pilot`, then `stage3`).
+5. Part B only after `RL17_PLAN` is frozen with a recipe (Phase 17's pilot v3) and Stage 1 is done (the colony option tested live), and after the user confirms the projected GPU hours.
 
 ## Reuse
 

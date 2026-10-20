@@ -10,7 +10,7 @@ __all__ = ['WORLD18', 'COLONY_ARMS', 'PART0_ARMS', 'COLONY_SEEDS', 'PILOT_SEED',
            'stage2Grid', 'part0Grid', 'stage1Quick', 'colonyEstimate', 'costRule1', 'costRule2', 'goNoGo',
            'syntheticRows18']
 
-# %% ../nbs/colony_grid.ipynb #659ddd55
+# %% ../nbs/colony_grid.ipynb #681094b8
 import copy
 
 import numpy as np
@@ -35,7 +35,7 @@ def colonyCell(study, arm, N, seed, fault='clean', runner='llm', q=2, arms=None)
     """One Phase 18 cell, level '<arm>|<fault>': WORLD18 plus the arm's options (guards 'quarter' -> N // 4); with a fault,
     the first N // 4 slots are faulty members of that kind; q != 2 (Part 0) is stored in the world and the level."""
     w = {**WORLD18, **{k: (N // 4 if v == 'quarter' else v) for k, v in (arms or {**COLONY_ARMS, **PART0_ARMS})[arm].items()}}
-    if fault in ('collude', 'error'):
+    if fault in ('collude', 'error', 'adaptive'):
         w['fault'] = fault
     if q != 2:
         w.update(q=q, r=q)
@@ -79,7 +79,7 @@ def stage1Quick(turns=3):
     "Stage 1's cells at seed 1800, a few turns (the fake-client pipeline check)."
     return _short(stage1Grid([1800]), turns)
 
-# %% ../nbs/colony_grid.ipynb #ff2523f1
+# %% ../nbs/colony_grid.ipynb #8d9a721a
 def colonyEstimate(cells):
     "fixEstimate with the pilot's cells as cached (no earlier phase's cell is reused: the deal differs at r = 2)."
     return fixEstimate(cells, colonyPilotGrid())
@@ -118,7 +118,7 @@ def goNoGo(rows, alpha=0.05, sizes=STAGE1_N):
     go = bool(p < alpha and a16 >= a8)
     return dict(verdict='go' if go else 'stop', arm=arm, p=p, adv=dict(zip(sizes, (a8, a16))))
 
-# %% ../nbs/colony_grid.ipynb #04e77422
+# %% ../nbs/colony_grid.ipynb #b65c4ab5
 COLONY_PLAN = dict(
     version=1, frozen=True, model=HAIKU, prices=PRICES, world=WORLD18, turns=40, channel='blackboard', memory='full',   # as Phases 11-15 (the cost estimate uses their prices)
     armsWorld={a: COLONY_ARMS[a] for a in COLONY_ARMS}, faults=dict(nLiar='N // 4', slots='0 .. N // 4 - 1',
@@ -159,7 +159,7 @@ COLONY2_PLAN = dict(version=1, frozen=False, arm=None, capRaised=False, cap=None
                           'Stage 1 data (reported)', collude='descriptive: colluding against independent liars per N',
                     exploratory=True)
 
-# %% ../nbs/colony_grid.ipynb #3a6bba5f
+# %% ../nbs/colony_grid.ipynb #c8e26feb
 def syntheticRows18(effects=None, seeds=range(1800, 1808), sizes=(8, 16), noise=0.02, seed=0):
     """Rows with known effects on honestPooled, contamination and pooledShare: effects {arm: (attack gain, clean change,
     contamination change, slope per log2 N)} against plain (0.4 clean, 0.25 with liars, 0.3 contamination)."""

@@ -11,7 +11,7 @@ __all__ = ['NAN', 'BOARD_KEYS', 'clueSetup', 'clueMetrics', 'runClueNumpy', 'run
 import numpy as np
 
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent
-from .colony_agents import faultClass, memberClass
+from .colony_agents import faultClass, faultMembers, memberClass
 from .clue_fix import fixOptions
 from .clue_text import TextClueEnv
 from .clueboard import ClueBoardEnv
@@ -79,12 +79,13 @@ def runClueNumpy(cfg, seed):
 def runClue(cfg, seed, client):
     "LLM agents (scripted false-clue liars first) on one board -> (rows, turn log), as Phase 10's runLLM."
     T, nLLM = cfg.turnsPerAgent(), cfg.N - cfg.nLiar
-    client.reserve(estimateCost(cfg.model, 'clue', nLLM, T))
+    client.reserve(estimateCost(cfg.model, 'clue', nLLM + cfg.nLiar * (cfg.world.get('fault') == 'adaptive'), T))
     b, ch = clueSetup(cfg, seed)
     env = TextClueEnv(b, cfg.world.get('hint'), cfg.world.get('showOpen', False), **fixOptions(cfg.world), nLiar=cfg.nLiar)
-    liars = [faultClass(cfg.world)(ch, r) for r in spawnRngs(seed + 3000, cfg.nLiar)]
-    llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing) for _ in range(nLLM)]
-    hist = runTurns(liars + llm, b, T)
+    mk = lambda: LLMMember(client, env, ch, cfg.memory, cfg.framing)
+    liars = faultMembers(cfg.world, cfg.nLiar, ch, spawnRngs(seed + 3000, cfg.nLiar), mk)   # Stage 3: adaptive liars are Claude
+    llm = [m for m in liars if isinstance(m, LLMMember)] + [mk() for _ in range(nLLM)]
+    hist = runTurns(liars + llm[len(llm) - nLLM:], b, T)
     row = dict(episode=0, **clueMetrics(cfg, b, hist, range(cfg.nLiar, cfg.N), T), **llmStats(llm))
     return [row], [dict(episode=0, **x) for m in llm for x in m.log]
 

@@ -49,7 +49,7 @@ class LLMMember(Member):
 
     def system(self):
         if self._system is None:
-            s = (self.env.rules(self.id) if getattr(self.env, 'guards', 0) else self.env.rules()) + '\n\n' + FRAMING[self.framing].format(u=self.env.unit)
+            s = (self.env.rules(self.id) if getattr(self.env, 'slotRules', False) else self.env.rules()) + '\n\n' + FRAMING[self.framing].format(u=self.env.unit)
             if self.lessons:
                 s += '\n\nLessons you wrote at the end of earlier episodes (the world changes between episodes):\n' + \
                      self.lessons

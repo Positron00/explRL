@@ -19,7 +19,7 @@ import numpy as np
 
 from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
-from .colony_agents import faultClass
+from .colony_agents import scriptedFaults
 from .colony_trace import isPhase18, rolloutColumns
 from .clue_fix import fixOptions
 from .clue_policy import renderPrompt
@@ -123,7 +123,7 @@ def runEval(cells, policyFor, logDir=None):
     for cs in groups.values():
         cfg = LLMConfig.fromDict(cs[0]['cfg'])
         policies, memory = policyFor(cs[0])
-        ro = rollout(cfg, [c['seed'] for c in cs], policies, {i: faultClass(cfg.world) for i in range(cfg.nLiar)}, memory)
+        ro = rollout(cfg, [c['seed'] for c in cs], policies, scriptedFaults(cfg.world, cfg.nLiar), memory)
         for b, (c, r) in enumerate(zip(cs, coopRows(cfg, ro))):
             row = cellRow(c, cfg, r)
             rows.append(row)

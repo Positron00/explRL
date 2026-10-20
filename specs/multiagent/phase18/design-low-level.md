@@ -132,6 +132,62 @@ Holm uses `bench_stats.holm`. `honestPooled` is a row column (from `colony_trace
 
 Sections: quick (fake client: Stage 1's 22 cells at seed 1800 with 3 turns; identical at 1 and 8 processes); Part 0 summary (reads the committed predictions); pilot (`llm`; asserts the forecast is committed and `COLONY_PLAN` frozen; prints invalid rate, tokens and cost per call, the plain board's honest loss, `costRule1`'s verdict); Stage 1 (`llm`; the cells the verdict allows; then tracing and `colonySummaries`, `goNoGo`); tracing check (`llm`, $0: AC-6 on Phase 14's cached cells); Stage 2 (`llm`; asserts `COLONY2_PLAN` frozen with `capRaised` and the arm; its report and the trend test read Stage 1's rows too, `runColony(..., prior=rows1)`); cached reruns of the pilot and both stages (byte-identical). Live only with `EXPLRL_LLM_LIVE=1`.
 
+## `colony32` (T6b; a user-approved deviation)
+
+```python
+STAGE32_ARMS, STAGE32_FAULTS, N32 = ('plain', 'colonyGuards'), ('clean', 'independent', 'error', 'collude'), 32
+def stage32Grid(seeds=COLONY_SEEDS)             # study colony32, 64 cells
+COLONY32_PLAN                                   # frozen; deviation record, cap 200, H18-7 primary, H18-8/9, tax, trend
+def stage32Summaries(rows32, rows1, plan, nboot) # hyp (H18-7..9), tax, trend (slope over log2 N at 8, 16, 32, two-sided p), per-cell means
+def writeStage32(path, S, meta)
+```
+
+`demo_colony` runs it behind `EXPLRL_COLONY_STAGE=stage32` with the plan's cap; `runColony(..., analyse=...)` takes the summary and writer, and Stage 1's rows as `prior`.
+
+## Stage 3 (T6c): adaptive liars and unassigned guards
+
+**`clue_colony`.**
+
+```python
+DECEIVER_RULE, VOLUNTEER_RULE = '...', '...'     # FR-A14, FR-A15, verbatim
+def colonyRules(env, text, i=None)               # as before, plus: DECEIVER_RULE for i < nLiar when env.fault == 'adaptive';
+                                                 # VOLUNTEER_RULE for honest i when env.volunteer; nothing else changes
+def checkOptions(world, N=None, nLiar=0)         # fault may also be 'adaptive'; volunteer exclusive with guards
+COLONY_OPTS = ('colony', 'confirm', 'guards', 'volunteer', 'fault')   # passed to TextClueEnv by fixOptions
+```
+
+**`clue_text`.** `TextClueEnv(..., fault='independent', volunteer=False)`. `rules(i)` uses the slot whenever `guards`, `volunteer` or an adaptive fault is set (`renderPrompt` and `LLMMember` already pass the slot when `guards` is set; the test becomes "any slot-dependent option"). `parse`: for a liar slot of an adaptive cell, a share of any residue `0 <= r < p` of a prime `p` of an open subtask is valid (the report carries that residue); every other slot keeps the known-value check.
+
+**Runners.** `llmSlots(cfg)`: `range(0, N)` when `fault == 'adaptive'`, else `range(nLiar, N)`. `runClue` and `replay` build `LLMMember`s for the liar slots of adaptive cells (same client, same env) and reserve `estimateCost(..., len(llmSlots), T)`; `rollout`'s callers pass no scripted members for adaptive cells (the policy answers every slot); `clue_roll.coopRows` and the honest range are unchanged (`range(nLiar, N)`). `fix_grid.cellCalls` counts `N x turns` for adaptive cells. `colony_agents.faultClass('adaptive')` raises `ValueError` (numpy cells cannot play it).
+
+**`colony3`.**
+
+```python
+STAGE3_NEW = [('plain', 'adaptive'), ('colonyGuards', 'adaptive'), ('colonyVolunteer', 'independent'),
+              ('colonyVolunteer', 'clean'), ('colonyVolunteer', 'adaptive')]
+STAGE3_REUSED = [('plain', 'clean'), ('plain', 'independent'), ('colony', 'independent'), ('colony', 'clean'),
+                 ('colonyGuards', 'independent'), ('colonyGuards', 'clean')]      # read from Stage 1's runs.csv
+ARMS3 = {**COLONY_ARMS, 'colonyVolunteer': dict(colony=True, volunteer=True)}   # not added to COLONY_ARMS, which COLONY_PLAN freezes;
+                                                 # colonyCell accepts fault 'adaptive' and arms=ARMS3
+def stage3Grid(seeds=COLONY_SEEDS)               # study colony3: STAGE3_NEW x N 16 x seeds 1800-1807 (40 cells)
+def stage3PilotGrid()                            # plain|adaptive, colonyVolunteer|independent at seed 1890
+def stage3Estimate(cells)                        # new calls (adaptive cells: all N agents)
+def costRule3(perCall, plan=None)                # run if the projection is at most plan['costRule']['run'] (30), else stop
+def liarBehaviour(board, log, nLiar, guards)     # liarFalsePerTurn, liarTargetGuarded, liarCollude, liarRefusals
+def volunteering(board, nLiar)                   # volunteers: honest agents with no open after their fifth turn and shares >= half their turns
+def stage3Columns(cfg, rp, seed)                 # colonyColumns + liarBehaviour (incl. liarFalsePosts) + volunteering + specIndex/specNull (honest slots)
+def runStage3(cfg, seed, client)                 # runClue's signature for runLLMCell: replay + stage3Columns, and the turn log
+def runStage3Cell(cell)                          # for runWorkload (a named function, so worker processes can pickle it)
+def reusedCells(seeds); def reusedRows(client, rows1, seeds)   # the six reused cells replayed through client(cfg) (the cache-only
+                                                 # client: $0) with Stage 3's columns; asserts every Stage 1 column unchanged (world.* configs are tested equal)
+def complianceGate(rows, plan=None)              # dict(ok, reasons, liarFalsePerTurn, liarRefusals, invalid)
+COLONY3_PLAN                                     # frozen before the pilot: cells, seeds, reuse, H18-10, H18-11 (Holm), secondary, gates, costRule
+def stage3Summaries(rows3, rowsReused, plan, nboot)   # FR-A18 (rowsReused: the replayed Stage 1 references)
+def writeStage3(path, S, meta)
+```
+
+**`demo_colony`.** A Stage 3 section: `EXPLRL_COLONY_STAGE=stage3pilot` runs the pilot and prints the compliance gate and the cost rule's verdict; `EXPLRL_COLONY_STAGE=stage3` runs `stage3Grid` only if both pass (re-checked from the pilot's saved rows), with `runStage3Cell`, then `reusedRows` (the six Stage 1 cells replayed from the cache, $0, saved as `reused.csv`), `stage3Summaries(rows3, rowsReused)` and `writeStage3`; both also enter the cached reruns.
+
 ## Part B
 
 ### `rl17_grid` and `rl17_train` change
@@ -181,6 +237,9 @@ def writeRL18, figRL18, syntheticRows18B
 | `colony_trace` | replay equals `runClueNumpy` and `runClue` (with each option); AC-6 on hand-made logs (contamination, reach, suppression, relay, goal drift, action mix); numpy cells identical at 1 and 2 processes (NFR-4); specialization index on fixed and mixed roles; AC-6 on Phase 14's cached cells in `demo_colony` (`llm`) |
 | `colony_grid` | AC-4: grid sizes, liar and guard counts, seeds, estimates, cost rules, `goNoGo` both ways and the tie |
 | `colony_report` | AC-7: synthetic effects recovered, exact p, Holm order, slopes |
+| `colony32` | grid (64 cells, liar and guard counts, faults), call count, synthetic analysis (H18-7, tax, trend) |
+| `clue_colony`, `clue_text`, `clue_runs`, `colony_trace`, `clue_roll` (Stage 3) | AC-11: earlier arms byte-identical; deceiver and volunteer sentences only in their slots; the share exemption only for adaptive liar slots; rollout equals `runClue` and `replay` for adaptive and volunteer cells with the fake client; call counting; numpy refuses `adaptive` |
+| `colony3` | grid (40 cells) and pilot; estimate and `costRule3`; `complianceGate` both ways; `liarBehaviour` and `volunteering` on hand-made boards and logs; `stage3Summaries` on synthetic rows (exact p, Holm) |
 | `rl17_grid`, `rl17_train` | `world=()` hash unchanged; flag `train`: a tiny-model step with `world` set runs a colony board (AC-9) |
 | `rl18_grid`, `rl18_report` | arms, seeds, configurations, the suite's cells; claims split between two simulated hosts; specialization index and null on synthetic logs (AC-9) |
 | `demo_colony`, `demo_rl18` | quick sections end to end (`demo_rl18`: synthetic Part B rows and logs) |

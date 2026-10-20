@@ -6,9 +6,9 @@ Docs: https://Positron00.github.io/explRL/colony_agents.html.md"""
 
 # %% auto #0
 __all__ = ['ViewAgent', 'ConfirmAgent', 'ColonyAgent', 'GuardAgent', 'ThresholdGuard', 'ColludingLiar', 'MistakenAgent',
-           'faultClass', 'memberClass']
+           'faultClass', 'scriptedFaults', 'faultMembers', 'memberClass']
 
-# %% ../nbs/colony_agents.ipynb #d31ef625
+# %% ../nbs/colony_agents.ipynb #5894a2cf
 from functools import partial
 
 from .clue_agents import ClueBoard, ClueLiar, RuleAgent, candidates, known
@@ -57,7 +57,7 @@ class ViewAgent(RuleAgent):
             return ('submit', int(c[int(self.rng.integers(len(c)))]))
         return ('wait', None)
 
-# %% ../nbs/colony_agents.ipynb #3249c9c6
+# %% ../nbs/colony_agents.ipynb #fe04d112
 class ConfirmAgent(ViewAgent):
     "The numpy `confirm` arm: first shares a held clue whose latest shown value differs; else as RuleAgent."
     def _shareable(self, b, kn, t):
@@ -119,7 +119,7 @@ class ThresholdGuard(ColonyAgent):
             return GuardAgent.choose(self, b, t)
         return super().choose(b, t)
 
-# %% ../nbs/colony_agents.ipynb #eec47f73
+# %% ../nbs/colony_agents.ipynb #8a8327e2
 class ColludingLiar(ClueLiar):
     """On a lying turn (every other turn, as ClueLiar), first reposts a fellow liar's false value on an open subtask that
     fewer than two liars have posted; else lies as ClueLiar. Liars know each other (they register on the channel); every
@@ -164,10 +164,23 @@ class MistakenAgent(ViewAgent):
             out[k].update(self.heldFor(b, k))
         return out
 
-# %% ../nbs/colony_agents.ipynb #282a2aa8
+# %% ../nbs/colony_agents.ipynb #8f3db8f4
 def faultClass(world):
-    "Factory(channel, rng) for the faulty slots: 'independent' (default) ClueLiar, 'collude' ColludingLiar, 'error' MistakenAgent."
-    return dict(independent=ClueLiar, collude=ColludingLiar, error=MistakenAgent)[world.get('fault', 'independent')]
+    "Factory(channel, rng) for scripted faulty slots: 'independent' (default) ClueLiar, 'collude' ColludingLiar, 'error' MistakenAgent."
+    f = world.get('fault', 'independent')
+    if f == 'adaptive':
+        raise ValueError("fault 'adaptive' is played by Claude agents, not scripted members")
+    return dict(independent=ClueLiar, collude=ColludingLiar, error=MistakenAgent)[f]
+
+
+def scriptedFaults(world, nLiar):
+    "rollout's `scripted` slots: {slot: factory} for scripted faults, None for none or for adaptive liars (the policy plays them)."
+    return None if not nLiar or world.get('fault') == 'adaptive' else {i: faultClass(world) for i in range(nLiar)}
+
+
+def faultMembers(world, nLiar, channel, rngs, llm):
+    "The faulty slots' members: llm() for each when the fault is 'adaptive' (Stage 3), else faultClass members on rngs."
+    return [llm() for _ in range(nLiar)] if world.get('fault') == 'adaptive' else [faultClass(world)(channel, r) for r in rngs]
 
 
 def memberClass(world, slot, nLiar=0):

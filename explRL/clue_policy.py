@@ -34,7 +34,7 @@ def historyBlocks(memory='notes', notes='', past=()):
 
 def renderPrompt(env, obs, memory='notes', notes='', past=(), framing='own', i=None):
     "(system, blocks) exactly as LLMMember sends them for this state (slot i: Phase 18's guard slots differ)."
-    system = (env.rules(i) if getattr(env, 'guards', 0) else env.rules()) + '\n\n' + FRAMING[framing].format(u=env.unit)
+    system = (env.rules(i) if getattr(env, 'slotRules', False) else env.rules()) + '\n\n' + FRAMING[framing].format(u=env.unit)
     return system, historyBlocks(memory, notes, past) + [{'type': 'text', 'text': 'Now:\n' + obs}]
 
 

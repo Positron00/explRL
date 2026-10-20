@@ -36,13 +36,16 @@ class TextClueEnv:
     task, timeUnit, SCHEMA, unit = 'clue', 'turn', CLUE_SCHEMA, 'points'
 
     def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False, colony=False,
-                 confirm=False, guards=0, nLiar=0, q=2):
+                 confirm=False, guards=0, nLiar=0, q=2, volunteer=False, fault='independent'):
         """hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3); ask, table,
         record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations); record 'private'
         and check 'public': the Phase 14 settings; colony, confirm, guards (with nLiar, the faulty slots before the guards)
-        and q: the Phase 18 options (clue_colony)."""
-        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q))
+        and q: the Phase 18 options (clue_colony); volunteer and fault 'adaptive': Stage 3 (slot-dependent rules; adaptive
+        liar slots may share any residue)."""
+        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q, volunteer=volunteer, fault=fault))
         self.colony, self.confirm, self.guards, self.nLiar, self.q = bool(colony), bool(confirm), int(guards), int(nLiar), int(q)
+        self.volunteer, self.fault = bool(volunteer), fault
+        self.slotRules = bool(self.guards or self.volunteer or fault == 'adaptive')   # rules(i) differ by slot
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
         self.ask, self.table, (self.record, self.check) = bool(ask), bool(table), fixSettings(record, check)
@@ -150,7 +153,8 @@ class TextClueEnv:
         if a == 'share' and k in b.open and (m := CLUE_RE.search(str(parsed.get('clue', '')))):
             p, r = int(m.group(1)), int(m.group(2))
             j = next((j for j, q in enumerate(b.tasks[k].task.primes) if q == p), None)
-            if j is not None and self._known.get(i, {}).get(k, {}).get(j) == r:
+            liar = self.fault == 'adaptive' and i < self.nLiar              # Stage 3: an adaptive liar may post any residue
+            if j is not None and (self._known.get(i, {}).get(k, {}).get(j) == r or liar and 0 <= r < p):
                 return ('share', (k, j, r)), (k, (j, p, r)), True
             return wait, None, False
         ans, ko = parsed.get('answer'), b.opened[i]

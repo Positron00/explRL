@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .colony_agents import faultClass
+from .colony_agents import scriptedFaults
 from .clue_grid import BOARD, CLUE_SETTINGS
 from .clue_roll import coopRows, rollout
 from .clue_sft import libVersions, loadModel, loraConfig
@@ -78,7 +78,7 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
                 pol.calls = s * 100_000
                 if vllm:
                     pol.setAdapter(str(out / 'live'))
-                return [(lcfg(N, nl), rollout(lcfg(N, nl), seeds, pol, {i: faultClass(dict(cfg.world)) for i in range(nl)} if nl else None,
+                return [(lcfg(N, nl), rollout(lcfg(N, nl), seeds, pol, scriptedFaults(dict(cfg.world), nl),
                                                        keepPrompts=True))
                         for N, nl, seeds in boardGroups(cfg, s)]
 

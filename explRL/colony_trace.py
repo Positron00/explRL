@@ -8,7 +8,7 @@ Docs: https://Positron00.github.io/explRL/colony_trace.html.md"""
 __all__ = ['Replay', 'replay', 'falseValues', 'contaminatedBy', 'goalDrift', 'actionMix', 'traceBoard', 'colonyColumns',
            'runTraced', 'runColonyCell', 'traceCell', 'specIndex', 'rolloutColumns', 'isPhase18']
 
-# %% ../nbs/colony_trace.ipynb #b1226923
+# %% ../nbs/colony_trace.ipynb #c3008742
 from collections import namedtuple
 
 import numpy as np
@@ -16,7 +16,7 @@ import numpy as np
 from .clue_runs import NAN, clueMetrics, clueSetup
 from .clue_text import TextClueEnv
 from .clue_fix import fixOptions
-from .colony_agents import faultClass, memberClass
+from .colony_agents import faultClass, faultMembers, memberClass
 from .llm_agent import LLMMember, runTurns
 from .llm_budget import estimateCost
 from .llm_runs import LLMConfig, cellRow, llmStats, runLLMCell
@@ -35,10 +35,11 @@ def replay(cfg, seed, client=None):
         members = [faultClass(w)(ch, rngs[i]) if i < nL else memberClass(w, i, nL)(ch, rngs[i]) for i in range(cfg.N)]
         llm = []
     else:
-        client.reserve(estimateCost(cfg.model, 'clue', cfg.N - nL, T))
+        client.reserve(estimateCost(cfg.model, 'clue', cfg.N - nL * (w.get('fault') != 'adaptive'), T))
         env = TextClueEnv(b, w.get('hint'), w.get('showOpen', False), **fixOptions(w), nLiar=nL)
-        llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing) for _ in range(cfg.N - nL)]
-        members = [faultClass(w)(ch, r) for r in spawnRngs(seed + 3000, nL)] + llm
+        mk = lambda: LLMMember(client, env, ch, cfg.memory, cfg.framing)           # adaptive liars (Stage 3) are Claude agents too
+        members = faultMembers(w, nL, ch, spawnRngs(seed + 3000, nL), mk) + [mk() for _ in range(cfg.N - nL)]
+        llm = [m for m in members if isinstance(m, LLMMember)]
     hist = runTurns(members, b, T)
     row = dict(episode=0, **clueMetrics(cfg, b, hist, range(nL, cfg.N), T), **(llmStats(llm) if client is not None else {}))
     log = [dict(episode=0, **x) for m in llm for x in m.log]
@@ -48,7 +49,7 @@ def replay(cfg, seed, client=None):
     ans.update({(float(x['t']), x['agent']): x['action'][1] for x in log if x['action'][0] == 'submit'})
     return Replay([row], log, b, ans, nL, T)
 
-# %% ../nbs/colony_trace.ipynb #5a30fe5a
+# %% ../nbs/colony_trace.ipynb #e64f0ed7
 def falseValues(board):
     "{(k, j, r): (time, poster) of its first post} for every false value posted."
     out = {}
@@ -134,7 +135,7 @@ def traceBoard(board, answers, nLiar):
                 confirmTrue=float(np.mean([len(senders[v]) - 1 for v in trueClues])) if trueClues else NAN,
                 falseValues=n, **goalDrift(board, honest), **actionMix(board, honest))
 
-# %% ../nbs/colony_trace.ipynb #b9ca0c6e
+# %% ../nbs/colony_trace.ipynb #a61b0879
 def colonyColumns(rp):
     "The row of a replay with Phase 18's columns: pooledBound, honestPooled (welfareHonest x N / pooledBound) and the trace."
     row, bd = rp.rows[0], rp.board.pooledBound()
@@ -161,7 +162,7 @@ def traceCell(cell, client):
     cfg = LLMConfig.fromDict(cell['cfg'])
     return cellRow(cell, cfg, colonyColumns(replay(cfg, cell['seed'], client)))
 
-# %% ../nbs/colony_trace.ipynb #260926ca
+# %% ../nbs/colony_trace.ipynb #d1868c93
 def specIndex(slotLogs, nLiar, seed=0, nNull=200):
     """(index, null) for one board: the variance across honest slots of each slot's share of turns spent sharing, over the
     binomial variance expected if every turn followed the board's pooled share (mean of p(1-p)/turns); the null shuffles

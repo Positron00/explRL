@@ -9,6 +9,7 @@ Status: **implemented, Part 0 run** (2026-10-19): T1 (literature), T2-T3 (board 
 - [design-low-level.md](design-low-level.md): functions, display format, tracing, grids, tests, Colab cells.
 - [tasks.md](tasks.md): T1-T10.
 - [RUN.md](RUN.md): tests, runs in order, artifacts.
+- [stage3.md](stage3.md): Stage 3 plan (adaptive liars, unassigned guards).
 
 ## Why
 
@@ -159,6 +160,8 @@ Tests: the seed-and-size pair as the unit (16 pairs per test, paired on seed wit
 - **Colluding liars, who back each other's false values to defeat a two-sender quorum, still lose to guards** (+0.09), because guards contest a false value of a clue they hold whatever its count; contamination stays high (0.63 against 0.76).
 - **Mistaken members** cost far less than liars (plain 0.21 against 0.36 clean); guards recover part of it (+0.06) and halve the answers built on a misread clue (0.15 against 0.38).
 - Honest agents on the guards' board still reposted some lies (2.4 false posts per 100 shares with independent liars).
+
+**Stage 3, planned and specified (2026-10-20; FR-A14 to FR-A18, AC-11, T6c): adaptive liars and unassigned guards** ([stage3.md](stage3.md)): at N = 16, Claude agents told to deceive instead of scripted liars (H18-10: do assigned guards still win?), and the guard role described to everyone with no assignment (H18-11: do volunteers help?), paired with Stage 1 on the same seeds; about $11, `COLONY3_PLAN` to be frozen before a pilot with a liar-compliance gate. 64 agents not planned (the 8-32 trend is flat; larger scale is the proposed follow-up).
 
 **Stage 2 (N = 32 and 64; needs a higher cap; not run, replaced by the deviation above).** `plain` and the chosen arm, each clean, with independent liars and with colluding liars (mistaken members stay at Stage 1 and in Part 0, for cost); the same 8 seed numbers (cut to 5 at N = 64 by the cost rule). `record` is not rerun. **H18-5 becomes confirmatory** as the trend test: per seed, the slope over log2 N of the chosen arm's advantage under independent liars across 8, 16, 32 and 64; a one-sided sign-flip test on the slopes. Colluding liars are reported against independent ones (where the quorum's protection ends).
 

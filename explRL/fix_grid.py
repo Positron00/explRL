@@ -142,7 +142,7 @@ def cellCalls(c):
     cfg = LLMConfig.fromDict(c['cfg'])
     if cfg.task == 'profile':
         return 1 if cfg.world.get('solo') else cfg.N * (cfg.turns + 1)
-    return (cfg.N - cfg.nLiar) * cfg.turnsPerAgent()
+    return (cfg.N - cfg.nLiar * (cfg.world.get('fault') != 'adaptive')) * cfg.turnsPerAgent()   # adaptive liars are Claude too
 
 
 def fixEstimate(cells, cached=None):
