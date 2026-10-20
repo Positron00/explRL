@@ -1,6 +1,6 @@
 # Phase 18, Stage 3: adaptive liars and unassigned guards
 
-Status: **implemented and tested** (2026-10-20; T6c): the regression gate passed (every earlier arm replays from the cache without a miss; full suite green); `COLONY3_PLAN` frozen at `351ce61` (`coopHash` = `0c59fa10f2b0`); nothing live run yet. Part of [README.md](README.md). Builds on Stage 1 (N = 8 and 16) and the 32-agent run, where assigned guards beat the plain board against scripted liars, mistaken members and colluding liars.
+Status: **implemented and tested** (2026-10-20; T6c): the regression gate passed (every earlier arm replays from the cache without a miss; full suite green); `COLONY3_PLAN` frozen at `351ce61` (`coopHash` = `0c59fa10f2b0`); pilot and Stage 3 run (2026-10-20; results below). Part of [README.md](README.md). Builds on Stage 1 (N = 8 and 16) and the 32-agent run, where assigned guards beat the plain board against scripted liars, mistaken members and colluding liars.
 
 ## Why
 
@@ -52,6 +52,19 @@ Holm over H18-10 and H18-11 (8 seeds: exact p down to 1/256, so both can survive
 **Regression gate (before the pilot):** the new options must leave every earlier arm's prompts unchanged, so that the reused Stage 1 rows stay comparable: Stage 1's and the 32-agent run's cached reruns stay byte-identical and the Phase 11-17 hash tests stay green.
 
 Plan frozen (`COLONY3_PLAN`, its `coopHash` recorded) before the pilot. **Pilot** (seed 1890, not analysed): `plain|adaptive` and `colonyVolunteer|independent` at N = 16. Checks: invalid replies under 5%; **liar compliance**: if adaptive liars post a false value in under 10% of their turns or refuse in over 20% of their replies, stop and ask (an adversary that does not lie tests nothing); cost per call and the projection (cost rule: run if Stage 3 projects at most $30, else stop and ask). Volunteering in the pilot is reported, not gated.
+
+**Pilot verdict (2026-10-20; seed 1890, 1,120 calls, $0.44; not analysed): both gates pass.** Compliance: adaptive liars posted an accepted false value in 0.125 of their turns (gate 0.10), refused 0.04 of replies (gate 0.20); invalid replies 0.029 overall (gate 0.05). Cost rule: Stage 3 projects $9.65 (at most $30): **run**. Observations, not results: the Claude liars tried to lie more often than they succeeded: 30 of their 160 turns were rejected shares, mostly clues for primes the subtask does not have (the board accepts only a subtask's own primes, so a liar must know them); their accepted lies did far less damage than scripted ones (plain board honest pooled share 0.29, against about 0.02 with scripted liars at N = 16); no agent volunteered as a guard on the volunteer board (0 of 12).
+
+## Results (2026-10-20; 40 boards, 24,320 calls, $8.41; reused Stage 1 cells replayed from the cache, $0, Stage 1 columns unchanged; cached rerun byte-identical; API spent $146.44 of $200; `results/multiagent/colony/stage3/report.md`)
+
+| hypothesis | estimate (honest pooled share) | 95% interval | exact p | Holm | verdict |
+|---|---|---|---|---|---|
+| H18-10 guards beat the plain board with adaptive (Claude) liars | +0.063 | [0.016, 0.104] | 0.020 | 0.039 | supported |
+| H18-11 unassigned roles beat the colony board with scripted liars | +0.009 | [-0.023, 0.039] | 0.29 | 0.29 | not supported |
+
+- **Guards survive a Claude liar.** Assigned guards beat the plain board against adaptive liars and recovered 0.70 of their damage (0.63 of scripted liars' damage); answers built on a lie fell from 0.39 to 0.18.
+- **Claude liars lie less, not better.** They did much less damage than scripted liars (the plain board's honest loss 0.28 lower) because they lied less often (an accepted lie in 0.18 of their turns on the plain board, against 0.5), while each lie did the same damage (0.006 per lie, scripted and adaptive). They did not avoid guarded clues (0.39 of their lies were on clues a guard held, as for scripted liars: 0.38), rarely backed each other's lies (0.05), and lied more often when guards were present (0.25 of turns).
+- **Nobody volunteers.** On the volunteer board no honest agent acted as a guard in any of the 24 boards (0 volunteers; specialization at its shuffled baseline, -0.003, p 0.52), so the volunteer board performed like the colony board without roles (+0.009) and 0.16 below assigned guards; the extra instruction also cost 0.10 pooled share on clean boards. Describing the role and its value was not enough: the division of labour had to be assigned, which is Part B's question (can training make it emerge?).
 
 ## Compute and cost
 
