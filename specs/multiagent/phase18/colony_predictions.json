@@ -1,0 +1,2879 @@
+{
+ "predictions": {
+  "H18_1": {
+   "estimate": 0.2945987381542663,
+   "ci": [
+    0.27306948480032145,
+    0.31541088858086014
+   ],
+   "sign": "+"
+  },
+  "H18_2": {
+   "estimate": 0.8053203051376889,
+   "ci": [
+    0.7328086829639516,
+    0.8677031103844088
+   ],
+   "sign": "+"
+  },
+  "H18_3": {
+   "estimate": -0.012580725293217326,
+   "ci": [
+    -0.019219099403093416,
+    -0.00556048680351531
+   ],
+   "sign": "-"
+  },
+  "H18_4": {
+   "estimate": -0.039812269542585356,
+   "ci": [
+    -0.05382898713436113,
+    -0.02238349855503842
+   ],
+   "sign": "-"
+  },
+  "H18_6": {
+   "estimate": -0.025933278332522732,
+   "ci": [
+    -0.06756322776177603,
+    0.01365256527551442
+   ],
+   "sign": "0"
+  },
+  "colonyVsConfirm": {
+   "estimate": -0.06363848114767952,
+   "ci": [
+    -0.09426857821564823,
+    -0.031153591539175532
+   ],
+   "sign": "-"
+  },
+  "H18_5": {
+   "estimate": -0.016122357325999058,
+   "ci": [
+    -0.027163114081075086,
+    -0.004805979341469345
+   ],
+   "sign": "-",
+   "arm": "colony",
+   "sizes": [
+    8,
+    16,
+    32,
+    64
+   ]
+  }
+ },
+ "screen": {
+  "colonyGuards|clean": {
+   "4": {
+    "honestPooled": 0.3953,
+    "pooledShare": 0.3953,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3249,
+    "pooledShare": 0.3249,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.2841,
+    "pooledShare": 0.2841,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.2457,
+    "pooledShare": 0.2457,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0031,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1955,
+    "pooledShare": 0.1955,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0078,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1535,
+    "pooledShare": 0.1535,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0242,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|clean|q3": {
+   "4": {
+    "honestPooled": 0.4168,
+    "pooledShare": 0.4168,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2153,
+    "pooledShare": 0.2153,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.2045,
+    "pooledShare": 0.2045,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1843,
+    "pooledShare": 0.1843,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1557,
+    "pooledShare": 0.1557,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1281,
+    "pooledShare": 0.1281,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0008,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|collude": {
+   "4": {
+    "honestPooled": 0.1003,
+    "pooledShare": 0.19,
+    "contamination": 0.0,
+    "suppression": 0.0493,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0006,
+    "pooledShare": 0.0937,
+    "contamination": 0.7746,
+    "suppression": 0.0368,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": -0.0313,
+    "pooledShare": 0.0468,
+    "contamination": 0.842,
+    "suppression": 0.0309,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": -0.0604,
+    "pooledShare": -0.001,
+    "contamination": 0.9137,
+    "suppression": 0.0227,
+    "freeRiding": 0.0278,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.0597,
+    "pooledShare": -0.0123,
+    "contamination": 0.9271,
+    "suppression": 0.0158,
+    "freeRiding": 0.0382,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0773,
+    "pooledShare": -0.0378,
+    "contamination": 0.9623,
+    "suppression": 0.0111,
+    "freeRiding": 0.0604,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|collude|q3": {
+   "4": {
+    "honestPooled": 0.355,
+    "pooledShare": 0.3895,
+    "contamination": 0.0,
+    "suppression": 0.2924,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0343,
+    "pooledShare": 0.1376,
+    "contamination": 0.0,
+    "suppression": 0.045,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0354,
+    "pooledShare": 0.1206,
+    "contamination": 0.1254,
+    "suppression": 0.063,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0327,
+    "pooledShare": 0.1013,
+    "contamination": 0.2478,
+    "suppression": 0.0652,
+    "freeRiding": 0.0292,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0299,
+    "pooledShare": 0.0873,
+    "contamination": 0.2136,
+    "suppression": 0.0558,
+    "freeRiding": 0.0778,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0188,
+    "pooledShare": 0.0677,
+    "contamination": 0.4869,
+    "suppression": 0.0393,
+    "freeRiding": 0.1167,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|error": {
+   "4": {
+    "honestPooled": 0.1294,
+    "pooledShare": 0.1677,
+    "contamination": 0.0,
+    "suppression": 0.4199,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1391,
+    "pooledShare": 0.1872,
+    "contamination": 0.0,
+    "suppression": 0.2801,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1321,
+    "pooledShare": 0.177,
+    "contamination": 0.0,
+    "suppression": 0.2418,
+    "freeRiding": 0.0389,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1108,
+    "pooledShare": 0.158,
+    "contamination": 0.0,
+    "suppression": 0.2906,
+    "freeRiding": 0.0347,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0826,
+    "pooledShare": 0.1108,
+    "contamination": 0.0,
+    "suppression": 0.2899,
+    "freeRiding": 0.0694,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0688,
+    "pooledShare": 0.092,
+    "contamination": 0.0,
+    "suppression": 0.2778,
+    "freeRiding": 0.083,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|error|q3": {
+   "4": {
+    "honestPooled": 0.3751,
+    "pooledShare": 0.2904,
+    "contamination": 0.0,
+    "suppression": 1.0,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0685,
+    "pooledShare": 0.1587,
+    "contamination": 0.0,
+    "suppression": 0.127,
+    "freeRiding": 0.0333,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0824,
+    "pooledShare": 0.1927,
+    "contamination": 0.0,
+    "suppression": 0.1603,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0754,
+    "pooledShare": 0.1795,
+    "contamination": 0.0,
+    "suppression": 0.2214,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0619,
+    "pooledShare": 0.1506,
+    "contamination": 0.0,
+    "suppression": 0.202,
+    "freeRiding": 0.0139,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0501,
+    "pooledShare": 0.13,
+    "contamination": 0.0,
+    "suppression": 0.2118,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|independent": {
+   "4": {
+    "honestPooled": 0.1003,
+    "pooledShare": 0.19,
+    "contamination": 0.0,
+    "suppression": 0.0493,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1217,
+    "pooledShare": 0.1927,
+    "contamination": 0.0,
+    "suppression": 0.086,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.104,
+    "pooledShare": 0.1565,
+    "contamination": 0.1114,
+    "suppression": 0.0732,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0681,
+    "pooledShare": 0.1055,
+    "contamination": 0.3243,
+    "suppression": 0.0718,
+    "freeRiding": 0.0236,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0508,
+    "pooledShare": 0.0769,
+    "contamination": 0.3891,
+    "suppression": 0.0527,
+    "freeRiding": 0.0285,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0253,
+    "pooledShare": 0.047,
+    "contamination": 0.502,
+    "suppression": 0.045,
+    "freeRiding": 0.0264,
+    "misreport": 0.0
+   }
+  },
+  "colonyGuards|independent|q3": {
+   "4": {
+    "honestPooled": 0.355,
+    "pooledShare": 0.3895,
+    "contamination": 0.0,
+    "suppression": 0.2924,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.054,
+    "pooledShare": 0.1463,
+    "contamination": 0.0,
+    "suppression": 0.048,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0621,
+    "pooledShare": 0.1363,
+    "contamination": 0.0067,
+    "suppression": 0.0686,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0556,
+    "pooledShare": 0.1042,
+    "contamination": 0.0151,
+    "suppression": 0.0674,
+    "freeRiding": 0.0486,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0489,
+    "pooledShare": 0.0874,
+    "contamination": 0.033,
+    "suppression": 0.0531,
+    "freeRiding": 0.0507,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0403,
+    "pooledShare": 0.077,
+    "contamination": 0.0388,
+    "suppression": 0.03,
+    "freeRiding": 0.0493,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|clean": {
+   "4": {
+    "honestPooled": 0.517,
+    "pooledShare": 0.517,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3828,
+    "pooledShare": 0.3828,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3423,
+    "pooledShare": 0.3423,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.3017,
+    "pooledShare": 0.3017,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2469,
+    "pooledShare": 0.2469,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.194,
+    "pooledShare": 0.194,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|clean|q3": {
+   "4": {
+    "honestPooled": 0.4549,
+    "pooledShare": 0.4549,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2957,
+    "pooledShare": 0.2957,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.266,
+    "pooledShare": 0.266,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.2362,
+    "pooledShare": 0.2362,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.202,
+    "pooledShare": 0.202,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1699,
+    "pooledShare": 0.1699,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|collude": {
+   "4": {
+    "honestPooled": 0.0467,
+    "pooledShare": 0.1338,
+    "contamination": 0.0,
+    "suppression": 0.0156,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0068,
+    "pooledShare": 0.1145,
+    "contamination": 0.2211,
+    "suppression": 0.0033,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0017,
+    "pooledShare": 0.0932,
+    "contamination": 0.2121,
+    "suppression": 0.0,
+    "freeRiding": 0.0389,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0009,
+    "pooledShare": 0.0809,
+    "contamination": 0.1778,
+    "suppression": 0.0017,
+    "freeRiding": 0.0625,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0,
+    "pooledShare": 0.0701,
+    "contamination": NaN,
+    "suppression": 0.0,
+    "freeRiding": 0.0667,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0,
+    "pooledShare": 0.0616,
+    "contamination": NaN,
+    "suppression": 0.0001,
+    "freeRiding": 0.0719,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|collude|q3": {
+   "4": {
+    "honestPooled": 0.067,
+    "pooledShare": 0.178,
+    "contamination": 0.0,
+    "suppression": 0.0276,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0261,
+    "pooledShare": 0.1169,
+    "contamination": 0.0,
+    "suppression": 0.0117,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0118,
+    "pooledShare": 0.0991,
+    "contamination": 0.0,
+    "suppression": 0.0092,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.003,
+    "pooledShare": 0.0851,
+    "contamination": 0.0294,
+    "suppression": 0.0046,
+    "freeRiding": 0.0014,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.002,
+    "pooledShare": 0.0821,
+    "contamination": 0.0,
+    "suppression": 0.0006,
+    "freeRiding": 0.0007,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0002,
+    "pooledShare": 0.0771,
+    "contamination": 0.0,
+    "suppression": 0.0029,
+    "freeRiding": 0.0007,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|error": {
+   "4": {
+    "honestPooled": 0.2131,
+    "pooledShare": 0.2371,
+    "contamination": 0.0,
+    "suppression": 0.5115,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1601,
+    "pooledShare": 0.1822,
+    "contamination": 0.0,
+    "suppression": 0.2546,
+    "freeRiding": 0.0167,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1473,
+    "pooledShare": 0.2036,
+    "contamination": 0.0,
+    "suppression": 0.2943,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1024,
+    "pooledShare": 0.1683,
+    "contamination": 0.0,
+    "suppression": 0.1715,
+    "freeRiding": 0.0153,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0806,
+    "pooledShare": 0.1276,
+    "contamination": 0.0,
+    "suppression": 0.167,
+    "freeRiding": 0.0042,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0787,
+    "pooledShare": 0.1116,
+    "contamination": 0.0,
+    "suppression": 0.2228,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|error|q3": {
+   "4": {
+    "honestPooled": 0.3066,
+    "pooledShare": 0.2341,
+    "contamination": 0.0,
+    "suppression": 0.6327,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0809,
+    "pooledShare": 0.1357,
+    "contamination": 0.0,
+    "suppression": 0.2641,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0759,
+    "pooledShare": 0.1768,
+    "contamination": 0.0,
+    "suppression": 0.241,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0601,
+    "pooledShare": 0.1646,
+    "contamination": 0.0,
+    "suppression": 0.2604,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.046,
+    "pooledShare": 0.1404,
+    "contamination": 0.0,
+    "suppression": 0.1904,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0452,
+    "pooledShare": 0.1344,
+    "contamination": 0.0,
+    "suppression": 0.1758,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|independent": {
+   "4": {
+    "honestPooled": 0.0467,
+    "pooledShare": 0.1338,
+    "contamination": 0.0,
+    "suppression": 0.0156,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0164,
+    "pooledShare": 0.0926,
+    "contamination": 0.0,
+    "suppression": 0.0034,
+    "freeRiding": 0.0167,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0081,
+    "pooledShare": 0.0706,
+    "contamination": 0.0,
+    "suppression": 0.0017,
+    "freeRiding": 0.0917,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0025,
+    "pooledShare": 0.0526,
+    "contamination": 0.02,
+    "suppression": 0.0015,
+    "freeRiding": 0.1653,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.001,
+    "pooledShare": 0.0499,
+    "contamination": 0.0,
+    "suppression": 0.0009,
+    "freeRiding": 0.1708,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0004,
+    "pooledShare": 0.044,
+    "contamination": 0.0556,
+    "suppression": 0.0002,
+    "freeRiding": 0.2038,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta1|independent|q3": {
+   "4": {
+    "honestPooled": 0.067,
+    "pooledShare": 0.178,
+    "contamination": 0.0,
+    "suppression": 0.0276,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0113,
+    "pooledShare": 0.101,
+    "contamination": 0.0,
+    "suppression": 0.0061,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0052,
+    "pooledShare": 0.0843,
+    "contamination": 0.0,
+    "suppression": 0.0049,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.001,
+    "pooledShare": 0.0641,
+    "contamination": 0.0,
+    "suppression": 0.0029,
+    "freeRiding": 0.0014,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0004,
+    "pooledShare": 0.0606,
+    "contamination": 0.0,
+    "suppression": 0.0011,
+    "freeRiding": 0.0035,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0,
+    "pooledShare": 0.0547,
+    "contamination": 0.0,
+    "suppression": 0.0009,
+    "freeRiding": 0.0042,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|clean": {
+   "4": {
+    "honestPooled": 0.517,
+    "pooledShare": 0.517,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3828,
+    "pooledShare": 0.3828,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3423,
+    "pooledShare": 0.3423,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.3017,
+    "pooledShare": 0.3017,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2469,
+    "pooledShare": 0.2469,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.194,
+    "pooledShare": 0.194,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|clean|q3": {
+   "4": {
+    "honestPooled": 0.4549,
+    "pooledShare": 0.4549,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2957,
+    "pooledShare": 0.2957,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.266,
+    "pooledShare": 0.266,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.2362,
+    "pooledShare": 0.2362,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.202,
+    "pooledShare": 0.202,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1699,
+    "pooledShare": 0.1699,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|collude": {
+   "4": {
+    "honestPooled": 0.1325,
+    "pooledShare": 0.1832,
+    "contamination": 0.0,
+    "suppression": 0.0395,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0353,
+    "pooledShare": 0.1223,
+    "contamination": 0.4196,
+    "suppression": 0.0067,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0082,
+    "pooledShare": 0.0909,
+    "contamination": 0.4012,
+    "suppression": 0.0025,
+    "freeRiding": 0.0194,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0037,
+    "pooledShare": 0.0784,
+    "contamination": 0.1311,
+    "suppression": 0.0013,
+    "freeRiding": 0.0514,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0,
+    "pooledShare": 0.0684,
+    "contamination": NaN,
+    "suppression": 0.0006,
+    "freeRiding": 0.0632,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0,
+    "pooledShare": 0.0591,
+    "contamination": NaN,
+    "suppression": 0.0002,
+    "freeRiding": 0.0767,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|collude|q3": {
+   "4": {
+    "honestPooled": 0.282,
+    "pooledShare": 0.3291,
+    "contamination": 0.0,
+    "suppression": 0.1982,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0706,
+    "pooledShare": 0.1483,
+    "contamination": 0.0,
+    "suppression": 0.0302,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0248,
+    "pooledShare": 0.1097,
+    "contamination": 0.0,
+    "suppression": 0.0142,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0097,
+    "pooledShare": 0.091,
+    "contamination": 0.0083,
+    "suppression": 0.0071,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0051,
+    "pooledShare": 0.0808,
+    "contamination": 0.0,
+    "suppression": 0.0027,
+    "freeRiding": 0.0007,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0016,
+    "pooledShare": 0.0751,
+    "contamination": 0.0,
+    "suppression": 0.004,
+    "freeRiding": 0.0031,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|error": {
+   "4": {
+    "honestPooled": 0.2918,
+    "pooledShare": 0.3339,
+    "contamination": 0.0,
+    "suppression": 0.5632,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1989,
+    "pooledShare": 0.2202,
+    "contamination": 0.0,
+    "suppression": 0.2596,
+    "freeRiding": 0.0167,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1698,
+    "pooledShare": 0.2102,
+    "contamination": 0.0,
+    "suppression": 0.3159,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1434,
+    "pooledShare": 0.1793,
+    "contamination": 0.0,
+    "suppression": 0.2605,
+    "freeRiding": 0.0194,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0891,
+    "pooledShare": 0.1041,
+    "contamination": 0.0,
+    "suppression": 0.2636,
+    "freeRiding": 0.0826,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0788,
+    "pooledShare": 0.0916,
+    "contamination": 0.0,
+    "suppression": 0.225,
+    "freeRiding": 0.0319,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|error|q3": {
+   "4": {
+    "honestPooled": 0.4646,
+    "pooledShare": 0.3567,
+    "contamination": 0.0,
+    "suppression": 1.0,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1127,
+    "pooledShare": 0.1708,
+    "contamination": 0.0,
+    "suppression": 0.2894,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1042,
+    "pooledShare": 0.201,
+    "contamination": 0.0,
+    "suppression": 0.2683,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0795,
+    "pooledShare": 0.1741,
+    "contamination": 0.0,
+    "suppression": 0.2557,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0682,
+    "pooledShare": 0.1494,
+    "contamination": 0.0,
+    "suppression": 0.2405,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0458,
+    "pooledShare": 0.124,
+    "contamination": 0.0,
+    "suppression": 0.1957,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|independent": {
+   "4": {
+    "honestPooled": 0.1325,
+    "pooledShare": 0.1832,
+    "contamination": 0.0,
+    "suppression": 0.0395,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0374,
+    "pooledShare": 0.1147,
+    "contamination": 0.0071,
+    "suppression": 0.0079,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0199,
+    "pooledShare": 0.0827,
+    "contamination": 0.0198,
+    "suppression": 0.0049,
+    "freeRiding": 0.0722,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0072,
+    "pooledShare": 0.0594,
+    "contamination": 0.0114,
+    "suppression": 0.0037,
+    "freeRiding": 0.1375,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0033,
+    "pooledShare": 0.0554,
+    "contamination": 0.0,
+    "suppression": 0.0019,
+    "freeRiding": 0.15,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0014,
+    "pooledShare": 0.0458,
+    "contamination": 0.0347,
+    "suppression": 0.0007,
+    "freeRiding": 0.1809,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta2|independent|q3": {
+   "4": {
+    "honestPooled": 0.282,
+    "pooledShare": 0.3291,
+    "contamination": 0.0,
+    "suppression": 0.1982,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0338,
+    "pooledShare": 0.1168,
+    "contamination": 0.0,
+    "suppression": 0.0147,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0091,
+    "pooledShare": 0.0811,
+    "contamination": 0.0,
+    "suppression": 0.0057,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0028,
+    "pooledShare": 0.066,
+    "contamination": 0.0,
+    "suppression": 0.0037,
+    "freeRiding": 0.0014,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0017,
+    "pooledShare": 0.0583,
+    "contamination": 0.0,
+    "suppression": 0.0018,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0004,
+    "pooledShare": 0.0579,
+    "contamination": 0.0,
+    "suppression": 0.0017,
+    "freeRiding": 0.0035,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|clean": {
+   "4": {
+    "honestPooled": 0.517,
+    "pooledShare": 0.517,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3828,
+    "pooledShare": 0.3828,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3423,
+    "pooledShare": 0.3423,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.3017,
+    "pooledShare": 0.3017,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2469,
+    "pooledShare": 0.2469,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.194,
+    "pooledShare": 0.194,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|clean|q3": {
+   "4": {
+    "honestPooled": 0.4549,
+    "pooledShare": 0.4549,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2957,
+    "pooledShare": 0.2957,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.266,
+    "pooledShare": 0.266,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.2362,
+    "pooledShare": 0.2362,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.202,
+    "pooledShare": 0.202,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1699,
+    "pooledShare": 0.1699,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|collude": {
+   "4": {
+    "honestPooled": 0.2478,
+    "pooledShare": 0.2638,
+    "contamination": 0.0,
+    "suppression": 0.0632,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0408,
+    "pooledShare": 0.1101,
+    "contamination": 0.667,
+    "suppression": 0.0283,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0203,
+    "pooledShare": 0.0938,
+    "contamination": 0.6051,
+    "suppression": 0.0083,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0077,
+    "pooledShare": 0.0761,
+    "contamination": 0.4669,
+    "suppression": 0.0054,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.0018,
+    "pooledShare": 0.0638,
+    "contamination": 0.5853,
+    "suppression": 0.0015,
+    "freeRiding": 0.0507,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0013,
+    "pooledShare": 0.0608,
+    "contamination": 0.9704,
+    "suppression": 0.0001,
+    "freeRiding": 0.0701,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|collude|q3": {
+   "4": {
+    "honestPooled": 0.4364,
+    "pooledShare": 0.4432,
+    "contamination": 0.0,
+    "suppression": 0.3245,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1214,
+    "pooledShare": 0.1819,
+    "contamination": 0.0,
+    "suppression": 0.0468,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0661,
+    "pooledShare": 0.134,
+    "contamination": 0.0098,
+    "suppression": 0.0443,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0324,
+    "pooledShare": 0.1019,
+    "contamination": 0.0145,
+    "suppression": 0.0142,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0138,
+    "pooledShare": 0.0784,
+    "contamination": 0.0,
+    "suppression": 0.0074,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0046,
+    "pooledShare": 0.0762,
+    "contamination": 0.0015,
+    "suppression": 0.004,
+    "freeRiding": 0.0014,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|error": {
+   "4": {
+    "honestPooled": 0.2938,
+    "pooledShare": 0.3364,
+    "contamination": 0.0,
+    "suppression": 0.569,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2113,
+    "pooledShare": 0.2206,
+    "contamination": 0.0,
+    "suppression": 0.2548,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1747,
+    "pooledShare": 0.2098,
+    "contamination": 0.0,
+    "suppression": 0.2917,
+    "freeRiding": 0.0194,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1546,
+    "pooledShare": 0.1826,
+    "contamination": 0.0,
+    "suppression": 0.2487,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1054,
+    "pooledShare": 0.1216,
+    "contamination": 0.0,
+    "suppression": 0.3092,
+    "freeRiding": 0.1007,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0749,
+    "pooledShare": 0.0729,
+    "contamination": 0.0,
+    "suppression": 0.2394,
+    "freeRiding": 0.1431,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|error|q3": {
+   "4": {
+    "honestPooled": 0.4646,
+    "pooledShare": 0.3567,
+    "contamination": 0.0,
+    "suppression": 1.0,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.12,
+    "pooledShare": 0.1756,
+    "contamination": 0.0,
+    "suppression": 0.2742,
+    "freeRiding": 0.0333,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1257,
+    "pooledShare": 0.219,
+    "contamination": 0.0,
+    "suppression": 0.2498,
+    "freeRiding": 0.0139,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1059,
+    "pooledShare": 0.1986,
+    "contamination": 0.0,
+    "suppression": 0.2477,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0827,
+    "pooledShare": 0.1607,
+    "contamination": 0.0,
+    "suppression": 0.2502,
+    "freeRiding": 0.0132,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0545,
+    "pooledShare": 0.1272,
+    "contamination": 0.0,
+    "suppression": 0.2023,
+    "freeRiding": 0.0003,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|independent": {
+   "4": {
+    "honestPooled": 0.2478,
+    "pooledShare": 0.2638,
+    "contamination": 0.0,
+    "suppression": 0.0632,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1128,
+    "pooledShare": 0.1752,
+    "contamination": 0.0316,
+    "suppression": 0.037,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.041,
+    "pooledShare": 0.0946,
+    "contamination": 0.0548,
+    "suppression": 0.0122,
+    "freeRiding": 0.0333,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0213,
+    "pooledShare": 0.067,
+    "contamination": 0.0225,
+    "suppression": 0.0071,
+    "freeRiding": 0.0903,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0092,
+    "pooledShare": 0.0541,
+    "contamination": 0.0055,
+    "suppression": 0.0022,
+    "freeRiding": 0.1222,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.004,
+    "pooledShare": 0.0489,
+    "contamination": 0.0117,
+    "suppression": 0.0014,
+    "freeRiding": 0.1601,
+    "misreport": 0.0
+   }
+  },
+  "colonyTheta4|independent|q3": {
+   "4": {
+    "honestPooled": 0.4364,
+    "pooledShare": 0.4432,
+    "contamination": 0.0,
+    "suppression": 0.3245,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0705,
+    "pooledShare": 0.1412,
+    "contamination": 0.0,
+    "suppression": 0.0287,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.0286,
+    "pooledShare": 0.1023,
+    "contamination": 0.0,
+    "suppression": 0.0126,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0102,
+    "pooledShare": 0.0722,
+    "contamination": 0.0,
+    "suppression": 0.0042,
+    "freeRiding": 0.0014,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0046,
+    "pooledShare": 0.0589,
+    "contamination": 0.0,
+    "suppression": 0.0025,
+    "freeRiding": 0.0021,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0014,
+    "pooledShare": 0.0576,
+    "contamination": 0.0,
+    "suppression": 0.0024,
+    "freeRiding": 0.0045,
+    "misreport": 0.0
+   }
+  },
+  "colony|clean": {
+   "4": {
+    "honestPooled": 0.517,
+    "pooledShare": 0.517,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3828,
+    "pooledShare": 0.3828,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3423,
+    "pooledShare": 0.3423,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.3017,
+    "pooledShare": 0.3017,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2469,
+    "pooledShare": 0.2469,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.194,
+    "pooledShare": 0.194,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colony|clean|q3": {
+   "4": {
+    "honestPooled": 0.4549,
+    "pooledShare": 0.4549,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2957,
+    "pooledShare": 0.2957,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.266,
+    "pooledShare": 0.266,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.2362,
+    "pooledShare": 0.2362,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.202,
+    "pooledShare": 0.202,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1699,
+    "pooledShare": 0.1699,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "colony|collude": {
+   "4": {
+    "honestPooled": 0.2472,
+    "pooledShare": 0.2633,
+    "contamination": 0.0,
+    "suppression": 0.0665,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0352,
+    "pooledShare": 0.103,
+    "contamination": 0.6833,
+    "suppression": 0.0351,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": -0.0142,
+    "pooledShare": 0.0485,
+    "contamination": 0.814,
+    "suppression": 0.0376,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": -0.0519,
+    "pooledShare": -0.0022,
+    "contamination": 0.8877,
+    "suppression": 0.0336,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.0894,
+    "pooledShare": -0.0473,
+    "contamination": 0.9354,
+    "suppression": 0.0252,
+    "freeRiding": 0.0104,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.1226,
+    "pooledShare": -0.0835,
+    "contamination": 0.965,
+    "suppression": 0.0167,
+    "freeRiding": 0.0191,
+    "misreport": 0.0
+   }
+  },
+  "colony|collude|q3": {
+   "4": {
+    "honestPooled": 0.4362,
+    "pooledShare": 0.443,
+    "contamination": 0.0,
+    "suppression": 0.3245,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1247,
+    "pooledShare": 0.1843,
+    "contamination": 0.0,
+    "suppression": 0.0552,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1154,
+    "pooledShare": 0.1697,
+    "contamination": 0.0256,
+    "suppression": 0.0702,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1022,
+    "pooledShare": 0.1454,
+    "contamination": 0.0863,
+    "suppression": 0.0915,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0815,
+    "pooledShare": 0.121,
+    "contamination": 0.2077,
+    "suppression": 0.0858,
+    "freeRiding": 0.0049,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0621,
+    "pooledShare": 0.0984,
+    "contamination": 0.2944,
+    "suppression": 0.0529,
+    "freeRiding": 0.0118,
+    "misreport": 0.0
+   }
+  },
+  "colony|error": {
+   "4": {
+    "honestPooled": 0.2938,
+    "pooledShare": 0.3364,
+    "contamination": 0.0,
+    "suppression": 0.569,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2127,
+    "pooledShare": 0.221,
+    "contamination": 0.0,
+    "suppression": 0.2618,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1744,
+    "pooledShare": 0.2096,
+    "contamination": 0.0,
+    "suppression": 0.2917,
+    "freeRiding": 0.0194,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1556,
+    "pooledShare": 0.1833,
+    "contamination": 0.0,
+    "suppression": 0.2471,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1063,
+    "pooledShare": 0.1196,
+    "contamination": 0.0,
+    "suppression": 0.3061,
+    "freeRiding": 0.1007,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0741,
+    "pooledShare": 0.0711,
+    "contamination": 0.0,
+    "suppression": 0.2425,
+    "freeRiding": 0.1698,
+    "misreport": 0.0
+   }
+  },
+  "colony|error|q3": {
+   "4": {
+    "honestPooled": 0.4646,
+    "pooledShare": 0.3567,
+    "contamination": 0.0,
+    "suppression": 1.0,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.12,
+    "pooledShare": 0.1756,
+    "contamination": 0.0,
+    "suppression": 0.2742,
+    "freeRiding": 0.0333,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1269,
+    "pooledShare": 0.2189,
+    "contamination": 0.0,
+    "suppression": 0.2678,
+    "freeRiding": 0.0139,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1145,
+    "pooledShare": 0.209,
+    "contamination": 0.0,
+    "suppression": 0.2475,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0944,
+    "pooledShare": 0.1751,
+    "contamination": 0.0,
+    "suppression": 0.2434,
+    "freeRiding": 0.0132,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0733,
+    "pooledShare": 0.1367,
+    "contamination": 0.0,
+    "suppression": 0.2621,
+    "freeRiding": 0.0403,
+    "misreport": 0.0
+   }
+  },
+  "colony|independent": {
+   "4": {
+    "honestPooled": 0.2472,
+    "pooledShare": 0.2633,
+    "contamination": 0.0,
+    "suppression": 0.0665,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1765,
+    "pooledShare": 0.2202,
+    "contamination": 0.0953,
+    "suppression": 0.0841,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1288,
+    "pooledShare": 0.1643,
+    "contamination": 0.1984,
+    "suppression": 0.1044,
+    "freeRiding": 0.0139,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1108,
+    "pooledShare": 0.1338,
+    "contamination": 0.2734,
+    "suppression": 0.1028,
+    "freeRiding": 0.025,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0698,
+    "pooledShare": 0.087,
+    "contamination": 0.3654,
+    "suppression": 0.0672,
+    "freeRiding": 0.0368,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0183,
+    "pooledShare": 0.0338,
+    "contamination": 0.5851,
+    "suppression": 0.0405,
+    "freeRiding": 0.0587,
+    "misreport": 0.0
+   }
+  },
+  "colony|independent|q3": {
+   "4": {
+    "honestPooled": 0.4362,
+    "pooledShare": 0.443,
+    "contamination": 0.0,
+    "suppression": 0.3245,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1283,
+    "pooledShare": 0.1845,
+    "contamination": 0.0,
+    "suppression": 0.0644,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1204,
+    "pooledShare": 0.1654,
+    "contamination": 0.0111,
+    "suppression": 0.0774,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1118,
+    "pooledShare": 0.1396,
+    "contamination": 0.0325,
+    "suppression": 0.0959,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0904,
+    "pooledShare": 0.1116,
+    "contamination": 0.0375,
+    "suppression": 0.0887,
+    "freeRiding": 0.0188,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0711,
+    "pooledShare": 0.0849,
+    "contamination": 0.0742,
+    "suppression": 0.0451,
+    "freeRiding": 0.0493,
+    "misreport": 0.0
+   }
+  },
+  "confirm|clean": {
+   "4": {
+    "honestPooled": 0.5388,
+    "pooledShare": 0.5388,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.4644,
+    "pooledShare": 0.4644,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3858,
+    "pooledShare": 0.3858,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.3089,
+    "pooledShare": 0.3089,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2381,
+    "pooledShare": 0.2381,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1845,
+    "pooledShare": 0.1845,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "confirm|clean|q3": {
+   "4": {
+    "honestPooled": 0.5373,
+    "pooledShare": 0.5373,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.4094,
+    "pooledShare": 0.4094,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3575,
+    "pooledShare": 0.3575,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.28,
+    "pooledShare": 0.28,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2165,
+    "pooledShare": 0.2165,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1671,
+    "pooledShare": 0.1671,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "confirm|collude": {
+   "4": {
+    "honestPooled": 0.4013,
+    "pooledShare": 0.3523,
+    "contamination": 0.0145,
+    "suppression": 0.1982,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.336,
+    "pooledShare": 0.3061,
+    "contamination": 0.1226,
+    "suppression": 0.15,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.2254,
+    "pooledShare": 0.2076,
+    "contamination": 0.2704,
+    "suppression": 0.0925,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1321,
+    "pooledShare": 0.1243,
+    "contamination": 0.461,
+    "suppression": 0.0796,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0475,
+    "pooledShare": 0.0454,
+    "contamination": 0.6093,
+    "suppression": 0.0495,
+    "freeRiding": 0.0007,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0246,
+    "pooledShare": -0.0171,
+    "contamination": 0.8124,
+    "suppression": 0.0293,
+    "freeRiding": 0.0017,
+    "misreport": 0.0
+   }
+  },
+  "confirm|collude|q3": {
+   "4": {
+    "honestPooled": 0.4876,
+    "pooledShare": 0.4657,
+    "contamination": 0.0,
+    "suppression": 0.3366,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3544,
+    "pooledShare": 0.299,
+    "contamination": 0.0082,
+    "suppression": 0.2933,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.2887,
+    "pooledShare": 0.2442,
+    "contamination": 0.0448,
+    "suppression": 0.1725,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.196,
+    "pooledShare": 0.1605,
+    "contamination": 0.1615,
+    "suppression": 0.1234,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1229,
+    "pooledShare": 0.0999,
+    "contamination": 0.2636,
+    "suppression": 0.0893,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0604,
+    "pooledShare": 0.0475,
+    "contamination": 0.4708,
+    "suppression": 0.0598,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "confirm|error": {
+   "4": {
+    "honestPooled": 0.5095,
+    "pooledShare": 0.4936,
+    "contamination": 0.0014,
+    "suppression": 0.439,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.362,
+    "pooledShare": 0.3472,
+    "contamination": 0.1272,
+    "suppression": 0.3223,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1804,
+    "pooledShare": 0.1679,
+    "contamination": 0.2695,
+    "suppression": 0.3451,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1496,
+    "pooledShare": 0.145,
+    "contamination": 0.2883,
+    "suppression": 0.3156,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0243,
+    "pooledShare": 0.029,
+    "contamination": 0.4538,
+    "suppression": 0.2602,
+    "freeRiding": 0.0611,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0579,
+    "pooledShare": -0.0497,
+    "contamination": 0.6403,
+    "suppression": 0.2071,
+    "freeRiding": 0.1649,
+    "misreport": 0.0
+   }
+  },
+  "confirm|error|q3": {
+   "4": {
+    "honestPooled": 0.5623,
+    "pooledShare": 0.4533,
+    "contamination": 0.0,
+    "suppression": 1.0,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.404,
+    "pooledShare": 0.3755,
+    "contamination": 0.0045,
+    "suppression": 0.4147,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3267,
+    "pooledShare": 0.3092,
+    "contamination": 0.0138,
+    "suppression": 0.3891,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.2419,
+    "pooledShare": 0.2329,
+    "contamination": 0.0389,
+    "suppression": 0.3611,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1758,
+    "pooledShare": 0.17,
+    "contamination": 0.0433,
+    "suppression": 0.3527,
+    "freeRiding": 0.0014,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0879,
+    "pooledShare": 0.0855,
+    "contamination": 0.2138,
+    "suppression": 0.3224,
+    "freeRiding": 0.0139,
+    "misreport": 0.0
+   }
+  },
+  "confirm|independent": {
+   "4": {
+    "honestPooled": 0.4013,
+    "pooledShare": 0.3523,
+    "contamination": 0.0145,
+    "suppression": 0.1982,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.2763,
+    "pooledShare": 0.2538,
+    "contamination": 0.2172,
+    "suppression": 0.1246,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1563,
+    "pooledShare": 0.1505,
+    "contamination": 0.4419,
+    "suppression": 0.096,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.0744,
+    "pooledShare": 0.0712,
+    "contamination": 0.6078,
+    "suppression": 0.0519,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.0013,
+    "pooledShare": 0.0036,
+    "contamination": 0.739,
+    "suppression": 0.0342,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0461,
+    "pooledShare": -0.0365,
+    "contamination": 0.8562,
+    "suppression": 0.0189,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   }
+  },
+  "confirm|independent|q3": {
+   "4": {
+    "honestPooled": 0.4876,
+    "pooledShare": 0.4657,
+    "contamination": 0.0,
+    "suppression": 0.3366,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3176,
+    "pooledShare": 0.2726,
+    "contamination": 0.0245,
+    "suppression": 0.244,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.2634,
+    "pooledShare": 0.2208,
+    "contamination": 0.0404,
+    "suppression": 0.1532,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1851,
+    "pooledShare": 0.1511,
+    "contamination": 0.1603,
+    "suppression": 0.1217,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.1019,
+    "pooledShare": 0.0821,
+    "contamination": 0.3988,
+    "suppression": 0.0707,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.0756,
+    "pooledShare": 0.0593,
+    "contamination": 0.4373,
+    "suppression": 0.0429,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "plain|clean": {
+   "4": {
+    "honestPooled": 0.5388,
+    "pooledShare": 0.5388,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.4644,
+    "pooledShare": 0.4644,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3858,
+    "pooledShare": 0.3858,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.3089,
+    "pooledShare": 0.3089,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2381,
+    "pooledShare": 0.2381,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1845,
+    "pooledShare": 0.1845,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "plain|clean|q3": {
+   "4": {
+    "honestPooled": 0.5373,
+    "pooledShare": 0.5373,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.4094,
+    "pooledShare": 0.4094,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.3575,
+    "pooledShare": 0.3575,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.28,
+    "pooledShare": 0.28,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.2165,
+    "pooledShare": 0.2165,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": 0.1671,
+    "pooledShare": 0.1671,
+    "contamination": 0.0,
+    "suppression": NaN,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   }
+  },
+  "plain|collude": {
+   "4": {
+    "honestPooled": -0.0558,
+    "pooledShare": -0.0493,
+    "contamination": 0.8473,
+    "suppression": 0.4387,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.0059,
+    "pooledShare": 0.0057,
+    "contamination": 0.778,
+    "suppression": 0.4767,
+    "freeRiding": 0.0111,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": -0.0965,
+    "pooledShare": -0.0823,
+    "contamination": 0.9081,
+    "suppression": 0.335,
+    "freeRiding": 0.0333,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": -0.1436,
+    "pooledShare": -0.1231,
+    "contamination": 0.962,
+    "suppression": 0.1984,
+    "freeRiding": 0.0736,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.1638,
+    "pooledShare": -0.1396,
+    "contamination": 0.9868,
+    "suppression": 0.093,
+    "freeRiding": 0.1264,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.1686,
+    "pooledShare": -0.1448,
+    "contamination": 0.9945,
+    "suppression": 0.0411,
+    "freeRiding": 0.3125,
+    "misreport": 0.0
+   }
+  },
+  "plain|collude|q3": {
+   "4": {
+    "honestPooled": 0.4659,
+    "pooledShare": 0.4458,
+    "contamination": 0.1648,
+    "suppression": 0.4045,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.1124,
+    "pooledShare": 0.0864,
+    "contamination": 0.6164,
+    "suppression": 0.7133,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": -0.0302,
+    "pooledShare": -0.0283,
+    "contamination": 0.8482,
+    "suppression": 0.507,
+    "freeRiding": 0.0083,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": -0.1237,
+    "pooledShare": -0.1061,
+    "contamination": 0.9418,
+    "suppression": 0.2789,
+    "freeRiding": 0.0625,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.1525,
+    "pooledShare": -0.1285,
+    "contamination": 0.9772,
+    "suppression": 0.1346,
+    "freeRiding": 0.1479,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.164,
+    "pooledShare": -0.1392,
+    "contamination": 0.9923,
+    "suppression": 0.0593,
+    "freeRiding": 0.291,
+    "misreport": 0.0
+   }
+  },
+  "plain|error": {
+   "4": {
+    "honestPooled": 0.5063,
+    "pooledShare": 0.4726,
+    "contamination": 0.056,
+    "suppression": 0.9583,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3001,
+    "pooledShare": 0.2734,
+    "contamination": 0.2738,
+    "suppression": 0.7863,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.1389,
+    "pooledShare": 0.1206,
+    "contamination": 0.4574,
+    "suppression": 0.7135,
+    "freeRiding": 0.0139,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1038,
+    "pooledShare": 0.0927,
+    "contamination": 0.4623,
+    "suppression": 0.74,
+    "freeRiding": 0.0458,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.0461,
+    "pooledShare": -0.0443,
+    "contamination": 0.7805,
+    "suppression": 0.5833,
+    "freeRiding": 0.1285,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0553,
+    "pooledShare": -0.0536,
+    "contamination": 0.8111,
+    "suppression": 0.5643,
+    "freeRiding": 0.1597,
+    "misreport": 0.0
+   }
+  },
+  "plain|error|q3": {
+   "4": {
+    "honestPooled": 0.5843,
+    "pooledShare": 0.4696,
+    "contamination": 0.0,
+    "suppression": 1.0,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": 0.3353,
+    "pooledShare": 0.3033,
+    "contamination": 0.1649,
+    "suppression": 0.961,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": 0.2106,
+    "pooledShare": 0.1908,
+    "contamination": 0.3448,
+    "suppression": 0.9273,
+    "freeRiding": 0.0028,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": 0.1637,
+    "pooledShare": 0.1461,
+    "contamination": 0.3829,
+    "suppression": 0.862,
+    "freeRiding": 0.0125,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": 0.0574,
+    "pooledShare": 0.045,
+    "contamination": 0.6515,
+    "suppression": 0.8359,
+    "freeRiding": 0.0632,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.0396,
+    "pooledShare": -0.0439,
+    "contamination": 0.8113,
+    "suppression": 0.8073,
+    "freeRiding": 0.0712,
+    "misreport": 0.0
+   }
+  },
+  "plain|independent": {
+   "4": {
+    "honestPooled": -0.0558,
+    "pooledShare": -0.0493,
+    "contamination": 0.8473,
+    "suppression": 0.4387,
+    "freeRiding": 0.0222,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": -0.1284,
+    "pooledShare": -0.1089,
+    "contamination": 0.9402,
+    "suppression": 0.2803,
+    "freeRiding": 0.0389,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": -0.1555,
+    "pooledShare": -0.1289,
+    "contamination": 0.9641,
+    "suppression": 0.1951,
+    "freeRiding": 0.0667,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": -0.1547,
+    "pooledShare": -0.1326,
+    "contamination": 0.9856,
+    "suppression": 0.0848,
+    "freeRiding": 0.3083,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.1877,
+    "pooledShare": -0.1605,
+    "contamination": 0.9948,
+    "suppression": 0.0556,
+    "freeRiding": 0.2333,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.1834,
+    "pooledShare": -0.1572,
+    "contamination": 0.9987,
+    "suppression": 0.0268,
+    "freeRiding": 0.3174,
+    "misreport": 0.0
+   }
+  },
+  "plain|independent|q3": {
+   "4": {
+    "honestPooled": 0.4659,
+    "pooledShare": 0.4458,
+    "contamination": 0.1648,
+    "suppression": 0.4045,
+    "freeRiding": 0.0,
+    "misreport": 0.0
+   },
+   "8": {
+    "honestPooled": -0.0838,
+    "pooledShare": -0.072,
+    "contamination": 0.8812,
+    "suppression": 0.4301,
+    "freeRiding": 0.0056,
+    "misreport": 0.0
+   },
+   "16": {
+    "honestPooled": -0.1302,
+    "pooledShare": -0.113,
+    "contamination": 0.9433,
+    "suppression": 0.2687,
+    "freeRiding": 0.0694,
+    "misreport": 0.0
+   },
+   "32": {
+    "honestPooled": -0.1595,
+    "pooledShare": -0.1368,
+    "contamination": 0.9757,
+    "suppression": 0.1268,
+    "freeRiding": 0.1542,
+    "misreport": 0.0
+   },
+   "64": {
+    "honestPooled": -0.1797,
+    "pooledShare": -0.1526,
+    "contamination": 0.9912,
+    "suppression": 0.0762,
+    "freeRiding": 0.2118,
+    "misreport": 0.0
+   },
+   "128": {
+    "honestPooled": -0.1913,
+    "pooledShare": -0.1644,
+    "contamination": 0.9975,
+    "suppression": 0.0403,
+    "freeRiding": 0.2674,
+    "misreport": 0.0
+   }
+  }
+ },
+ "sizes": [
+  4,
+  8,
+  16,
+  32,
+  64,
+  128
+ ],
+ "cells": 10080,
+ "rule": "sign + or - when the 95% interval over seeds excludes 0, else 0; q = 2 cells"
+}

@@ -51,10 +51,11 @@ class RL17Config(RLConfig):
     lrFixed: float = None       # a fixed learning rate (the per-step controller off)
     valueOnly: bool = False     # loss and KL on value tokens only (pilot v3: keys and punctuation are fixed by the schema)
     tokenClip: bool = False     # PPO's per-token clipped ratio instead of the reply-level mean (pilot v3)
+    world: tuple = ()           # Phase 18: (key, value) pairs merged into every rollout's world (r, colony, fault)
 
 
 RL17_DEFAULTS = dict(guided=False, epochs=1, clip=None, mixN=((4, 1.0),), liarShare=0.0, lrFixed=None, valueOnly=False,
-                     tokenClip=False)
+                     tokenClip=False, world=())
 
 
 def runFields17(cfg):

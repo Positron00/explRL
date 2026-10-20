@@ -13,6 +13,7 @@ import copy
 import re
 
 from .clue_agents import ClueBoard, known
+from .clue_colony import COLONY_OPTS
 
 FIX = ('ask', 'table', 'record', 'check')
 FIX_RULES = dict(
@@ -31,8 +32,8 @@ _RE = re.compile(r'x\s*mod\s*(\d+)\s*=\s*(-?\d+)', re.I)
 
 
 def fixOptions(world):
-    "The options set in a cfg.world, as TextClueEnv keywords (absent: off)."
-    return {k: world[k] for k in FIX if k in world}
+    "The options set in a cfg.world, as TextClueEnv keywords (absent: off; Phase 18's colony options and q included)."
+    return {k: world[k] for k in FIX + COLONY_OPTS + ('q',) if k in world}
 
 
 def fixSettings(record, check):

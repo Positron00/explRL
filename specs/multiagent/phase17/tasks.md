@@ -16,7 +16,7 @@ Rules as Phase 16 (notebook first, export, one notebook per test call, modules u
 - **Files**: `PILOT17_PLAN`, `RL17_PLAN`, `claim`, `projectHours` in `rl17_grid`; pilot and main cells; `nbs/rl17_report.ipynb` (with `figRL17`), `nbs/demo_rl17.ipynb`.
 - **Done when**: AC-4, AC-6 (synthetic); full suite passes.
 
-## T4. Step 0 (Colab, about 8 A100 hours; an L4 works)
+## T4. Step 0 (Colab, about 8 A100 hours; an L4 works) - done 2026-10-19 (about 16 hours on account B; README)
 - **What**: push; run the step-0 cell (models not yet on Drive are skipped; rerun after Phase 16 to add them; the zip is written when all 15 are done); unzip; baseline curves on the Mac (descriptive).
 
 ## T5. Pilot (Colab, about 50 A100 hours; may run before or alongside T4; one or two accounts split the runs by claims)

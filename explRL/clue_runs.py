@@ -11,6 +11,7 @@ __all__ = ['NAN', 'BOARD_KEYS', 'clueSetup', 'clueMetrics', 'runClueNumpy', 'run
 import numpy as np
 
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent
+from .colony_agents import faultClass, memberClass
 from .clue_fix import fixOptions
 from .clue_text import TextClueEnv
 from .clueboard import ClueBoardEnv
@@ -69,8 +70,8 @@ def runClueNumpy(cfg, seed):
     "Rule agents (liars first) on one board, turn-limited as the LLM runs."
     b, ch = clueSetup(cfg, seed)
     T, rngs = cfg.turnsPerAgent(), spawnRngs(seed + 1000, cfg.N)
-    members = [ClueLiar(ch, rngs[i]) if i < cfg.nLiar else
-               RuleAgent(ch, rngs[i], cfg.world.get('share', 'needed'), cfg.world.get('guess', 0.0)) for i in range(cfg.N)]
+    w = cfg.world                      # Phase 18: faulty members and colony rule agents from the world (defaults: Phase 11)
+    members = [faultClass(w)(ch, rngs[i]) if i < cfg.nLiar else memberClass(w, i, cfg.nLiar)(ch, rngs[i]) for i in range(cfg.N)]
     hist = runTurns(members, b, T)
     return [dict(episode=0, **clueMetrics(cfg, b, hist, range(cfg.nLiar, cfg.N), T))]
 
@@ -80,8 +81,8 @@ def runClue(cfg, seed, client):
     T, nLLM = cfg.turnsPerAgent(), cfg.N - cfg.nLiar
     client.reserve(estimateCost(cfg.model, 'clue', nLLM, T))
     b, ch = clueSetup(cfg, seed)
-    env = TextClueEnv(b, cfg.world.get('hint'), cfg.world.get('showOpen', False), **fixOptions(cfg.world))
-    liars = [ClueLiar(ch, r) for r in spawnRngs(seed + 3000, cfg.nLiar)]
+    env = TextClueEnv(b, cfg.world.get('hint'), cfg.world.get('showOpen', False), **fixOptions(cfg.world), nLiar=cfg.nLiar)
+    liars = [faultClass(cfg.world)(ch, r) for r in spawnRngs(seed + 3000, cfg.nLiar)]
     llm = [LLMMember(client, env, ch, cfg.memory, cfg.framing) for _ in range(nLLM)]
     hist = runTurns(liars + llm, b, T)
     row = dict(episode=0, **clueMetrics(cfg, b, hist, range(cfg.nLiar, cfg.N), T), **llmStats(llm))

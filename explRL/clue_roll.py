@@ -19,6 +19,8 @@ import numpy as np
 
 from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
+from .colony_agents import faultClass
+from .colony_trace import isPhase18, rolloutColumns
 from .clue_fix import fixOptions
 from .clue_policy import renderPrompt
 from .clue_runs import NAN, clueMetrics
@@ -50,7 +52,7 @@ def rollout(cfg, seeds, policies, scripted=None, memory='notes', keepPrompts=Fal
     LLMMember would) and each policy answers its requests in one call; scripted slots act on the board directly."""
     w, B, N = cfg.world, len(seeds), cfg.N
     ep = ClueEpisodes(B, N, w, w.get('scheme', 'individual'), cfg.turnsPerAgent(), channel=cfg.channel, seeds=seeds,
-                      scripted=scripted, text=dict(hint=w.get('hint'), showOpen=w.get('showOpen', False), **fixOptions(w)),
+                      scripted=scripted, text=dict(hint=w.get('hint'), showOpen=w.get('showOpen', False), **fixOptions(w), nLiar=cfg.nLiar),
                       passPooled=w.get('passPooled', False))
     notes, past = [[''] * N for _ in range(B)], [[[] for _ in range(N)] for _ in range(B)]
     logs, R = [[[] for _ in range(N)] for _ in range(B)], np.zeros((B, N))
@@ -62,7 +64,7 @@ def rollout(cfg, seeds, policies, scripted=None, memory='notes', keepPrompts=Fal
             if x is not None:
                 i, obs = x
                 pol = _per(policies, i)
-                prompt = renderPrompt(ep.envs[b], obs, _per(memory, i), notes[b][i], past[b][i], cfg.framing)
+                prompt = renderPrompt(ep.envs[b], obs, _per(memory, i), notes[b][i], past[b][i], cfg.framing, i)
                 groups.setdefault(id(pol), (pol, []))[1].append((b, prompt))
                 asked[b] = prompt
         replies = [None] * B
@@ -100,13 +102,14 @@ def coopMetrics(board, logs):
 
 
 def coopRows(cfg, ro, honest=None):
-    "One row per board: the Phase 11 columns (clueMetrics, llmStats over the text slots) plus coopMetrics."
+    "One row per board: the Phase 11 columns (clueMetrics, llmStats over the text slots) plus coopMetrics (Phase 18 cells: plus colony_trace.rolloutColumns)."
     honest = range(cfg.nLiar, cfg.N) if honest is None else honest
     out = []
     for b, bd in enumerate(ro.boards):
         members = [SimpleNamespace(log=lg) for lg in ro.logs[b] if lg]
         out.append(dict(episode=0, **clueMetrics(cfg, bd, None, honest, cfg.turnsPerAgent()), **llmStats(members),
-                        **coopMetrics(bd, ro.logs[b])))
+                        **coopMetrics(bd, ro.logs[b]),
+                        **(rolloutColumns(cfg, bd, ro.logs[b], ro.seeds[b]) if isPhase18(cfg.world) else {})))
     return out
 
 
@@ -120,7 +123,7 @@ def runEval(cells, policyFor, logDir=None):
     for cs in groups.values():
         cfg = LLMConfig.fromDict(cs[0]['cfg'])
         policies, memory = policyFor(cs[0])
-        ro = rollout(cfg, [c['seed'] for c in cs], policies, {i: ClueLiar for i in range(cfg.nLiar)}, memory)
+        ro = rollout(cfg, [c['seed'] for c in cs], policies, {i: faultClass(cfg.world) for i in range(cfg.nLiar)}, memory)
         for b, (c, r) in enumerate(zip(cs, coopRows(cfg, ro))):
             row = cellRow(c, cfg, r)
             rows.append(row)

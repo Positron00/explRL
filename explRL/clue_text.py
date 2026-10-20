@@ -11,6 +11,7 @@ __all__ = ['CLUE_SCHEMA', 'CLUE_RE', 'HINTS', 'TextClueEnv']
 import re
 
 from .clue_agents import ClueBoard, ClueLead, ClueMessages, candidates, known
+from .clue_colony import checkOptions, colonyLine, colonyRules, knownColony, tally
 from .clue_fix import fixBoard, fixChecked, fixLines, fixParse, fixRules, fixSchema, fixSettings
 
 _STR = {'type': 'string'}
@@ -34,18 +35,26 @@ class TextClueEnv:
     "The clue board in words: open subtasks, own and shared clues, the open puzzle; parsed actions; shares posted."
     task, timeUnit, SCHEMA, unit = 'clue', 'turn', CLUE_SCHEMA, 'points'
 
-    def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False):
+    def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False, colony=False,
+                 confirm=False, guards=0, nLiar=0, q=2):
         """hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3); ask, table,
         record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations); record 'private'
-        and check 'public': the Phase 14 settings."""
+        and check 'public': the Phase 14 settings; colony, confirm, guards (with nLiar, the faulty slots before the guards)
+        and q: the Phase 18 options (clue_colony)."""
+        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q))
+        self.colony, self.confirm, self.guards, self.nLiar, self.q = bool(colony), bool(confirm), int(guards), int(nLiar), int(q)
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
         self.ask, self.table, (self.record, self.check) = bool(ask), bool(table), fixSettings(record, check)
         self.SCHEMA, self.checked, self._checks, self._did, self._chan = fixSchema(CLUE_SCHEMA, ask, check), {}, {}, {}, None
         self.checkedAll, self._told = {}, {}                                  # a public check's results and lines
 
-    def rules(self):
+    def rules(self, i=None):
+        "The system text; with guards, slot i's (a guard slot gets the guard sentence)."
         b = self.world
+        return colonyRules(self, self._rules(b), i)
+
+    def _rules(self, b):
         return fixRules(self, f"You are one of a team of {b.nAgents} solvers on a shared board of subtasks. The board "
                 f"always shows "
                 f"{2 * b.nAgents + 2} open subtasks, named T followed by a number, worth {', '.join(f'{v:g}' for v in sorted(set(b.values)))} "
@@ -81,7 +90,7 @@ class TextClueEnv:
         b = self.world
         b.advance(t)
         sug = channel.suggest(i, b) if isinstance(channel, ClueLead) else None   # before known: it may pass clues
-        o, kn = b.observe(i), known(i, b, channel, fixChecked(self, i))
+        o, kn = b.observe(i), knownColony(i, b, channel) if self.colony else known(i, b, channel, fixChecked(self, i))
         self._chan = channel
         self._known[i] = kn
         lines = [f"Turn {t:g}. Your last action earned {o['lastReward']:.2f}.",
@@ -93,7 +102,7 @@ class TextClueEnv:
         if isinstance(channel, ClueBoard):
             view = channel.view(i, t, b)
             shown = set(view)
-            lines.append(fixBoard(self, t, view, i) if self.table or self.record else
+            lines.append(colonyLine(b, tally(channel, b), self.q) if self.colony else fixBoard(self, t, view, i) if self.table or self.record else
                          'Clues shared on the board: ' + ('; '.join(
                 f'T{k}: {_fmt(p, r)} (agent {a}, {t - ts:g} turns ago)' for k, xs in view.items() for _, p, r, a, ts in xs) or 'none'))
         elif isinstance(channel, ClueMessages):

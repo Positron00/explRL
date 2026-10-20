@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); step 0 running; `RL17_PLAN` not frozen.
+Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); step 0 done (below); `RL17_PLAN` not frozen.
 
 ## Files in this spec
 
@@ -127,3 +127,18 @@ The frozen rule picked `p17a`. **Cause, found in the turn logs:** the warm start
 2. **Cut prompts.** The training window (`maxLen` 1,536 tokens) cuts prompts from the left: 89% of 8-agent prompts (median 1,810 tokens, up to 2,169) lost the start of the system message (the rules), so the trainer scored replies on prompts the policy never saw. Phases 13 and 16 trained on 4 agents only (about 4% cut). With the full prompt, the per-sample KL of `p17c`'s adapter on 8-agent replies fell from 43,000 to 73 (mean of 40): a real bug and an amplifier, not the root cause.
 
 **Fix, approved by the user (2026-10-19), pilot v3 (`FIX17` in every Phase 17 run; `PILOT17_PLAN` v3, the same recipes and selection rule plus: a recipe that cuts any prompt fails):** loss and KL only on value tokens (keys and punctuation are fixed by the schema: no decision, so no gradient), a per-token clipped ratio (standard PPO) instead of the reply-level one, and a training window that holds the longest prompt, with cut samples counted (must be 0).
+
+## Step 0: every existing adapter against team size (2026-10-19, descriptive)
+
+All 15 adapters on `teamSizeSuite` (account B, about 16 hours on Colab; `results/multiagent/rl/eval_p17s0/report.md`). Pooled share, clean boards (Claude Haiku 5.5's references from Phases 11-14 in the last row):
+
+| model | N 4 | N 8 | N 16 | N 32 |
+|---|---|---|---|---|
+| warm start | 0.22 | 0.24 | 0.11 | 0.07 |
+| credit_s2 (best at N 4) | 0.31 | 0.20 | 0.12 | 0.07 |
+| credturn_s2 | 0.31 | 0.23 | 0.11 | 0.04 |
+| indpen_s4 (best at N 32) | 0.23 | 0.21 | 0.15 | 0.11 |
+| individual (Phase 12) | 0.14 | 0.07 | 0.06 | -0.01 |
+| Claude Haiku 5.5 | 0.45 | 0.41 | 0.38 | 0.34 |
+
+Every trained 3B team loses most of its pooling as the team grows (the warm start keeps 0.30 of its N 4 pooled share at N 32; Haiku keeps 0.76), so the gap to Haiku widens with size: the problem Phase 17's training mix targets. Invalid replies rise with N for every adapter (warm 0.000 at N 4 to 0.031 at N 32; credturn_s1 to 0.13, indpen_s3 to 0.49). Honest loss to liars is mostly smaller than Haiku's at N 16-32 because there is less to lose. Individual-reward adapters stay selfish at every size (shares per held clue 0.06-0.39 against the warm start's 0.84-0.94).

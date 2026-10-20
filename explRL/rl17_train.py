@@ -1,4 +1,4 @@
-"""Phase 17: `trainRL17`, `trainRL`'s GRPO loop (its step pieces in `rl17_update`) with three changes: each step's boards are split across team sizes (`mixN`) with scripted liars on a share of them (`liarShare`); the reference and old log-probabilities are computed once per step and reused by `epochs` update passes with a clipped reply-level ratio (`clip`); replies can be sampled under the reply schema (`guided`), and `lrFixed` switches the per-step controller off; pilot v3's fix (`valueOnly`, `tokenClip`, a longer `maxLen`) and a per-step count of cut prompts (`cut`). At the defaults one step equals `trainRL`'s apart from the added `cut` (tested on the tiny model). Training needs the `[train]` extra; the offline tests do not.
+"""Phase 17: `trainRL17`, `trainRL`'s GRPO loop (its step pieces in `rl17_update`) with three changes: each step's boards are split across team sizes (`mixN`) with scripted liars on a share of them (`liarShare`); the reference and old log-probabilities are computed once per step and reused by `epochs` update passes with a clipped reply-level ratio (`clip`); replies can be sampled under the reply schema (`guided`), and `lrFixed` switches the per-step controller off; pilot v3's fix (`valueOnly`, `tokenClip`, a longer `maxLen`) and a per-step count of cut prompts (`cut`) and the longest prompt plus reply (`longest`); Phase 18's `world` (the board options of every rollout, and the faulty slots' class). At the defaults one step equals `trainRL`'s apart from the added `cut` and `longest` (tested on the tiny model). Training needs the `[train]` extra; the offline tests do not.
 
 Docs: https://Positron00.github.io/explRL/rl17_train.html.md"""
 
@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .clue_agents import ClueLiar
+from .colony_agents import faultClass
 from .clue_grid import BOARD, CLUE_SETTINGS
 from .clue_roll import coopRows, rollout
 from .clue_sft import libVersions, loadModel, loraConfig
@@ -24,7 +24,7 @@ from .rl_adv import groupAdvantages, stepSamples, trainingReturns
 from .rl_control import haltReason, invalidShare, jumpGuard, microBatches, nanMean, nextLr, progressBar, stepLine, warmLr
 from .rl_torch import freeGPU, loadCheckpoint, probeKL, probeLogps, restore, saveCheckpoint, saveMemory, snapshot
 from .rl17_grid import configHash17, runFields17
-from .rl17_update import boardGroups, cutCount, ppoUpdate, saveTurns
+from .rl17_update import boardGroups, cutCount, pairLengths, ppoUpdate, saveTurns
 
 
 def makePolicies17(cfg, model, tok, dev):
@@ -63,7 +63,7 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
     lr = history[-1].get('lrNext', rate) if history else rate
     pol, vllm = makePolicies17(cfg, model, tok, dev)
     lcfg = lambda N, nl: LLMConfig(task='clue', channel=cfg.channel, N=N, nLiar=nl, turns=cfg.turns, model=cfg.model,
-                                   world={**{k: settings[k] for k in BOARD}, 'scheme': cfg.scheme})
+                                   world={**{k: settings[k] for k in BOARD}, 'scheme': cfg.scheme, **dict(cfg.world)})
     ctl = cfg if cfg.lrFixed is None else type(cfg)(**{**cfg.__dict__, 'klTarget': 0.0})
     bar = progressBar(cfg.steps, start, f'{cfg.scheme} RL17', show)
     kept, rolls = None, 0
@@ -78,7 +78,7 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
                 pol.calls = s * 100_000
                 if vllm:
                     pol.setAdapter(str(out / 'live'))
-                return [(lcfg(N, nl), rollout(lcfg(N, nl), seeds, pol, {i: ClueLiar for i in range(nl)} if nl else None,
+                return [(lcfg(N, nl), rollout(lcfg(N, nl), seeds, pol, {i: faultClass(dict(cfg.world)) for i in range(nl)} if nl else None,
                                                        keepPrompts=True))
                         for N, nl, seeds in boardGroups(cfg, s)]
 
@@ -118,7 +118,8 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
                      meanReturn=float(np.mean(np.concatenate([r.ravel() for r in Rs]))),
                      welfare=float(np.mean([r['welfare'] for r in rows])), sharePerHeld=float(np.mean([r['sharePerHeld'] for r in rows])),
                      invalid=invalidShare(rows), soloShare=nanMean([r['soloShare'] for r in rows]), signalTurns=signal,
-                     samples=len(samples), cut=cutCount(tok, samples, cfg.maxLen), lr=warmLr(lr, s, cfg.warmup), stepKL=stepKL,
+                     samples=len(samples), cut=cutCount(tok, samples, cfg.maxLen, lens := pairLengths(tok, samples)),
+                     longest=max(lens, default=0), lr=warmLr(lr, s, cfg.warmup), stepKL=stepKL,
                      rejected=rejected, lrNext=lrNext,
                      gradCkpt=bool(getattr(model, 'is_gradient_checkpointing', False)), **stats,
                      **({} if cfg.haltJump is None else dict(rolledBack=back)))
