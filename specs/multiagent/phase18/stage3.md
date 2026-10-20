@@ -1,6 +1,6 @@
 # Phase 18, Stage 3: adaptive liars and unassigned guards
 
-Status: **implemented and tested** (2026-10-20; T6c): the regression gate passed (every earlier arm replays from the cache without a miss; full suite green); `COLONY3_PLAN` not yet frozen; nothing live run. Part of [README.md](README.md). Builds on Stage 1 (N = 8 and 16) and the 32-agent run, where assigned guards beat the plain board against scripted liars, mistaken members and colluding liars.
+Status: **implemented and tested** (2026-10-20; T6c): the regression gate passed (every earlier arm replays from the cache without a miss; full suite green); `COLONY3_PLAN` frozen at `351ce61` (`coopHash` = `0c59fa10f2b0`); nothing live run yet. Part of [README.md](README.md). Builds on Stage 1 (N = 8 and 16) and the 32-agent run, where assigned guards beat the plain board against scripted liars, mistaken members and colluding liars.
 
 ## Why
 
