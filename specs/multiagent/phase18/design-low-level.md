@@ -144,6 +144,21 @@ def writeStage32(path, S, meta)
 
 `demo_colony` runs it behind `EXPLRL_COLONY_STAGE=stage32` with the plan's cap; `runColony(..., analyse=...)` takes the summary and writer, and Stage 1's rows as `prior`.
 
+## `colony64` (T6d; a second user-approved deviation, lean)
+
+```python
+N64, STAGE64_ARMS, SIZES64 = 64, ('plain', 'colonyGuards'), [8, 16, 32, 64]
+def stage64Grid(seeds=COLONY_SEEDS)              # study colony64: STAGE64_ARMS x independent liars x N 64 (16 cells; no clean boards)
+def stage64PilotGrid()                           # one colonyGuards|independent board at seed 1890 (not analysed)
+stage64Estimate                                  # fixEstimate with the pilot cached
+def costRule64(perCall, plan); def pilotCheck64(rows, plan)   # run if projected <= $35; pilot ok if invalid < 5%
+COLONY64_PLAN                                    # frozen before the pilot; deviation record, cap 250 (raised by the user), H18-12 primary, trend descriptive
+def stage64Summaries(rows64, rowsPrior, plan, nboot)   # H18-12, advantage per N, per-seed slope over log2 N (8-64), per-cell means
+def writeStage64(path, S, meta)
+```
+
+`demo_colony` runs the pilot behind `EXPLRL_COLONY_STAGE=stage64pilot` and the 16 boards behind `stage64` (re-checking the pilot's saved rows), with Stage 1's and the 32-agent rows as `prior`; both join the cached reruns.
+
 ## Stage 3 (T6c): adaptive liars and unassigned guards
 
 **`clue_colony`.**
@@ -239,6 +254,7 @@ def writeRL18, figRL18, syntheticRows18B
 | `colony_report` | AC-7: synthetic effects recovered, exact p, Holm order, slopes |
 | `colony32` | grid (64 cells, liar and guard counts, faults), call count, synthetic analysis (H18-7, tax, trend) |
 | `clue_colony`, `clue_text`, `clue_runs`, `colony_trace`, `clue_roll` (Stage 3) | AC-11: earlier arms byte-identical; deceiver and volunteer sentences only in their slots; the share exemption only for adaptive liar slots; rollout equals `runClue` and `replay` for adaptive and volunteer cells with the fake client; call counting; numpy refuses `adaptive` |
+| `colony64` | AC-12: grid, call count, pilot check and cost rule both ways, synthetic analysis (H18-12, trend over four sizes) |
 | `colony3` | grid (40 cells) and pilot; estimate and `costRule3`; `complianceGate` both ways; `liarBehaviour` and `volunteering` on hand-made boards and logs; `stage3Summaries` on synthetic rows (exact p, Holm) |
 | `rl17_grid`, `rl17_train` | `world=()` hash unchanged; flag `train`: a tiny-model step with `world` set runs a colony board (AC-9) |
 | `rl18_grid`, `rl18_report` | arms, seeds, configurations, the suite's cells; claims split between two simulated hosts; specialization index and null on synthetic logs (AC-9) |
