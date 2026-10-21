@@ -13,7 +13,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from .clue_runs import NAN, clueMetrics, clueSetup
+from .clue_runs import NAN, clueMetrics, clueSetup, stage4Members
 from .clue_text import TextClueEnv
 from .clue_fix import fixOptions
 from .colony_agents import faultClass, faultMembers, memberClass
@@ -40,7 +40,7 @@ def replay(cfg, seed, client=None):
         mk = lambda: LLMMember(client, env, ch, cfg.memory, cfg.framing)           # adaptive liars (Stage 3) are Claude agents too
         members = faultMembers(w, nL, ch, spawnRngs(seed + 3000, nL), mk) + [mk() for _ in range(cfg.N - nL)]
         llm = [m for m in members if isinstance(m, LLMMember)]
-    hist = runTurns(members, b, T)
+    hist = runTurns(stage4Members(w, members), b, T)
     row = dict(episode=0, **clueMetrics(cfg, b, hist, range(nL, cfg.N), T), **(llmStats(llm) if client is not None else {}))
     log = [dict(episode=0, **x) for m in llm for x in m.log]
     subs = {(s[0], s[1]) for s in b.submits}

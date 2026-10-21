@@ -20,6 +20,7 @@ import numpy as np
 from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
 from .colony_agents import scriptedFaults
+from .colony_board import STAGE4_KEYS
 from .colony_trace import isPhase18, rolloutColumns
 from .clue_fix import fixOptions
 from .clue_policy import renderPrompt
@@ -51,6 +52,8 @@ def rollout(cfg, seeds, policies, scripted=None, memory='notes', keepPrompts=Fal
     """Play a batch of clue boards to the end: per round, every active board's pending text turn is rendered (as
     LLMMember would) and each policy answers its requests in one call; scripted slots act on the board directly."""
     w, B, N = cfg.world, len(seeds), cfg.N
+    if any(k in w for k in STAGE4_KEYS):
+        raise ValueError(f'rollout does not support the Stage 4 keys {STAGE4_KEYS}')
     ep = ClueEpisodes(B, N, w, w.get('scheme', 'individual'), cfg.turnsPerAgent(), channel=cfg.channel, seeds=seeds,
                       scripted=scripted, text=dict(hint=w.get('hint'), showOpen=w.get('showOpen', False), **fixOptions(w), nLiar=cfg.nLiar),
                       passPooled=w.get('passPooled', False))

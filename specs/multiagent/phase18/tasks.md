@@ -1,6 +1,6 @@
 # Tasks: Phase 18
 
-Status (2026-10-19): T1, T2, T3, T4 and T7 done (offline; full suite green; Part 0 run, `colony_predictions.json` written and to be committed before the pilot); AC-6 revised after measuring (README). `COLONY_PLAN` frozen at `fc01882` (hash `58e842277a3e`). T5 done (2026-10-20: pilot $0.84, Stage 1 $24.89; H18-1, 2, 4 supported, H18-3 not; go/no-go: stop). T6 replaced by a user-approved deviation, T6b, done 2026-10-20 ($32.73): guards held at 32 agents (+0.229, p 0.004) and helped against mistaken members and colluding liars. Next: T10 docs; T8 after Phase 17's recipe is frozen.
+Status (2026-10-19): T1, T2, T3, T4 and T7 done (offline; full suite green; Part 0 run, `colony_predictions.json` written and to be committed before the pilot); AC-6 revised after measuring (README). `COLONY_PLAN` frozen at `fc01882` (hash `58e842277a3e`). T5 done (2026-10-20: pilot $0.84, Stage 1 $24.89; H18-1, 2, 4 supported, H18-3 not; go/no-go: stop). T6 replaced by a user-approved deviation, T6b, done 2026-10-20 ($32.73): guards held at 32 agents (+0.229, p 0.004) and helped against mistaken members and colluding liars. T6c (Stage 3) and T6d (guards at 64) done 2026-10-20/21. T6e (Stage 4, guards that scale) built and tested 2026-10-21 (full suite green; regression gate passed: 303 earlier live boards replay through the cache-only client with every saved column equal, and the live-flag cached reruns are byte-identical, $0); the numpy forecast is run but not committed, and `STAGE4_PLAN` is not frozen. Next: commit the forecast, freeze, pilot (user's go); T10 docs; T8 after Phase 17's recipe is frozen.
 
 Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one notebook per test call, modules under 200 lines, offline tests without a network, key, `anthropic` or `torch`; Phase 5-17 cached reruns byte-identical and Phase 12-17 hashes unchanged. Gates: no Haiku cell before the Part 0 forecast is committed; no main cell before its plan is frozen and its hash recorded; Stage 2 only on a `go` verdict and a raised API cap; Part B only after Phase 17's recipe is frozen, Stage 1 is done and the user confirms the GPU hours.
 
@@ -37,10 +37,23 @@ Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one no
 - **What**: regression gate (Stage 1's and the 32-agent run's cached reruns byte-identical, hash tests green); freeze `COLONY3_PLAN`, commit and push, record the hash; pilot (`EXPLRL_COLONY_STAGE=stage3pilot`; compliance gate and cost rule; stop and ask if either fails); Stage 3 (`EXPLRL_COLONY_STAGE=stage3`), with the reused Stage 1 cells replayed from the cache for the new columns ($0); cached rerun; results in the README.
 - **Done when**: AC-10 and AC-11 for `COLONY3_PLAN`.
 
-## T6d. Guards at 64 agents (second deviation, lean; built 2026-10-20; `COLONY64_PLAN` frozen at `183da31`, hash `9764cd43e34c`; Mac, about $25-32 with the pilot, cap $250)
+## T6d. Guards at 64 agents (second deviation, lean; built 2026-10-20; `COLONY64_PLAN` frozen at `183da31`, hash `9764cd43e34c`; Mac, about $25-32 with the pilot, cap $250; **done 2026-10-21**: pilot passed, 16 boards run, $28.83 with the pilot, H18-12 supported, +0.165, p 0.004)
 - **Files**: new `nbs/colony64.ipynb`; `stage64pilot` and `stage64` sections in `nbs/demo_colony.ipynb`.
 - **Tests**: AC-12.
 - **What**: freeze `COLONY64_PLAN`, commit and push, record the hash; pilot (`EXPLRL_COLONY_STAGE=stage64pilot`; invalid under 5%, cost rule $35; stop and ask if either fails); the 16 boards (`EXPLRL_COLONY_STAGE=stage64`); cached rerun; results in the README.
+
+## T6e. Stage 4: guards that scale (planned 2026-10-21; plan [stage4.md](stage4.md); Mac, about $51 with the pilot, cost rule $60, cap $250)
+- **Files**: new `nbs/colony_board.ipynb`, `nbs/colony_mech.ipynb`, `nbs/colony4.ipynb`, `nbs/colony4_report.ipynb`; small changes in `nbs/clue_runs.ipynb` (`clueSetup`, `stage4Members`), `nbs/clue_colony.ipynb` (failure label, `knownColony`, `FAIL_RULE`, `SQUAD_RULE`, `checkOptions`, `COLONY_OPTS`), `nbs/clue_text.ipynb` (`squadView` in `observe` and `parse`), `nbs/colony_trace.ipynb` (`stage4Members` in `replay`), `nbs/clue_roll.ipynb` (`rollout` refuses the Stage 4 keys); `tools/colony_forecast.py` (`stage4`, `score4`); `stage4pilot` and `stage4` sections in `nbs/demo_colony.ipynb`.
+- **Tests**: AC-13; the full suite.
+- **What**, in order:
+  1. Build and test offline (AC-13).
+  2. Regression gate: every earlier live cell replays through the cache-only client without a miss ($0); then the cached reruns of Stage 1, 32 agents, Stage 3 and 64 agents byte-identical; hash tests green.
+  3. Run the numpy forecast (`colony_forecast.py stage4`), commit `colony4_predictions.json`.
+  4. Freeze `STAGE4_PLAN` (with the forecast file's hash), commit and push, record the hash in [stage4.md](stage4.md).
+  5. Pilot (`EXPLRL_COLONY_STAGE=stage4pilot`; `pilotCheck4` and `costRule4`; stop and ask if either fails, including the guard-contest gate and its triage fallback).
+  6. Stage 4 (`EXPLRL_COLONY_STAGE=stage4`) with the reused references replayed from the cache ($0).
+  7. Cached rerun; score the forecast (`score4`); results in [stage4.md](stage4.md) and the README.
+- **Done when**: AC-10 and AC-13 for `STAGE4_PLAN`.
 
 ## T7. Part B code (about 1.5 days; may start after T2)
 - **Files**: `nbs/rl17_grid.ipynb`, `nbs/rl17_train.ipynb` (`world`, the `longest` metric), `nbs/rl17_update.ipynb` (`pairLengths`), `nbs/clue_roll.ipynb` (Phase 18 columns in `coopRows`); new `nbs/rl18_grid.ipynb`, `nbs/rl18_report.ipynb`, `nbs/demo_rl18.ipynb`; the two Colab cells in `nbs/colab_clue_rl.ipynb`.

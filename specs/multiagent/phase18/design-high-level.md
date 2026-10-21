@@ -7,7 +7,7 @@ Requirements: [requirements.md](requirements.md). Plan and decisions: [README.md
 | Part | Where | Why | Output |
 |---|---|---|---|
 | 0: numpy screen and forecast | Mac | no model, free; must be committed before any Haiku cell | `results/multiagent/colony/forecast/`, `specs/multiagent/phase18/colony_predictions.json` |
-| A: pilot, Stage 1, Stage 2 | Mac | Claude Haiku through the API; the key stays in `.env.local` (never on Colab), so the API runs cannot move to Colab; cells run in parallel processes on the Mac (as Phases 13-15; Phase 14's 33,000 calls took 75 minutes) | `results/multiagent/colony/{quick,pilot,stage1,stage2}/` |
+| A: pilot, Stage 1, Stage 2 | Mac | Claude Haiku through the API; the key stays in `.env.local` (never on Colab), so the API runs cannot move to Colab; cells run in parallel processes on the Mac (as Phases 13-15; Phase 14's 33,000 calls took 75 minutes) | `results/multiagent/colony/{quick,pilot,stage1,stage2,stage32,stage3pilot,stage3,stage64pilot,stage64,stage4pilot,stage4,forecast4}/` |
 | A: lie tracing | Mac | cached replays, $0 | `trace.jsonl`, `trace_summary.json` per stage |
 | B: RL runs and evaluation | Colab, one or two Pro+ accounts | GPU; no key needed; runs and evaluation models claimed per account (Phase 17's `claim`) | Drive `explRL_rl/runs_p18/`, `eval_p18/`, `explRL_rl18.zip` |
 | B: analysis | Mac | from the zip | `results/multiagent/rl/eval_p18/` |
@@ -30,7 +30,13 @@ Requirements: [requirements.md](requirements.md). Plan and decisions: [README.md
 | `nbs/colony64.ipynb` -> `explRL/colony64.py` | new (T6d) | guards at 64 agents (lean): `stage64Grid`, `stage64PilotGrid`, `COLONY64_PLAN`, `pilotCheck64`, `costRule64`, `stage64Summaries`, `writeStage64` |
 | `nbs/colony3.ipynb` -> `explRL/colony3.py` | new (T6c) | Stage 3: `stage3Grid`, `stage3PilotGrid`, `stage3Estimate`, `costRule3`, `complianceGate`, liar and volunteering measures, `runStage3Cell`, `COLONY3_PLAN`, `stage3Summaries`, `writeStage3` |
 | `nbs/clue_colony.ipynb`, `nbs/clue_text.ipynb`, `nbs/clue_runs.ipynb`, `nbs/colony_trace.ipynb`, `nbs/clue_roll.ipynb` | changed (T6c) | the deceiver and volunteer sentences; `fault = 'adaptive'` (Claude agents in the liar slots, the share exemption, call counting) in every LLM runner; `volunteer` |
-| `nbs/demo_colony.ipynb` | new | the Part 0 summary, quick, pilot, Stage 1, go/no-go, Stage 2, the 32-agent run (`stage32`), Stage 3 (`stage3pilot`, `stage3`), guards at 64 (`stage64pilot`, `stage64`), cached reruns |
+| `nbs/colony_board.ipynb` -> `explRL/colony_board.py` | new (T6e) | `ColonyBoardEnv` (a `ClueBoardEnv` with the guard-copy and squad deals and the wrong-answer record), `squadOf`, `failures`, `squadView` (an agent's view of the board: its squad's subtasks only), `InSquad` (a numpy member acting on its squad view), `stage4Members` |
+| `nbs/clue_runs.ipynb`, `nbs/clue_colony.ipynb`, `nbs/clue_text.ipynb`, `nbs/colony_trace.ipynb`, `nbs/clue_roll.ipynb` | changed (T6e, small) | `clueSetup` builds `ColonyBoardEnv` when a Stage 4 key is set; failure counts in the colony line and `knownColony`, `FAIL_RULE`, option checks; the text env's observation and `parse` through `squadView`; runners pass members through `stage4Members`; `rollout` refuses the Stage 4 keys |
+| `nbs/colony_mech.ipynb` -> `explRL/colony_mech.py` | new (T6e) | the Stage 4 measures (lie timing by guard holding, exposure, failure flags, guard load), `stage4Columns`, `runStage4`, `runStage4Cell`, `reusedRows4`, `replayCheck` (the regression gate) |
+| `nbs/colony4.ipynb` -> `explRL/colony4.py` | new (T6e) | `ARMS4`, `stage4Grid`, `stage4PilotGrid`, `stage4Estimate`, `pilotCheck4`, `costRule4`, `STAGE4_PLAN` |
+| `nbs/colony4_report.ipynb` -> `explRL/colony4_report.py` | new (T6e) | `stage4Summaries` (primaries with Holm, robustness, difference-in-differences, squads against 8 agents, clean cost, mechanisms), `writeStage4` |
+| `tools/colony_forecast.py` | changed (T6e) | a `stage4` mode: rule agents with the three options at N 8-128 |
+| `nbs/demo_colony.ipynb` | new | the Part 0 summary, quick, pilot, Stage 1, go/no-go, Stage 2, the 32-agent run (`stage32`), Stage 3 (`stage3pilot`, `stage3`), guards at 64 (`stage64pilot`, `stage64`), Stage 4 (`stage4pilot`, `stage4`), cached reruns |
 | `nbs/rl17_grid.ipynb`, `nbs/rl17_train.ipynb` | changed (small) | `RL17Config.world` (default `()`, outside the hash at the default), passed to every rollout; `trainRL17` logs `longest` (`rl17_update.pairLengths`) for the speed check |
 | `nbs/rl18_grid.ipynb` -> `explRL/rl18_grid.py` | new | Part B arms, runs, `colonySuite`, `RL18_PLAN`, `rl18Config`, hours projection |
 | `nbs/rl18_report.ipynb` -> `explRL/rl18_report.py` | new | H18-B1 to H18-B4, report, figure (the specialization index and its null come in the evaluation rows, from `colony_trace`) |
@@ -48,6 +54,8 @@ Part 0 (Mac, numpy) --forecast committed--> COLONY_PLAN frozen --> pilot (Mac, H
    --> Stage 3: regression gate --> COLONY3_PLAN frozen --> pilot (N 16, compliance gate, cost rule) --> Stage 3 (N 16, adaptive
        liars and volunteers; Stage 1's references replayed from the cache, $0) --> stage3Summaries
    --> guards at 64 (second deviation): COLONY64_PLAN frozen --> one-board pilot (invalid, cost rule $35) --> 16 boards --> stage64Summaries
+   --> Stage 4 (guards that scale): regression gate --> numpy forecast committed --> STAGE4_PLAN frozen --> pilot (3 boards; coverage,
+       contest, flag, prompt and cost gates) --> 80 boards at N 16 and 64 (references replayed from the cache, $0) --> stage4Summaries
 Phase 17 recipe frozen + Stage 1 done --> Part B speed check (Colab: seconds per step, maxLen, projected hours) --> user confirms --> RL18_PLAN frozen
    --> Part B main (Colab, accounts A and B: claimed runs, then claimed evaluation models) --> explRL_rl18.zip --> Mac analysis
 ```
@@ -59,11 +67,12 @@ As Phase 17: both accounts share `MyDrive/explRL_rl` (the second through a Drive
 ## Gates
 
 1. No Haiku cell before the forecast is committed (FR-03).
-2. No main cell before the plan covering it is frozen and its hash recorded (`COLONY_PLAN`, `COLONY2_PLAN`, `COLONY32_PLAN`, `COLONY3_PLAN`, `COLONY64_PLAN`, `RL18_PLAN`).
+2. No main cell before the plan covering it is frozen and its hash recorded (`COLONY_PLAN`, `COLONY2_PLAN`, `COLONY32_PLAN`, `COLONY3_PLAN`, `COLONY64_PLAN`, `STAGE4_PLAN`, `RL18_PLAN`).
 3. Stage 2 only on a `go` verdict and after the user raises the API cap.
 4. Guards at 64: no live cell before `COLONY64_PLAN` is frozen; the 16 boards only if the pilot's invalid share is under 5% and the cost rule says run (`stage64pilot`, then `stage64`).
 5. Stage 3: no live cell before the regression gate (AC-11) passes and `COLONY3_PLAN` is frozen; no main cell unless the pilot passes the compliance gate and the cost rule; each live step behind its own `EXPLRL_COLONY_STAGE` value (`stage3pilot`, then `stage3`).
-6. Part B only after `RL17_PLAN` is frozen with a recipe (Phase 17's pilot v3) and Stage 1 is done (the colony option tested live), and after the user confirms the projected GPU hours.
+6. Stage 4: no live cell before the regression gate (AC-13) passes, the forecast is committed and `STAGE4_PLAN` is frozen; no main cell unless the pilot passes `pilotCheck4` and `costRule4` (`stage4pilot`, then `stage4`).
+7. Part B only after `RL17_PLAN` is frozen with a recipe (Phase 17's pilot v3) and Stage 1 is done (the colony option tested live), and after the user confirms the projected GPU hours.
 
 ## Reuse
 

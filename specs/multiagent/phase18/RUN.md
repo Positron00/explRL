@@ -2,7 +2,7 @@
 
 Plan, decisions and results: [README.md](README.md). Builds on Phases 14 ([../phase14/RUN.md](../phase14/RUN.md)) and 17 ([../phase17/RUN.md](../phase17/RUN.md)).
 
-Status 2026-10-19: implemented and tested; Part 0 run (10 minutes, $0); nothing live run.
+Status 2026-10-21: Part 0, the pilot, Stage 1, guards at 32 agents, Stage 3 and guards at 64 agents run; Stage 4 (T6e) specified, not built.
 
 ## Where things run
 
@@ -22,6 +22,8 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 | `nbdev-test --n-workers 0 nbs/colony_grid.ipynb` | grids (Stage 1: 176 cells), cost rules, go/no-go (AC-4) | ~3 s |
 | `nbdev-test --n-workers 0 nbs/colony_report.ipynb` | exact tests, Holm, trend on synthetic rows (AC-7) | ~10 s |
 | `nbdev-test --n-workers 0 nbs/demo_colony.ipynb` | quick: fake client end to end | ~20 s |
+| `nbdev-test --n-workers 0 nbs/colony_board.ipynb` | guard-copy and squad deals, failures, squad views (AC-13) | ~5 s |
+| `nbdev-test --n-workers 0 nbs/colony_mech.ipynb` (and `colony4`, `colony4_report`) | Stage 4 measures, grid, gates, synthetic analysis (AC-13); with `--flags llm`, the measures on the 64-agent run's cached cells | ~10 s |
 | `nbdev-test --n-workers 0 nbs/rl18_grid.ipynb` (and `rl18_report`, `demo_rl18`) | Part B arms, suite, claims, specialization index (AC-9) | ~10 s |
 | `nbdev-test --n-workers 0 --flags train nbs/rl17_train.ipynb` | `.venv-train`: Phase 17's tests plus a tiny-model step on a colony board | ~40 s |
 | `nbdev-test --n-workers 0` | full suite | ~120 s |
@@ -44,6 +46,11 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 | T6d freeze | Mac | `COLONY64_PLAN['frozen'] = True` in `nbs/colony64.ipynb`, export, commit, push; record the hash | none |
 | T6d pilot | Mac | `EXPLRL_LLM_LIVE=1 EXPLRL_COLONY_STAGE=stage64pilot nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_colony.ipynb`: one 64-agent board, about 3 hours; prints the invalid share, cost per call and the cost rule verdict | about $1.50-2 |
 | T6d guards at 64 | Mac | the same command with `EXPLRL_COLONY_STAGE=stage64` (runs only if the pilot passed): 16 boards in parallel, about 3-3.5 hours | about $23-30 |
+| T6e regression gate | Mac | after the build: `nbdev-test --n-workers 0` (hash tests); `nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_colony.ipynb` without `EXPLRL_LLM_LIVE` (every earlier live cell through the cache-only client: a miss raises, nothing is spent); only then `EXPLRL_LLM_LIVE=1 EXPLRL_COLONY_STAGE=pilot nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_colony.ipynb` (cached reruns of the pilot, Stage 1, 32 agents, Stage 3 and 64 agents byte-identical, free) | none |
+| T6e forecast | Mac | `python tools/colony_forecast.py stage4 $PWD` (numpy, N 8-128, 30 seeds); commit `specs/multiagent/phase18/colony4_predictions.json` | $0 |
+| T6e freeze | Mac | `STAGE4_PLAN['frozen'] = True` in `nbs/colony4.ipynb` (with the forecast file's hash), export, commit, push; record the commit and `coopHash(STAGE4_PLAN)` in [stage4.md](stage4.md) | none |
+| T6e pilot | Mac | `EXPLRL_LLM_LIVE=1 EXPLRL_COLONY_STAGE=stage4pilot nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_colony.ipynb`: three boards (two at 64 agents, about 3 hours); prints `pilotCheck4` (invalid, guard-held lies, guard contest rate, flags on true values, squad prompt length), the projection and the cost rule's verdict | about $2.50 |
+| T6e Stage 4 | Mac | the same command with `EXPLRL_COLONY_STAGE=stage4` (runs only if the pilot passed): 80 boards, about 3-5 hours; then `python tools/colony_forecast.py score4 $PWD` | about $48 |
 | T8 Part B speed check | Colab, one account | after `RL17_PLAN` is frozen and Stage 1 is done: push; set-up, configuration, "Phase 18 speed check"; it prints seconds per step, the proposed `maxLen` and the projected hours: paste them back on the Mac | about 1 GPU hour |
 | T8 Part B freeze | Mac | after the user confirms: `RL18_PLAN` (`steps`, `maxLen`, `projectedHours`, `userConfirmed`, `frozen`), commit, push | none |
 | T8 Part B main | Colab, one or two accounts | on each: set-up, configuration (`HOST` different per account), "Phase 18 main"; rerun the cell on any account after the last run finishes, so the evaluation (models claimed one at a time) and the pack complete; download `explRL_rl18.zip` | from the speed check, plus about 14 GPU hours of evaluation (shared) |
@@ -55,6 +62,6 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command:
 
 ## Artifacts
 
-- Mac: `results/multiagent/colony/{forecast,quick,pilot,stage1,stage2}/` (`runs.csv`, `turns.jsonl`, `trace.jsonl`, `trace_summary.json`, `report.md`, `colony.png`, `metrics.json`); `specs/multiagent/phase18/colony_predictions.json`, `colony_score.json`.
+- Mac: `results/multiagent/colony/{forecast,forecast4,quick,pilot,stage1,stage2,stage32,stage3pilot,stage3,stage64pilot,stage64,stage4pilot,stage4}/` (`runs.csv`, `turns.jsonl`, `trace.jsonl`, `trace_summary.json`, `report.md`, `colony.png`, `metrics.json`); `specs/multiagent/phase18/colony_predictions.json`, `colony_score.json`, `colony4_predictions.json`, `colony4_score.json`.
 - Colab (Drive): `speed_p18/`, `runs_p18/<arm>_s<seed>/` (with `claim.json`), `eval_p18/` (per-model CSVs, `claims/`, `runs.csv`); `explRL_rl18.zip`.
 - Mac (Part B): `results/multiagent/rl/colab/{runs_p18,eval_p18}/`, `results/multiagent/rl/eval_p18/{report.md, rl18.png, summary.json}`.

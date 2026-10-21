@@ -203,6 +203,137 @@ def writeStage3(path, S, meta)
 
 **`demo_colony`.** A Stage 3 section: `EXPLRL_COLONY_STAGE=stage3pilot` runs the pilot and prints the compliance gate and the cost rule's verdict; `EXPLRL_COLONY_STAGE=stage3` runs `stage3Grid` only if both pass (re-checked from the pilot's saved rows), with `runStage3Cell`, then `reusedRows` (the six Stage 1 cells replayed from the cache, $0, saved as `reused.csv`), `stage3Summaries(rows3, rowsReused)` and `writeStage3`; both also enter the cached reruns.
 
+## Stage 4 (T6e): guards that scale
+
+Plan: [stage4.md](stage4.md). Requirements FR-A20 to FR-A24, AC-13.
+
+**`colony_board` (new).**
+
+```python
+def squadOf(i, N, S)                             # slot i's squad: i mod (N // S)
+class ColonyBoardEnv(ClueBoardEnv):
+    def __init__(self, seed, nAgents, guardSlots=range(0), guardDeal=False, squads=None, failFlag=False, **kw)
+        # sets its own attributes, then super().__init__ (reset deals the first 2N + 2 subtasks through _deal); raises
+        # if N is not a multiple of S, or guardDeal without two guard slots and r = 2
+    def _new(self, t)                            # picks the new subtask's squad (squadOfTask): the squad furthest below its
+                                                 # target count (the 2N + 2 first subtasks round-robin), so a replacement joins
+                                                 # the squad of the subtask it replaces; then the base _new
+    def _deal(self)                              # per clue j: candidates = the subtask's squad (all slots without squads) minus
+                                                 # slots already holding a clue of this subtask; guardDeal: one copy from the
+                                                 # guard candidates, one from the rest; else r copies as the base deal; every draw
+                                                 # uniform from self.rngDeal (the base deal's rule: fewest clues of the subtask)
+    def apply(self, i, action, t)                # super().apply; with failFlag, a new 'wrong' submit appends (t, i, k, x) to
+                                                 # self.failed; with squads, an open or share of another squad's subtask raises
+                                                 # (parse and the squad view prevent it; the raise is a test guard)
+def failures(board)                              # {(k, j, r): n}: for each (t, i, k, x) in board.failed and each clue j of k with
+                                                 # i not in holders[j], every posted (shareLog) value (k, j, r) with x % p_j == r
+                                                 # gets one; {} without failFlag
+def squadView(board, i)                          # SquadView, a proxy: open and observe(i)['open'] restricted to i's squad;
+                                                 # everything else (apply, tasks, shareLog, m, R, ...) delegates to board;
+                                                 # the board itself when it has no squads
+class InSquad:                                   # wraps a numpy member: id and extraNames forward; event(world, t) calls
+    def event(self, world, t)                    # member.event(squadView(world, self.id), t)
+def stage4Members(world, members)                # failFlag: colony rule agents get a flag-aware knownFor (their class becomes a
+                                                 # cached subclass, FlagColonyAgent ...); squads: numpy members (RuleAgent,
+                                                 # scripted liars included) wrapped in InSquad; Claude members unchanged
+STAGE4_KEYS = ('guardDeal', 'failFlag', 'squads')
+```
+
+**`clue_runs`.** `clueSetup(cfg, seed)`: when any `STAGE4_KEYS` is in the world, the board is `ColonyBoardEnv(seed, N, guardSlots=range(nLiar, nLiar + guards), guardDeal=..., squads=..., failFlag=..., **board keys)`; otherwise `ClueBoardEnv` exactly as before. `runClue` and the numpy runner pass their members through `stage4Members`.
+
+**`clue_colony`.**
+
+```python
+FAIL_RULE = "A value marked 'in a failed answer' agreed with an answer that was wrong; treat it as doubtful."
+SQUAD_RULE = ("Your team works in squads of {S}: you see, open and share only your squad's subtasks (about {n} of the {M} on "
+              "the board), and only your squad sees your posts.")
+def colonyLine(board, tal, q=Q, fails=None)      # with fails, a value with n >= 1 failures reads '(2 agents, confirmed, in n failed answer(s))'
+def knownColony(i, board, channel)               # with board.failFlag, the leading value per clue among those with no failure
+                                                 # (own clues still win); unchanged otherwise
+def colonyRules(env, text, i=None)               # as before, plus FAIL_RULE when env.failFlag and SQUAD_RULE when env.squads
+def checkOptions(world, N=None, nLiar=0)         # guardDeal needs colony and guards > 0 (r == 2 and two guard slots: ColonyBoardEnv); failFlag needs colony; squads
+                                                 # needs colony, N % S == 0, and nLiar and guards divisible by N // S
+COLONY_OPTS += ('failFlag', 'squads')            # passed to TextClueEnv (guardDeal is a board key only)
+```
+
+**`clue_text`.** `TextClueEnv(..., failFlag=False, squads=None)`. `observe` and `parse` use `b = squadView(self.world, i)` when `squads` is set (`self.world` otherwise), so the open list, own clues, board line, known clues and valid targets cover the squad. The board line passes `fails=failures(self.world)` when `failFlag` is set. The rules include `FAIL_RULE` and `SQUAD_RULE` through `colonyRules`. All agents get the same sentences, so `slotRules` is unchanged.
+
+**`colony_trace` and `clue_roll`.** `replay` builds the board through `clueSetup` (so `ColonyBoardEnv` comes for free) and passes its members through `stage4Members` (imported through `clue_runs`, so the module stays at 199 lines). `rollout` raises `ValueError` when a world has any `STAGE4_KEYS` (Part B does not use them).
+
+**`colony_mech` (new).**
+
+```python
+def lieTiming(board, answers, nLiar, guards)     # guardHeldLies; contestRate/LagGuarded/Unguarded; usesPerLieGuarded/Unguarded;
+                                                 # usesPerUser; openersPerLie (the scratchpad replay's measures, FR-A23)
+def flagMeasures(board, answers, nLiar)          # flagsPerLie, flagsOnTrue, usesAfterFlag (NaN without failFlag)
+def guardLoad(board, nLiar, guards)              # guardPostsPerTurn, guardUnposted (guard-held clues of opened subtasks no
+                                                 # guard holding them posted)
+def stage4Columns(cfg, rp)                       # colonyColumns(rp) + the three above + inTokPerCall (inputTokens / calls)
+def runStage4(cfg, seed, client)                 # runClue's signature for runLLMCell: replay + stage4Columns, and the turn log
+def runStage4Cell(cell)                          # for runWorkload (a named function, picklable)
+def reusedRows4(client, prior, cells)            # the reference cells replayed through client(cfg) (cache-only: $0) with
+                                                 # stage4Columns; asserts every column of the matching prior row unchanged
+def replayCheck(cells, rows, cache)              # the regression gate: each cell with a saved row through traceCell and the
+                                                 # cache-only client (a miss raises) -> dict(checked, mismatches)
+```
+
+**`colony4` (new).**
+
+```python
+ARMS4 = {**COLONY_ARMS,                          # COLONY_ARMS itself unchanged (COLONY_PLAN freezes it)
+         'guardDeal': dict(colony=True, guards='quarter', guardDeal=True),
+         'failFlag': dict(colony=True, guards='quarter', failFlag=True),
+         'squads': dict(colony=True, guards='quarter', squads=8),
+         'guardDealFlag': dict(colony=True, guards='quarter', guardDeal=True, failFlag=True),
+         'squadsAll': dict(colony=True, guards='quarter', guardDeal=True, failFlag=True, squads=8)}
+STAGE4_CELLS = {16: [('guardDeal', 'clean'), ('guardDeal', 'independent'), ('failFlag', 'clean'), ('failFlag', 'independent'),
+                     ('squads', 'independent'), ('guardDealFlag', 'independent')],
+                64: [('guardDeal', 'independent'), ('failFlag', 'independent'), ('squads', 'independent'), ('squadsAll', 'independent')]}
+REUSED4 = {8: [('colonyGuards', 'independent')], 16: [('colonyGuards', 'clean'), ('colonyGuards', 'independent'),
+           ('plain', 'clean'), ('plain', 'independent')], 64: [('colonyGuards', 'independent'), ('plain', 'independent')]}
+def stage4Grid(seeds=COLONY_SEEDS)               # study colony4: colonyCell(..., arms=ARMS4) for STAGE4_CELLS (80 cells, 87,040 calls)
+def stage4PilotGrid()                            # guardDeal|independent and squads|independent at 64, failFlag|independent at 16, seed 1890
+def reusedCells4(seeds=COLONY_SEEDS)             # REUSED4 as cells (56): Stage 1's colony1 and the 64-agent run's colony64 studies
+def stage4Estimate(cells, perCall)               # calls x cost per call, per call measured in the pilot by kind (squads, 16, 64)
+def costRule4(projected, plan=None)              # run if projected <= plan['costRule']['run'] (60)
+def boardKind(c)                                 # 'squads' for squad boards, else N (the pilot's cost per call by kind)
+def ref8Tokens(rows1)                            # mean inputTokens / calls of Stage 1's colonyGuards|independent boards at N 8
+def pilotCheck4(rows, ref8Tokens, plan=None)     # dict(ok, reasons, ...): the FR-A24 gates (a NaN value fails its gate); ref8Tokens = mean inputTokens / calls of Stage 1's
+                                                 # colonyGuards|independent boards at N 8 (read from Stage 1's runs.csv)
+STAGE4_PLAN                                      # frozen before the pilot: arms, cells, seeds, reuse, H18-13 to H18-15 (Holm),
+                                                 # robustness rule, secondary list with expected directions, gates, costRule,
+                                                 # cap 250, forecast file hash
+```
+
+**`colony4_report` (new).**
+
+```python
+def stage4Summaries(rows4, rowsReused, plan=STAGE4_PLAN, nboot=2000)
+    # hyp: H18_13..15 (arm - colonyGuards at 64, honestPooled, one-sided exact sign-flip, Holm) and robust (the same on
+    # welfareHonest; flag when the sign differs); did: per arm, mean over seeds of (arm - colonyGuards)@64 - (arm - colonyGuards)@16
+    # with bootstrap interval and two-sided sign-flip p (arms run at both sizes only); adv: arm - plain at 16 and 64; squads8: squads@64 - colonyGuards@8; cleanCost: guardDeal and failFlag
+    # clean - colonyGuards clean at 16; cells: per-cell means of the FR-A23 columns, honestPooled, welfareHonest
+def writeStage4(path, S, meta)                   # report.md: tests, robustness, difference-in-differences, mechanisms, gates' values
+```
+
+The difference-in-differences is computed only for arms run at both sizes: `guardDeal`, `failFlag` and `squads`. `guardDealFlag` (16 only) and `squadsAll` (64 only) are reported as cell means and differences at their own size.
+
+**`tools/colony_forecast.py stage4`.** Numpy cells: `plain`, `colonyGuards` and the `ARMS4` arms with independent liars, N 8, 16, 32, 64, 128, seeds 3000-3029, through `runColonyCell`. It writes `results/multiagent/colony/forecast4/` and `specs/multiagent/phase18/colony4_predictions.json`, which holds:
+- the signs of H18-13 to H18-15 (an interval excluding 0);
+- each arm's difference-in-differences from 16 to 64;
+- each arm's advantage curve over 8-128.
+
+`score4` scores the predictions against `stage4Summaries`.
+
+**Regression gate.** A `demo_colony` cell (`llm`, run without `EXPLRL_LLM_LIVE`) replays every earlier live cell (pilot, Stage 1, 32 agents, Stage 3 and its reused cells, 64 agents) through `cacheOnlyClient`, so a miss raises and nothing is spent, and compares the rows with the saved `runs.csv`. The live-flag cached reruns follow.
+
+**`demo_colony`.** `EXPLRL_COLONY_STAGE=stage4pilot` runs the pilot and prints `pilotCheck4`, the projection and `costRule4`. `stage4` runs `stage4Grid` only if both pass (re-checked from the pilot's saved rows), with `runStage4Cell`, then:
+- `reusedRows4`: the 56 references replayed from the cache, $0, saved as `reused.csv`;
+- `stage4Summaries`;
+- `writeStage4`.
+
+Both stages join the cached reruns.
+
 ## Part B
 
 ### `rl17_grid` and `rl17_train` change
@@ -256,6 +387,10 @@ def writeRL18, figRL18, syntheticRows18B
 | `clue_colony`, `clue_text`, `clue_runs`, `colony_trace`, `clue_roll` (Stage 3) | AC-11: earlier arms byte-identical; deceiver and volunteer sentences only in their slots; the share exemption only for adaptive liar slots; rollout equals `runClue` and `replay` for adaptive and volunteer cells with the fake client; call counting; numpy refuses `adaptive` |
 | `colony64` | AC-12: grid, call count, pilot check and cost rule both ways, synthetic analysis (H18-12, trend over four sizes) |
 | `colony3` | grid (40 cells) and pilot; estimate and `costRule3`; `complianceGate` both ways; `liarBehaviour` and `volunteering` on hand-made boards and logs; `stage3Summaries` on synthetic rows (exact p, Holm) |
+| `colony_board` | AC-13: no options, the base deal exactly; `guardDeal` holder sets (one guard, one non-guard per clue; never both clues) over many subtasks; squad deals and squad make-up at N 16 and 64; `failures` on hand-made boards (only false values when submitters hold one clue; the counts); `squadView` hides other squads; `InSquad` members never act outside their squad (`stage4Members`, a 30-turn run); squads keep their target subtask counts; no Stage 4 key leaves members unchanged |
+| `colony_mech` (Stage 4 end to end, for `clue_colony`, `clue_text`, `clue_runs`, `colony_trace`, `clue_roll`) | AC-13: no Stage 4 key, byte-identical (hash); the failure label, `knownColony`'s skip, `FAIL_RULE` and `SQUAD_RULE` only when set; `parse` rejects other squads' subtasks; `replay` equals `runClue` per option with the fake client; `rollout` refuses the keys |
+| `colony_mech` | FR-A23 measures on hand-made boards; on the 64-agent run's cached cells (`llm`), guard-held lies 0.375 and unguarded uses per lie 1.49 on the guard board (the README's replay diagnosis); `reusedRows4` leaves earlier columns unchanged |
+| `colony4`, `colony4_report` | grid (80 cells, 87,040 calls), pilot grid, reused cells (56); `pilotCheck4` and `costRule4` both ways; `stage4Summaries` on synthetic rows (exact p, Holm, the robustness flag, difference-in-differences, squads against 8) |
 | `rl17_grid`, `rl17_train` | `world=()` hash unchanged; flag `train`: a tiny-model step with `world` set runs a colony board (AC-9) |
 | `rl18_grid`, `rl18_report` | arms, seeds, configurations, the suite's cells; claims split between two simulated hosts; specialization index and null on synthetic logs (AC-9) |
 | `demo_colony`, `demo_rl18` | quick sections end to end (`demo_rl18`: synthetic Part B rows and logs) |

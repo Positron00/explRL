@@ -12,6 +12,7 @@ import re
 
 from .clue_agents import ClueBoard, ClueLead, ClueMessages, candidates, known
 from .clue_colony import checkOptions, colonyLine, colonyRules, knownColony, tally
+from .colony_board import failures, squadView
 from .clue_fix import fixBoard, fixChecked, fixLines, fixParse, fixRules, fixSchema, fixSettings
 
 _STR = {'type': 'string'}
@@ -36,15 +37,15 @@ class TextClueEnv:
     task, timeUnit, SCHEMA, unit = 'clue', 'turn', CLUE_SCHEMA, 'points'
 
     def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False, colony=False,
-                 confirm=False, guards=0, nLiar=0, q=2, volunteer=False, fault='independent'):
+                 confirm=False, guards=0, nLiar=0, q=2, volunteer=False, fault='independent', failFlag=False, squads=None):
         """hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3); ask, table,
         record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations); record 'private'
         and check 'public': the Phase 14 settings; colony, confirm, guards (with nLiar, the faulty slots before the guards)
         and q: the Phase 18 options (clue_colony); volunteer and fault 'adaptive': Stage 3 (slot-dependent rules; adaptive
-        liar slots may share any residue)."""
-        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q, volunteer=volunteer, fault=fault))
+        liar slots may share any residue); failFlag and squads: Stage 4 (the board line's failure counts; each agent sees its squad)."""
+        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q, volunteer=volunteer, fault=fault, failFlag=failFlag, squads=squads))
         self.colony, self.confirm, self.guards, self.nLiar, self.q = bool(colony), bool(confirm), int(guards), int(nLiar), int(q)
-        self.volunteer, self.fault = bool(volunteer), fault
+        self.volunteer, self.fault, self.failFlag, self.squads = bool(volunteer), fault, bool(failFlag), squads
         self.slotRules = bool(self.guards or self.volunteer or fault == 'adaptive')   # rules(i) differ by slot
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
@@ -90,7 +91,7 @@ class TextClueEnv:
                 "clue text for 'share' (empty otherwise); notes is a short note to yourself, shown back to you later.")
 
     def observe(self, i, t, channel=None):
-        b = self.world
+        b = squadView(self.world, i)                                   # Stage 4: with squads, the agent's squad only
         b.advance(t)
         sug = channel.suggest(i, b) if isinstance(channel, ClueLead) else None   # before known: it may pass clues
         o, kn = b.observe(i), knownColony(i, b, channel) if self.colony else known(i, b, channel, fixChecked(self, i))
@@ -105,7 +106,7 @@ class TextClueEnv:
         if isinstance(channel, ClueBoard):
             view = channel.view(i, t, b)
             shown = set(view)
-            lines.append(colonyLine(b, tally(channel, b), self.q) if self.colony else fixBoard(self, t, view, i) if self.table or self.record else
+            lines.append(colonyLine(b, tally(channel, b), self.q, failures(b)) if self.colony else fixBoard(self, t, view, i) if self.table or self.record else
                          'Clues shared on the board: ' + ('; '.join(
                 f'T{k}: {_fmt(p, r)} (agent {a}, {t - ts:g} turns ago)' for k, xs in view.items() for _, p, r, a, ts in xs) or 'none'))
         elif isinstance(channel, ClueMessages):
@@ -140,7 +141,7 @@ class TextClueEnv:
 
     def parse(self, parsed, i):
         "-> (action, report (k, clue) for shares or None, valid); anything unusable is 'wait', invalid."
-        b, wait = self.world, ('wait', None)
+        b, wait = squadView(self.world, i), ('wait', None)
         if not isinstance(parsed, dict):
             return wait, None, False
         a, k = parsed.get('action'), self._task(parsed.get('target', ''))

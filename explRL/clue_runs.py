@@ -12,6 +12,7 @@ import numpy as np
 
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent
 from .colony_agents import faultClass, faultMembers, memberClass
+from .colony_board import STAGE4_KEYS, ColonyBoardEnv, stage4Members
 from .clue_fix import fixOptions
 from .clue_text import TextClueEnv
 from .clueboard import ClueBoardEnv
@@ -28,8 +29,12 @@ BOARD_KEYS = ('m', 'r', 'R', 'value', 'life', 'penalty')
 
 
 def clueSetup(cfg, seed):
-    "The board (settings from cfg.world) and the channel for one run."
-    b = ClueBoardEnv(seed, cfg.N, **{k: v for k, v in cfg.world.items() if k in BOARD_KEYS})
+    "The board (settings from cfg.world; Stage 4's keys: ColonyBoardEnv) and the channel for one run."
+    w = cfg.world
+    kw = {k: v for k, v in w.items() if k in BOARD_KEYS}
+    b = (ColonyBoardEnv(seed, cfg.N, guardSlots=range(cfg.nLiar, cfg.nLiar + w.get('guards', 0)),
+                        **{k: w[k] for k in STAGE4_KEYS if k in w}, **kw)
+         if any(k in w for k in STAGE4_KEYS) else ClueBoardEnv(seed, cfg.N, **kw))
     ch = dict(none=None, blackboard=ClueBoard(), hierarchical=ClueLead(cfg.N, cfg.world.get('passPooled', False)),
               messages=ClueMessages(cfg.N, 2, spawnRngs(seed + 2000, cfg.N)))[cfg.channel]
     return b, ch
@@ -72,7 +77,7 @@ def runClueNumpy(cfg, seed):
     T, rngs = cfg.turnsPerAgent(), spawnRngs(seed + 1000, cfg.N)
     w = cfg.world                      # Phase 18: faulty members and colony rule agents from the world (defaults: Phase 11)
     members = [faultClass(w)(ch, rngs[i]) if i < cfg.nLiar else memberClass(w, i, cfg.nLiar)(ch, rngs[i]) for i in range(cfg.N)]
-    hist = runTurns(members, b, T)
+    hist = runTurns(stage4Members(w, members), b, T)
     return [dict(episode=0, **clueMetrics(cfg, b, hist, range(cfg.nLiar, cfg.N), T))]
 
 
@@ -85,7 +90,7 @@ def runClue(cfg, seed, client):
     mk = lambda: LLMMember(client, env, ch, cfg.memory, cfg.framing)
     liars = faultMembers(cfg.world, cfg.nLiar, ch, spawnRngs(seed + 3000, cfg.nLiar), mk)   # Stage 3: adaptive liars are Claude
     llm = [m for m in liars if isinstance(m, LLMMember)] + [mk() for _ in range(nLLM)]
-    hist = runTurns(liars + llm[len(llm) - nLLM:], b, T)
+    hist = runTurns(stage4Members(cfg.world, liars + llm[len(llm) - nLLM:]), b, T)
     row = dict(episode=0, **clueMetrics(cfg, b, hist, range(cfg.nLiar, cfg.N), T), **llmStats(llm))
     return [row], [dict(episode=0, **x) for m in llm for x in m.log]
 

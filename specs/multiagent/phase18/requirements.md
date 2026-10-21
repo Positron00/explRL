@@ -44,6 +44,56 @@ Terms:
 - **FR-A18** Stage 3 analysis (`stage3Summaries(rows3, rowsReused)`, the reused Stage 1 cells as replayed with Stage 3's columns): H18-10 (`colonyGuards|adaptive` minus `plain|adaptive`) and H18-11 (`colonyVolunteer|independent` minus Stage 1's `colony|independent`), honest pooled share paired on seed, one-sided exact sign-flip, Holm over the two; secondary: adaptive minus scripted damage on the plain board (honest loss), the share of each kind of liar's damage that guards recover, damage per lie (honest loss over `liarFalsePosts`, same arm and seed) for scripted and adaptive liars, volunteers minus assigned guards, volunteers per board and the volunteers' specialization above its null (sign-flip over seeds), the volunteer arm's clean tax, liar behaviour; bootstrap intervals over seeds; `writeStage3`.
 - **FR-A19** Guards at 64 agents (`colony64`, a second user-approved deviation, lean): `stage64Grid()` = plain and colonyGuards at N 64 with independent liars only (no clean boards), seeds 1800-1807 (16 cells, 30,720 calls); `stage64PilotGrid()` = one colonyGuards board with independent liars at seed 1890 (not analysed); `pilotCheck64(rows)`: invalid replies under 5% and `costRule64` (run if Stage 64 projects at most $35 from the pilot's cost per call, else stop and ask); `stage64Summaries(rows64, rowsPrior)`: H18-12 (guards minus plain, honest pooled share, N 64, one-sided exact sign-flip over 8 seeds), the guard advantage per N and its per-seed slope over log2 N at 8, 16, 32, 64 (with Stage 1's and the 32-agent rows; descriptive, two-sided p), per-cell means at N 64; `writeStage64`; cap $250 (raised by the user on 2026-10-20).
 
+### Part A, Stage 4: guards that scale (T6e; plan: [stage4.md](stage4.md))
+
+Three new world keys, each absent by default; with all three absent every board, deal, prompt and row is byte-identical to before. They apply to LLM and numpy clue-board cells only (`rollout` and Part B refuse them with `ValueError`).
+
+- **FR-A20** Option `guardDeal` (`True`; needs `colony`, `guards` and `r = 2`): each clue's two copies go to one guard slot and one non-guard slot (liars included), each drawn at random, from the deal's own random stream, among the slots holding no clue of that subtask yet. No agent holds both clues of a subtask. Guard slots are `range(nLiar, nLiar + guards)`, as `clue_colony.guardSlots`. `GUARD_RULE` is unchanged.
+- **FR-A21** Option `failFlag` (`True`; needs `colony`): the board records every wrong answer `(t, i, k, x)`. A posted value `r` of clue `j` of subtask `k` gets one failure for each recorded wrong answer to `k` whose submitter does not hold clue `j` and whose `x mod p_j = r`. Posted values are the board's shares (`shareLog`). Failures count from the wrong answer on, whenever the value was posted. The colony line adds `, in n failed answer(s)` to a value with `n >= 1` failures. `knownColony` takes, per clue, the leading value among those with no failure (own clues still win). `FAIL_RULE` is appended to every slot's rules, verbatim: "A value marked 'in a failed answer' agreed with an answer that was wrong; treat it as doubtful." No clue value is read: only the wrong-answer signal and the holder sets.
+- **FR-A22** Option `squads` (an int `S`; needs `colony`; `N` a multiple of `S`; default absent): slot `i` is in squad `i mod (N / S)`. Each squad keeps a fixed number of open subtasks: the first 2N + 2 are assigned round-robin, and a replacement (after a solve or an expiry) joins the squad of the subtask it replaces. A subtask's clue copies are dealt only within its squad (with `guardDeal`, to one of the squad's guards). For every agent, these cover only its squad:
+  - the prompt's open subtasks;
+  - its own clues;
+  - the board line and the known clues;
+  - its open subtask.
+
+  Every slot's rules get `SQUAD_RULE`, verbatim: "Your team works in squads of S: you see, open and share only your squad's subtasks (about n of the M on the board), and only your squad sees your posts." (S, n = round((2N + 2) S / N) and M = 2N + 2 are filled in.) An open or share naming another squad's subtask is invalid (`parse`; an answer always goes to the agent's own open subtask). Numpy members, scripted liars included, see a squad view of the board and so choose only their squad's subtasks; with `failFlag`, colony rule agents (the forecast's) skip failed values as `knownColony` does. The board itself, its arrival process, scoring, pooled bound and team welfare are unchanged.
+- **FR-A23** Stage 4 measures (`colony_mech`), added to every Stage 4 row and to the reused rows (FR-A24) by a cached replay:
+  - `guardHeldLies`: the share of false values on a clue a guard slot holds;
+  - `contestRateGuarded`, `contestRateUnguarded`, `contestLagGuarded`, `contestLagUnguarded`: the share of false values contested by an honest post of another value after them, and the median lag in turns;
+  - `usesPerLieGuarded`, `usesPerLieUnguarded`: lie-built honest wrong answers (as `contaminatedBy`) per false value;
+  - `usesPerUser`: lie-built wrong answers per honest agent with at least one;
+  - `openersPerLie`: honest agents who opened a lied subtask, per false value;
+  - `inTokPerCall`;
+  - `flagsPerLie`, `flagsOnTrue` (the share of failures on true values), `usesAfterFlag` (lie-built answers submitted after a failure on that value was visible): `failFlag` cells only;
+  - `guardPostsPerTurn`, `guardUnposted` (the share of guard-held clues of opened subtasks never posted by a guard holding it).
+- **FR-A24** Stage 4 grid, gates and analysis:
+  - `ARMS4` (`colony4`; `COLONY_ARMS` untouched):
+    - `guardDeal`, `failFlag` and `squads` (S = 8), each on top of `colonyGuards`;
+    - `guardDealFlag` (guard copies and failure flags);
+    - `squadsAll` (all three).
+  - `stage4Grid()`, seeds 1800-1807, 80 cells (87,040 calls):
+    - at N 16: `guardDeal` and `failFlag`, each clean and with independent liars; `squads` and `guardDealFlag` with liars;
+    - at N 64: `guardDeal`, `failFlag`, `squads` and `squadsAll` with liars.
+  - `stage4PilotGrid()`, seed 1890 (not analysed): `guardDeal` and `squads` at 64, `failFlag` at 16.
+  - `reusedRows4`: the 56 reference rows (Stage 1: `colonyGuards|independent` at 8; `colonyGuards` and `plain`, clean and with liars, at 16; the 64-agent run's two cells) replayed from the cache ($0) with FR-A23's columns. Every earlier column must be unchanged.
+  - `pilotCheck4(rows, ref8Tokens)` (`ref8Tokens`: the mean input tokens per call of Stage 1's 8-agent `colonyGuards` boards with liars): stop and ask unless all of these hold:
+    - invalid replies under 5%;
+    - `guardHeldLies` at least 0.99 and `contestRateGuarded` at least 0.60 on the `guardDeal` board;
+    - `flagsOnTrue` at most 0.20 on the `failFlag` board (a board with no failure recorded fails: the flags went untested);
+    - `inTokPerCall` on the `squads` board at most 1.5 times the 8-agent guard board's mean (Stage 1).
+  - `stage4Estimate(cells, perCall)`: the projection from the pilot's cost per call by board kind (16 agents and 64 agents without squads, from the `failFlag` and `guardDeal` pilot boards; squad boards of any size, from the `squads` pilot board); `costRule4(projected)`: run if at most $60.
+  - `stage4Summaries(rows4, rowsReused)`:
+    - H18-13 to H18-15 (each arm minus `colonyGuards`, honest pooled share, N 64, liars, paired on seed, one-sided exact sign-flip, Holm over the three);
+    - the same tests on `welfareHonest` (robustness; opposite sign = not robust);
+    - per arm, the per-seed difference-in-differences (arm − `colonyGuards`) at 64 minus at 16;
+    - each arm's advantage over `plain` at 16 and 64;
+    - `squads` at 64 minus `colonyGuards` at 8;
+    - the clean cost at 16 (`guardDeal`, `failFlag` against `colonyGuards` clean);
+    - the combined arms and the FR-A23 means per cell;
+    - bootstrap intervals over seeds.
+  - `writeStage4`. Cap $250.
+  - `tools/colony_forecast.py stage4`: rule agents with the three options at N 8-128, 30 seeds; signs of H18-13 to H18-15, each arm's difference-in-differences and each arm's advantage curve over 8-128, written to `colony4_predictions.json`, committed before the pilot.
+
 ### Part B: RL of clones on the colony board (Colab, two accounts)
 - **FR-B1** `RL17Config` gains `world` (a tuple of key-value pairs merged into each rollout's world, default `()`): `configHash17` leaves it out at the default, so Phase 17 hashes are unchanged; `trainRL17` passes it to every rollout (`r`, `colony`, `fault`) and takes the scripted liars' class from it.
 - **FR-B2** `rl18_grid`: arms `c18team` (world `r = 2`, `colony`; scheme `team`) and `p18team` (world `r = 2`; scheme `team`), both with Phase 17's frozen recipe (`RL17_PLAN['recipe']`, `BASE17` with `FIX17`), `mixN ((4, 0.5), (8, 0.5))`, `liarShare 0.25`, independent liars; seeds: `c18team` 8, `p18team` 5; `RL18_RUNS` interleaved; steps and `maxLen` fixed in `RL18_PLAN` from a 3-step speed check (FR-B4) and the user's confirmation: `maxLen` = the longest measured prompt plus reply, rounded up to a multiple of 512, at least `FIX17`'s 3,072 (colony prompts at `r = 2` are longer than Phase 17's); any cut prompt in a main run fails the run's report.
@@ -56,7 +106,7 @@ Terms:
 - **FR-C1** Not specified until decided; reserved: arms that mix temperatures or prompt variants across honest slots under `colony`.
 
 ### Docs
-- **FR-D1** `demo_colony` (Mac): quick (fake client, synthetic rows), Part 0 summary, pilot, Stage 1, go/no-go, Stage 2, cached reruns (`llm`), report and figure per part. `demo_rl18` (Mac, `train`): Part B analysis (the speed check is read on Colab).
+- **FR-D1** `demo_colony` (Mac): quick (fake client, synthetic rows), Part 0 summary, pilot, Stage 1, go/no-go, Stage 2, the later stages (32 agents, Stage 3, 64 agents, Stage 4), cached reruns (`llm`), report and figure per part. `demo_rl18` (Mac, `train`): Part B analysis (the speed check is read on Colab).
 - **FR-D2** Results in this README, `REPORT.md` (a Phase 18 section), the plan's status line and the preprints where a claim changes.
 
 ## Analysis plans (frozen before the runs they cover; exploratory)
@@ -64,6 +114,8 @@ Terms:
 `COLONY32_PLAN` (added 2026-10-20, a user-approved deviation from `COLONY_PLAN`'s go/no-go; `colony32`): plain and colonyGuards at N 32, clean and with independent liars, mistaken members and colluding liars, seeds 1800-1807; primary H18-7 (guards beat plain with independent liars at N 32, one-sided exact sign-flip); secondary H18-8, H18-9, the clean tax and the 8-32 trend; cap $200.
 
 `COLONY64_PLAN` (a second deviation, `colony64`): the 16 cells, the pilot and its gates (invalid under 5%, cost rule $35), H18-12 (primary, the only test) and the descriptive 8-64 trend; frozen before the pilot; cap $250.
+
+`STAGE4_PLAN` (Stage 4, [stage4.md](stage4.md); `colony4`): the arms, cells, seeds and reused references; H18-13 to H18-15 with Holm over the three and the robustness rule; the secondary measures and their expected directions; the pilot's gates, the cost rule ($60) and the forecast's file hash. Frozen before the pilot, after the regression gate (AC-13) and the forecast commit.
 
 `COLONY3_PLAN` (Stage 3, [stage3.md](stage3.md); `colony3`): the Stage 3 cells, seeds, reused Stage 1 references, H18-10 and H18-11 with Holm over the two, the secondary measures, the pilot's compliance gate and the $30 cost rule; frozen before the pilot, after the regression gate (AC-11).
 
@@ -74,9 +126,9 @@ Terms:
 
 - **NFR-1** Phase 5-17 reference outputs unchanged: cached reruns byte-identical, Phase 12-17 configuration hashes unchanged.
 - **NFR-2** Offline tests need no network, key, `anthropic` or `torch`; Part B's trainer tests use the tiny model under flag `train`.
-- **NFR-3** API spend under the cap: Stage 1 and its pilot $25.73; guards at 32 agents $32.73 under a cap raised by the user to $200 ($137.59 spent in all by then); Stage 3 about $11 ($8.85 spent; $146.44 in all); guards at 64 agents about $23-30 plus a pilot of about $1.50-2, under a cap the user raised to $250 (about $178 expected in all).
+- **NFR-3** API spend under the cap: Stage 1 and its pilot $25.73; guards at 32 agents $32.73 under a cap raised by the user to $200 ($137.59 spent in all by then); Stage 3 about $11 ($8.85 spent; $146.44 in all); guards at 64 agents $28.83 with the pilot ($175.27 in all, cap raised by the user to $250); Stage 4 about $51 with the pilot (cost rule $60), about $226 in all.
 - **NFR-4** Seeds fixed; replies cached; reruns byte-identical; numpy runs identical at 1 and 8 processes.
-- **NFR-5** Each module under 200 lines (`clue_agents` is at 199 and `llm_runs` at 194: new logic goes in new modules).
+- **NFR-5** Each module under 200 lines. `clue_agents`, `colony_agents`, `colony_trace` and `colony3` are at 198-199, and `llm_runs` at 194, so new logic goes in new modules: Stage 4's in `colony_board`, `colony_mech`, `colony4` and `colony4_report`.
 - **NFR-6** No API key on Colab: Part A runs only on the Mac; Part B needs no key.
 
 ## Acceptance criteria
@@ -94,6 +146,15 @@ Terms:
 - **AC-12** Guards at 64: grid (16 cells, 16 liars and 16 guards per guard board), call count (30,720), the pilot check and the cost rule both ways, and `stage64Summaries` on synthetic rows (H18-12's exact p, the trend over four sizes); the 64-agent cells change no earlier prompt (the regression gate of AC-11 still holds).
 - **AC-11** Stage 3: with neither `adaptive` nor `volunteer` set, every earlier arm's rules, observations and rows are byte-identical (Stage 1's and the 32-agent run's cached reruns, and the Phase 11-17 hash tests, stay green); the deceiver sentence reaches only liar slots of adaptive cells and the volunteer sentence only honest slots of volunteer cells; the share exemption applies only to liar slots of adaptive cells; with the fake client, `rollout` rows and turn logs equal `runClue`'s for adaptive and volunteer cells, and `replay` equals both; the call estimate counts all N agents in adaptive cells; the cached replay of reused Stage 1 cells reproduces their Stage 1 columns exactly; `complianceGate`, the liar measures, `volunteers` and `stage3Summaries` are right on hand-made logs and synthetic rows.
 
+- **AC-13** Stage 4:
+  - **Regression:** with none of `guardDeal`, `failFlag` and `squads` set, every earlier board, deal (random stream included), prompt and row is byte-identical. Every earlier live cell first replays through the cache-only client without a miss ($0); then the cached reruns of Stage 1, 32 agents, Stage 3 and 64 agents stay byte-identical, and the Phase 11-17 hash tests stay green.
+  - **`guardDeal`:** over many subtasks, every clue has exactly one guard and one non-guard holder, and no agent holds both clues.
+  - **`failFlag`:** on hand-made boards, failures land only on false values when each submitter holds one clue and answers consistently with it; the counts, the label and `knownColony`'s skip are right; `FAIL_RULE` appears only when set.
+  - **`squads`:** at N 16 and 64 every squad of 8 has 2 liars, 2 guards and 4 others; deals stay within the squad; prompts show only the squad's subtasks, clues and posts; `parse` rejects opens and shares on other squads' subtasks; numpy members never act outside their squad.
+  - **Runners:** with the fake client, `replay` equals `runClue` for each option; `rollout` refuses them.
+  - **Measures:** on the 64-agent run's cached cells the FR-A23 measures reproduce the replay diagnosis in the README, pooled over the 8 guard boards at N 64: guard-held lies 0.375 and unguarded uses per lie 1.49, each within 0.01.
+  - **Grid and analysis:** grid and call counts; `pilotCheck4` and `costRule4` both ways; `reusedRows4` leaves every earlier column unchanged; `stage4Summaries` on synthetic rows (exact p, Holm, robustness flag, difference-in-differences).
+
 ## Out of scope
 
-trained (RL) deception and liars that persuade in free text (the board carries clue values only; Stage 3's prompted deceiver is in scope); hard enforcement (hiding unconfirmed values; a follow-up if Stage 1 shows the counts are ignored); decaying posts; channels other than the blackboard; team sizes above 64 with LLM agents (numpy only); RL at team sizes above 8 in training; credit reward in Part B.
+Stage 4's follow-ups (squad bridges, a third clue copy for guards, failure flags against adaptive liars, a third team size); trained (RL) deception and liars that persuade in free text (the board carries clue values only; Stage 3's prompted deceiver is in scope); hard enforcement (hiding unconfirmed values; a follow-up if Stage 1 shows the counts are ignored); decaying posts; channels other than the blackboard; team sizes above 64 with LLM agents (numpy only); RL at team sizes above 8 in training; credit reward in Part B.
