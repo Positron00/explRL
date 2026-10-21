@@ -54,7 +54,7 @@ def reusedCells4(seeds=COLONY_SEEDS):
 
 
 STAGE4_PLAN = dict(
-    version=1, frozen=False, plan='specs/multiagent/phase18/stage4.md',
+    version=1, frozen=True, plan='specs/multiagent/phase18/stage4.md',
     arms={a: ARMS4[a] for a in ('guardDeal', 'failFlag', 'squads', 'guardDealFlag', 'squadsAll')},
     cells={N: [f'{a}|{f}' for a, f in cs] for N, cs in STAGE4_CELLS.items()}, seeds=COLONY_SEEDS,
     reused={N: [f'{a}|{f}' for a, f in cs] for N, cs in REUSED4.items()},
@@ -73,7 +73,8 @@ STAGE4_PLAN = dict(
                minContestGuarded=0.60, maxFlagsOnTrue=0.20, maxSquadTokens=1.5,
                fallback='guards overloaded (contest rate under 0.60): propose the triage sentence to the user'),
     costRule=dict(run=60.0, otherwise='stop and ask', projection="Stage 4's calls x the pilot's cost per call by board kind"),
-    forecast=dict(file='specs/multiagent/phase18/colony4_predictions.json', sha256=None), cap=250.0,
+    forecast=dict(file='specs/multiagent/phase18/colony4_predictions.json', commit='1e9c53d',
+                  sha256='49de27cb564fda7f91d800bb7a76ba449ba9a545fa162436cac97bc54ac92a2b'), cap=250.0,
     nboot=2000, exploratory=True)
 
 # %% ../nbs/colony4.ipynb #2acfa714
