@@ -37,7 +37,7 @@ Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one no
 - **What**: regression gate (Stage 1's and the 32-agent run's cached reruns byte-identical, hash tests green); freeze `COLONY3_PLAN`, commit and push, record the hash; pilot (`EXPLRL_COLONY_STAGE=stage3pilot`; compliance gate and cost rule; stop and ask if either fails); Stage 3 (`EXPLRL_COLONY_STAGE=stage3`), with the reused Stage 1 cells replayed from the cache for the new columns ($0); cached rerun; results in the README.
 - **Done when**: AC-10 and AC-11 for `COLONY3_PLAN`.
 
-## T6d. Guards at 64 agents (second deviation, lean; built 2026-10-20; Mac, about $25-32 with the pilot, cap $250)
+## T6d. Guards at 64 agents (second deviation, lean; built 2026-10-20; `COLONY64_PLAN` frozen at `183da31`, hash `9764cd43e34c`; Mac, about $25-32 with the pilot, cap $250)
 - **Files**: new `nbs/colony64.ipynb`; `stage64pilot` and `stage64` sections in `nbs/demo_colony.ipynb`.
 - **Tests**: AC-12.
 - **What**: freeze `COLONY64_PLAN`, commit and push, record the hash; pilot (`EXPLRL_COLONY_STAGE=stage64pilot`; invalid under 5%, cost rule $35; stop and ask if either fails); the 16 boards (`EXPLRL_COLONY_STAGE=stage64`); cached rerun; results in the README.
