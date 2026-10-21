@@ -23,7 +23,10 @@ Status: **planning doc, checked; specified** (2026-10-21).
     - the squad board kept 0.26 honest pooled share at 64 agents (today's guard boards: 0.08);
     - the flag board kept 0.30 at 16 agents (today's: 0.22).
   - The live pilot could not write `metrics.json` (mixed number and text keys in the cost table; fixed in `colony4`, plan hash unchanged). The rows and turn logs were saved and replay byte-identically from the cache ($0), which rebuilt the metrics; the live wall time and timing are kept in `metrics_live.json` and `timing_live.jsonl`.
-- Next: Stage 4 (80 boards, about 3-5 hours), on the user's go.
+- **Run in two seed batches** (the user, 2026-10-21): `stage4b1` (seeds 1800-1803) and `stage4b2` (1804-1807), each all 40 cells of its seeds (about $22, 2-3 hours each); then `stage4` runs the full grid, where every board replays from the cache ($0), and writes the frozen analysis. `STAGE4_PLAN` and its hash are unchanged.
+  - **Rule fixed before batch 1: every batch runs.** Between batches the only stops are batch 1's invalid share reaching 5% and the API cap.
+  - A batch is not analysed on its own (its report gives only boards, invalid share and cost).
+  - Nothing seen in batch 1 changes an arm or switches on the guard triage fallback.
 
 Part of [README.md](README.md). Builds on guards at 8-64 agents and on the README's replay diagnosis ("Why the guard advantage shrinks with size").
 
