@@ -11,7 +11,7 @@ Status: **planning doc, checked; specified** (2026-10-21).
   - H18-15 **+** (squads +0.057; change +0.046).
 
   Their advantage over the plain board from 8 to 128 agents: guards 0.25 → 0.21, squads 0.25 → 0.29, guard copies 0.17 → 0.19. Rule agents misjudged guards before, so this is a screen.
-- Not frozen, no live call. Next: commit the forecast, freeze `STAGE4_PLAN` with its hash, then the pilot (the user's go).
+- **Frozen** (2026-10-21): the forecast committed at `1e9c53d`; `STAGE4_PLAN` frozen at `40cbaad` (`coopHash` = `a441381ce078`; the forecast file's sha256 recorded in the plan). Next: the pilot.
 
 Part of [README.md](README.md). Builds on guards at 8-64 agents and on the README's replay diagnosis ("Why the guard advantage shrinks with size").
 
