@@ -11,7 +11,19 @@ Status: **planning doc, checked; specified** (2026-10-21).
   - H18-15 **+** (squads +0.057; change +0.046).
 
   Their advantage over the plain board from 8 to 128 agents: guards 0.25 → 0.21, squads 0.25 → 0.29, guard copies 0.17 → 0.19. Rule agents misjudged guards before, so this is a screen.
-- **Frozen** (2026-10-21): the forecast committed at `1e9c53d`; `STAGE4_PLAN` frozen at `40cbaad` (`coopHash` = `a441381ce078`; the forecast file's sha256 recorded in the plan). Next: the pilot.
+- **Frozen** (2026-10-21): the forecast committed at `1e9c53d`; `STAGE4_PLAN` frozen at `40cbaad` (`coopHash` = `a441381ce078`; the forecast file's sha256 recorded in the plan).
+- **Pilot verdict** (2026-10-21; seed 1890, three boards, 4,320 calls, $2.38, 1.7 hours; not analysed): **every gate passes**.
+  - Invalid replies: 0.2%.
+  - Guard copies (64 agents): every lie on a guard-held clue (1.00); guards contested 0.64 of them (gate 0.60).
+  - Failure flags (16 agents): 0.08 of flags on true values (gate 0.20).
+  - Squads (64 agents): 763 input tokens per call, against 837 on an 8-agent guard board (gate 1.5x).
+  - Cost: $0.00084 per call at 64 agents, $0.00037 at 16, $0.00030 on squad boards. Stage 4 projects **$44.39** (rule: at most $60), so the verdict is **run**; about $222 in all of the $250 cap.
+  - One-board glimpses, not results:
+    - with guard copies, guards are stretched: guard-held lies each led to 0.88 wrong answers, against 0.24 on today's 64-agent guard boards, and 0.30 of guard-held clues were never posted;
+    - the squad board kept 0.26 honest pooled share at 64 agents (today's guard boards: 0.08);
+    - the flag board kept 0.30 at 16 agents (today's: 0.22).
+  - The live pilot could not write `metrics.json` (mixed number and text keys in the cost table; fixed in `colony4`, plan hash unchanged). The rows and turn logs were saved and replay byte-identically from the cache ($0), which rebuilt the metrics; the live wall time and timing are kept in `metrics_live.json` and `timing_live.jsonl`.
+- Next: Stage 4 (80 boards, about 3-5 hours), on the user's go.
 
 Part of [README.md](README.md). Builds on guards at 8-64 agents and on the README's replay diagnosis ("Why the guard advantage shrinks with size").
 

@@ -79,12 +79,12 @@ STAGE4_PLAN = dict(
 
 # %% ../nbs/colony4.ipynb #2acfa714
 def boardKind(c):
-    "'squads' for squad boards, else the team size: the pilot's cost per call is measured per kind."
-    return 'squads' if c['cfg']['world'].get('squads') else c['N']
+    "'squads' for squad boards, else 'N<team size>' (string keys, so a JSON dump can sort them): cost per call is measured per kind."
+    return 'squads' if c['cfg']['world'].get('squads') else f"N{c['N']}"
 
 
 def stage4Estimate(cells, perCall):
-    "Calls and cost per board kind, from the pilot's cost per call {16, 64, 'squads': dollars}."
+    "Calls and cost per board kind, from the pilot's cost per call {'N16', 'N64', 'squads': dollars}."
     calls = {}
     for c in cells:
         calls[boardKind(c)] = calls.get(boardKind(c), 0) + cellCalls(c)
@@ -120,7 +120,7 @@ def pilotCheck4(rows, ref8, plan=STAGE4_PLAN):
          not vals['flagsOnTrue'] <= P['maxFlagsOnTrue']),
         (f"squad prompt {vals['squadTokens']:.0f} tokens > {P['maxSquadTokens']} x {ref8:.0f}",
          not vals['squadTokens'] <= P['maxSquadTokens'] * ref8)) if bad]
-    perCall = {k: f(by[(a, N)], 'cost') / f(by[(a, N)], 'calls') for k, (a, N) in ((64, ('guardDeal', 64)),
-                                                                                   ('squads', ('squads', 64)), (16, ('failFlag', 16)))}
+    perCall = {k: f(by[(a, N)], 'cost') / f(by[(a, N)], 'calls') for k, (a, N) in (('N64', ('guardDeal', 64)),
+                                                                                   ('squads', ('squads', 64)), ('N16', ('failFlag', 16)))}
     rule = costRule4(stage4Estimate(stage4Grid(), perCall)['cost'], plan)
     return dict(ok=not reasons and rule['verdict'] == 'run', reasons=reasons, values=vals, perCall=perCall, **rule)
