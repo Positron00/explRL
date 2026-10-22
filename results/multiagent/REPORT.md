@@ -140,9 +140,10 @@ Details: `specs/multiagent/phase16/README.md`, `results/multiagent/rl/eval_p16/r
 ## 14. Phase 17: trained 3B teams against team size (descriptive)
 
 Step 0 evaluated every Phase 12-16 adapter at 4-32 agents. Every trained team loses most of its pooling as the team grows: the warm start's pooled share falls from 0.22 at N = 4 to 0.07 at N = 32 (the best adapter at N = 32, indpen_s4, keeps 0.11), while Claude Haiku 5.5 keeps 0.34 of 0.45, so the gap widens with size.
-- **Recipe pilot (v3, after two diagnosed failures):** the single-pass recipe trained stably (KL to the warm start about 0.01, training welfare 0.28 over steps 21-30); recipes with four update passes per batch halted again. Chosen: p17a; projected main runs 405 A100 hours (to be confirmed).
+- **Recipe pilot (v3, after two diagnosed failures):** the single-pass recipe trained stably (KL to the warm start about 0.01, training welfare 0.28 over steps 21-30); recipes with four update passes per batch halted again. Chosen: p17a; projected main runs 86 A100 hours (to be confirmed).
+- **Main runs (8 runs of 60 steps on mixed 4- and 8-agent teams with liars; `RL17_PLAN`):** training helped the sizes it was trained on and faded with size: welfare 0.26 -> 0.34 at N = 4 (H17-1 0.078 [0.008, 0.136] (exact p 0.035, Holm 0.105), not supported after Holm), 0.08 -> 0.09 at N = 32; the gain shrank with size (H17-2 -0.072 [-0.140, -0.012] (exact p 0.977, Holm 0.977)) and pooling at N = 32 did not rise (H17-3 0.006 [-0.052, 0.057] (exact p 0.422, Holm 0.844)), but trained teams lost less to liars at N = 32 (H17-4, secondary: 0.061 [0.012, 0.108] (exact p 0.023, Holm 0.023)). Five of the eight runs halted early, four of them on one-step outliers of the logged KL rather than policy collapse (Phase 18 Part B caps that term).
 
-Details: `specs/multiagent/phase17/README.md`, `results/multiagent/rl/eval_p17s0/report.md`.
+Details: `specs/multiagent/phase17/README.md`, `results/multiagent/rl/eval_p17s0/report.md`, `results/multiagent/rl/eval_p17/report.md`.
 
 ## 15. Phase 18: colony rules for Claude teams with faulty members (exploratory)
 

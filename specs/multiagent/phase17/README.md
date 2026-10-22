@@ -1,6 +1,6 @@
 # Plan: Phase 17, RL that makes larger teams pay off
 
-Status: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); pilot v3 ran (2026-10-20): `p17a` (one pass) chosen; the user amended the main runs to 8 mixed-team runs of 60 steps (about 86 A100 hours), `RL17_PLAN` frozen at `74699a6` (hash `8e28b5fdfb1f`); step 0 done (below); `RL17_PLAN` not frozen.
+Status: **main runs done and analysed** (2026-10-22; results below: training on 4- and 8-agent teams helped small teams, +0.078 welfare at N 4, exact p 0.035, not significant after Holm, but the gain shrank with size and pooling at N 32 did not rise; trained teams lost less to liars at N 32, secondary, p 0.023; 5 of 8 runs halted, 4 on KL outliers). Earlier: **pilot v2 failed, diagnosed** (2026-10-19): T1-T3 done and tested; pilot v1 ran (results and the deviation below) and found that constrained decoding forced a key order the model never writes; the user chose to re-pilot the same recipes with the constraint in the model's own order (`PILOT17_PLAN` v2, frozen at `8b17f72`, `coopHash` = `52b7cfa582fb`); pilot v2 ran and every recipe halted on KL (diagnosis below: forced and near-certain tokens used as a log-probability sink, and 8-agent prompts cut by the training window); the user approved the fix (2026-10-19): implemented and tested, `PILOT17_PLAN` v3 frozen at `8f3a506` (`coopHash` = `2d3565364f29`; `runs_p17pilot3/`); pilot v3 ran (2026-10-20): `p17a` (one pass) chosen; the user amended the main runs to 8 mixed-team runs of 60 steps (about 86 A100 hours), `RL17_PLAN` frozen at `74699a6` (hash `8e28b5fdfb1f`); step 0 done (below); `RL17_PLAN` not frozen.
 
 ## Files in this spec
 
@@ -170,3 +170,25 @@ The user confirmed a shorter main run instead of the projected 405 A100 hours: *
   - The halted adapters are the weights at the halt step: s1, s3 and s6 are healthy but trained for only 7, 50 and 11 steps.
 - **Analysis:** `RL17_PLAN` is analysed as frozen, with these halts reported.
 - **The fix:** Phase 18 Part B uses a fix (a KL cap and a two-step KL halt, `FIX18`, [../phase18/README.md](../phase18/README.md)); Phase 17's configurations are unchanged.
+
+**Main results (2026-10-22; `explRL_rl17.zip`, 8 runs evaluated by account A; `RL17_PLAN` analysed as frozen; `results/multiagent/rl/eval_p17/report.md`).**
+
+| hypothesis (8 runs; Holm within each family) | estimate [95% CI] | exact p | Holm | verdict |
+|---|---|---|---|---|
+| H17-1 welfare gain over the warm start at N 4 | +0.078 [0.008, 0.136] | 0.035 | 0.106 | not supported (7 of 8 runs positive) |
+| H17-2 the gain grows with team size (N 32 minus N 4) | −0.072 [−0.140, −0.012] | 0.98 | 0.98 | not supported: the gain *shrinks* |
+| H17-3 more pooling than the warm start at N 32 | +0.006 [−0.052, 0.057] | 0.42 | 0.84 | not supported |
+| H17-4 (secondary) less loss to liars at N 32 | +0.061 [0.012, 0.108] | 0.023 | 0.023 | supported |
+
+| welfare | N 4 | N 8 | N 16 | N 32 |
+|---|---|---|---|---|
+| warm start | 0.258 | 0.283 | 0.133 | 0.083 |
+| trained, mean of 8 | **0.336** | 0.295 | 0.198 | 0.089 |
+| Claude Haiku (reference) | 0.546 | 0.506 | 0.495 | 0.438 |
+
+- **Training on 4- and 8-agent teams helped small teams but did not carry over to large ones.** The welfare gain was +0.078 at 4 agents, +0.065 at 16 and +0.006 at 32. Invalid replies rose with size (0.086 at 32, against 0.031 for the warm start).
+- **Liars did less damage at 32 agents** after training: honest loss 0.27 against 0.33.
+- **Halts barely mattered for the small-team gain.** The two runs stopped by KL outliers after 7 and 11 steps gained +0.083 and +0.085 at N 4, against +0.135 to +0.141 for the three full runs. Most of the small-team gain comes early.
+- **s2, halted on invalid replies, was the only run that lost** (−0.144 at N 4).
+- **The full runs alone (post hoc, three runs):** +0.137 at N 4 and +0.056 at N 32.
+
