@@ -1,6 +1,6 @@
 # Phase 18, Stage 4: guards that scale
 
-Status: **planning doc, checked; specified** (2026-10-21).
+Status: **run** (2026-10-21; results below). Planning doc, checked and specified before the runs.
 
 - Decisions D1-D5 are settled as recommended (the user, 2026-10-21).
 - Specified in [requirements.md](requirements.md) (FR-A20 to FR-A24, AC-13), [design-high-level.md](design-high-level.md), [design-low-level.md](design-low-level.md), [tasks.md](tasks.md) (T6e) and [RUN.md](RUN.md).
@@ -29,6 +29,36 @@ Status: **planning doc, checked; specified** (2026-10-21).
   - Nothing seen in batch 1 changes an arm or switches on the guard triage fallback.
 
 Part of [README.md](README.md). Builds on guards at 8-64 agents and on the README's replay diagnosis ("Why the guard advantage shrinks with size").
+
+## Results (2026-10-21; 80 boards in two seed batches, 87,040 calls, $43.80, 1.8 + 1.9 hours; the full grid then replayed from the cache, $0, for the frozen analysis; API spent $221.44 of $250; `results/multiagent/colony/stage4/report.md`)
+
+**All three design changes beat today's guards at 64 agents. Holm-adjusted p is 0.012 for each, all 8 seeds agree, and each holds on raw honest welfare.**
+
+| hypothesis (N 64, independent liars) | arm − colonyGuards | 95% interval | exact p | Holm | verdict |
+|---|---|---|---|---|---|
+| H18-13 guard copies | +0.043 | [0.025, 0.063] | 0.004 | 0.012 | supported |
+| H18-14 failure flags | +0.062 | [0.042, 0.082] | 0.004 | 0.012 | supported |
+| H18-15 squads of 8 | +0.171 | [0.156, 0.186] | 0.004 | 0.012 | supported |
+
+**Advantage over the plain board, 16 → 64 agents** (today's guards: 0.200 → 0.165):
+
+| arm | at 16 | at 64 | change (16 → 64), relative to today's guards |
+|---|---|---|---|
+| squads | 0.260 | **0.336** | +0.111 [0.069, 0.152], p 0.008 |
+| guard copies | 0.174 | 0.208 | +0.069 [0.053, 0.084], p 0.008 |
+| failure flags | 0.254 | 0.227 | +0.008 [−0.020, 0.040], p 0.66 |
+
+- **Squads reverse the decline.** Their advantage over the plain board *grows* from 16 to 64 agents. A 64-agent team of eight squads kept 0.248 honest pooled share, close to the 8-agent guard board's 0.284 (−0.036 [−0.063, −0.013], p 0.055). Prompts stayed at 780 input tokens per call, against 6,460 on one 64-agent board, so squad boards also cost a third as much per call.
+- **Failure flags help at every size, at no clean cost.** They gave +0.054 at 16 agents and +0.062 at 64; on clean boards the cost was 0.000 [−0.010, 0.011]. They cut lie-built answers per affected agent (8.1 → 3.3 at 64) and wrong answers per unguarded lie (1.48 → 0.50). They do not change the size trend.
+  - Against the expected direction, 0.23-0.27 of flags fell on true values (the pilot gate was at most 0.20).
+- **Guard copies trade clean output for coverage, and pay only in large teams.**
+  - At 16 agents they cost −0.026 with liars and −0.129 on clean boards: non-guards hold fewer clues.
+  - At 64 agents they won (+0.043). Every lie landed on a guard-held clue.
+  - But guards were overloaded: they contested 0.61 of those lies (against 0.75), the median lag rose from 1.5 to 3.9 rounds, each guarded lie led to 0.91 wrong answers (against 0.24), and 0.28 of guard-held clues were never posted.
+  - Combined with squads, guard copies lowered the result (`squadsAll` 0.226 against `squads` 0.248).
+- **Forecast:** the numpy forecast scored 4 right, 1 wrong, 1 no call. It got the squads and flags directions and the guard copies' scale effect right. It missed that guard copies win at 64 agents: rule agents bore the clean cost but not the overload.
+
+So the guard advantage's decline is a design problem with a design answer. Splitting a large team into squads with their own guards turned a shrinking advantage into a growing one. Publishing failed answers is a cheap gain at any size. Covering every clue with guards helps only where guards have spare capacity.
 
 ## Why
 

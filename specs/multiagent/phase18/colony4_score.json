@@ -1,0 +1,61 @@
+{
+ "items": {
+  "H18_13": {
+   "predicted": "-",
+   "observed": "+",
+   "ci": [
+    0.02531912488398528,
+    0.06251838193026091
+   ],
+   "result": "wrong"
+  },
+  "did_guardDeal": {
+   "predicted": "+",
+   "observed": "+",
+   "ci": [
+    0.05275578032236598,
+    0.08412196394815441
+   ],
+   "result": "right"
+  },
+  "H18_14": {
+   "predicted": "+",
+   "observed": "+",
+   "ci": [
+    0.04150727946179904,
+    0.08179709486132991
+   ],
+   "result": "right"
+  },
+  "did_failFlag": {
+   "predicted": "+",
+   "observed": "0",
+   "ci": [
+    -0.019722508759428235,
+    0.03974626488731425
+   ],
+   "result": "no call"
+  },
+  "H18_15": {
+   "predicted": "+",
+   "observed": "+",
+   "ci": [
+    0.1557764306164078,
+    0.1856282800554964
+   ],
+   "result": "right"
+  },
+  "did_squads": {
+   "predicted": "+",
+   "observed": "+",
+   "ci": [
+    0.0694448952160226,
+    0.15185499936143831
+   ],
+   "result": "right"
+  }
+ },
+ "right": 4,
+ "wrong": 1,
+ "noCall": 1
+}
