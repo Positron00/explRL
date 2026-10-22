@@ -1,6 +1,6 @@
 # Tasks: Phase 17
 
-Status (2026-10-18): T1-T3 done (offline and `train`-flagged tests pass: `rl17_grid` 150 lines, `rl17_update` 85, `rl17_train` 141, `rl17_report` 166; the full suite passes). `PILOT17_PLAN` frozen at `626bead` (hash `f4b4bd036996`). Next: T5 (pilot) on a second account now; T4 (step 0) after Phase 16.
+Status (2026-10-22): main runs done (8 `r17mix` runs, 5 halted) and analysed as frozen (H17-1 to H17-3 not supported, H17-4 supported); results in the README, REPORT section 14 and the preprint. Earlier (2026-10-18): T1-T3 done (offline and `train`-flagged tests pass: `rl17_grid` 150 lines, `rl17_update` 85, `rl17_train` 141, `rl17_report` 166; the full suite passes). `PILOT17_PLAN` frozen at `626bead` (hash `f4b4bd036996`). Next: T5 (pilot) on a second account now; T4 (step 0) after Phase 16.
 
 Rules as Phase 16 (notebook first, export, one notebook per test call, modules under 200 lines, offline tests without `anthropic` or a GPU; Phase 5-16 outputs and hashes unchanged). Gates: step 0 complete only after Phase 16 (the pilot may run in parallel on another account); `PILOT17_PLAN` frozen and pushed before the pilot; `RL17_PLAN` frozen and pushed before the main runs; evaluation only when all main runs are final; no API calls.
 
