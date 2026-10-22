@@ -60,11 +60,12 @@ Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one no
 - **Tests**: AC-9; Phase 17's hashes and trainer tests unchanged.
 
 ## T8. Part B runs (Colab, one or two Pro+ accounts; after T5 and Phase 17's frozen recipe)
-- **What**: push; speed check on one account (it prints seconds per step, the proposed `maxLen` and the projected hours); report them to the user and wait for confirmation; freeze `RL18_PLAN` (steps, `maxLen`, hours), push; run "Phase 18 main" on both accounts (`HOST` set per account); the last account to finish evaluating writes `explRL_rl18.zip`.
-- **Done when**: 13 final adapters (halted runs reported), `eval_p18/runs.csv`.
+- **Part B lite** (`RL18_PLAN` v2, amended by the user 2026-10-21): 5 `c18team` runs of 30 steps, the lite evaluation.
+- **What**: push; speed check on the first free account (it prints seconds per step, the proposed `maxLen` and the projected hours for 5 runs of 30 steps); a stability check of Phase 17's main runs once its zip arrives (no halts or collapse under the recipe); report both to the user and wait for confirmation; freeze `RL18_PLAN` (`maxLen`, hours, recipe), push; run "Phase 18 main" on both accounts (`HOST` set per account); the last account to finish evaluating writes `explRL_rl18.zip`.
+- **Done when**: 5 final adapters (halted runs reported), `eval_p18/runs.csv`.
 
 ## T9. Part B analysis (Mac)
-- **What**: unzip into `results/multiagent/rl/colab/`; `demo_rl18` (flag `train`); H18-B1 to H18-B4 (goal drift); results in the README.
+- **What**: unzip into `results/multiagent/rl/colab/`; `demo_rl18` (flag `train`); H18-B2 (primary), H18-B3, H18-B4 (goal drift) and the training trend; results in the README; a full Part B (H18-B1) only if specialization appears.
 
 ## T10. Docs and preprints
 - **What**: README results, `REPORT.md` Phase 18 section, the plan's status line, the summary page and the preprints where a claim changes (paper: trust and scale; paper2: the forecast).

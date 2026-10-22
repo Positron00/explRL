@@ -345,23 +345,30 @@ Both stages join the cached reruns.
 ```python
 RL18_ARMS = dict(c18team=dict(world=(('colony', True), ('r', 2)), scheme='team'),
                  p18team=dict(world=(('r', 2),), scheme='team'))
-RL18_SEEDS = dict(c18team=8, p18team=5)
-RL18_RUNS = interleaved [(arm, seed)]                     # 13 runs
+RL18_SEEDS = dict(c18team=5)                              # Part B lite (RL18_PLAN v2); p18team kept defined, not run
+RL18_RUNS = [('c18team', s) for s in 1..5]                # 5 runs
+RL18_STEPS = 30
+EVAL_SEEDS, EVAL_SIZES = 900-904, (8, 32)
 def rl18Config(arm, seed, model, out, recipe, steps, maxLen)   # RL_PLAN v2 + BASE17 (with FIX17) + recipe + RL18_MIX (mixN ((4,.5),(8,.5)), liarShare 0.25) + arm
 def speedConfig(model, out, recipe)                       # c18team, seed 1, 3 steps, maxLen 4096
 def maxLenRule(longest, floor=3072, step=512)             # FR-B2's window rule
-def colonySuite(models, seeds, sizes)                     # FR-B3: per model, colony and plain boards (r 2), N 4-32, clean and N // 4 liars, seeds 900-909;
+def colonySuite(models, seeds, sizes, boards=('colony',), liars=(True,))   # FR-B3: lite: colony board, N 8 and 32, N // 4 liars, 5 seeds;
                                                           # levels '<model>|<board>n<N>' and '...liar', study colonyEval, runner 'local'
-def projectHours18(stepSeconds, steps, seeds)             # from the speed check: per run and total
-RL18_PLAN = dict(version=1, frozen=False, recipe=None, steps=None, projectedHours=None, userConfirmed=False, ...)
+def projectHours18(stepSeconds, steps=RL18_STEPS, seeds=RL18_SEEDS)   # from the speed check: per run and total
+RL18_PLAN = dict(version=2, amendment=..., frozen=False, recipe=None, steps=30, maxLen=None, projectedHours=None, userConfirmed=False,
+                 hypotheses=(H18_B2 primary; H18_B3, H18_B4, trainTrend secondary; H18_B1 deferred), holm=['H18_B2'], ...)
 ```
 
-Seeds: `c18team` 8 (H18-B2 and H18-B3 are within-arm sign-flip tests: 8 runs give p down to 1/256, room for Holm over 3); `p18team` 5 (H18-B1, a permutation test of 8 against 5, reaches 1/1287).
+Seeds (Part B lite): `c18team` 5, the fewest for which an exact one-sided sign-flip can reach p < 0.05 (1/32 when all five runs agree), so H18-B2 is the only primary. The full design (deferred) had `c18team` 8 (p down to 1/256, room for Holm over 3) and `p18team` 5 (H18-B1, 8 against 5, down to 1/1287).
 
 ### `rl18_report` (new)
 
 ```python
-def rl18Summaries(rows)         # H18-B1..3 with Holm, H18-B4 (goal drift), curves; specIndex and specNull come in the rows (colony_trace)
+def rl18Summaries(rows, plan, nboot, runs, trainCurves)   # H18-B2 primary (Holm over plan['holm']), H18-B3 and H18-B4 secondary,
+                                # H18-B1 only with p18team runs; curves; trainTrend (first, last, slope per run); specIndex and
+                                # specNull come in the rows (colony_trace)
+def trainSpec(turnsDir, nNull=50)   # {step: mean over the step's boards of specIndex - specNull} from turns/step-*.jsonl
+def trendSlope(curve)               # least-squares slope per step
 def writeRL18, figRL18, syntheticRows18B
 ```
 
@@ -369,7 +376,7 @@ def writeRL18, figRL18, syntheticRows18B
 
 **Configuration** adds `RUNS18 = OUT / 'runs_p18'` and prints `RL18_PLAN`'s hash and state.
 
-**Phase 18 speed check** (one account): asserts `RL17_PLAN['frozen']`; trains `c18team` seed 1 for 3 steps into `speed_p18/` (its own process); prints seconds per step, the longest prompt plus reply (tokens), cut prompts, invalid share, the proposed `maxLen` and `projectHours18(seconds, steps)` for the plan's candidate steps (Phase 17's `MAIN_STEPS`); the user confirms the total; `RL18_PLAN` is frozen with `steps`, `maxLen` (FR-B2's rule), `projectedHours` and `userConfirmed`.
+**Phase 18 speed check** (one account): asserts `RL17_PLAN['frozen']`; trains `c18team` seed 1 for 3 steps into `speed_p18/` (its own process); prints seconds per step, the longest prompt plus reply (tokens), cut prompts, invalid share, the proposed `maxLen` and `projectHours18(seconds, steps)` for the plan's 30 steps and 5 runs (`RL18_STEPS`, `RL18_RUNS`); the user confirms the total; `RL18_PLAN` is frozen with `steps`, `maxLen` (FR-B2's rule), `projectedHours` and `userConfirmed`.
 
 **Phase 18 main** (every account, each with its own `HOST`): asserts `RL18_PLAN['frozen']` and `['userConfirmed']`; for each run in `RL18_RUNS`: skip if final, skip if `claim` refuses, else `trainRL17(rl18Config(...))` in its own process (resumes from its last step). When all runs are final: for the warm start and each run, if not evaluated and `claim(OUT / 'eval_p18' / 'claims' / model)` succeeds, `evalModels(colonySuite([model]), ...)` in its own process; when all models are evaluated, the account that wins `claims/_pack` writes `runs.csv` (read back from the per-model files) and `packZip('explRL_rl18.zip', ('runs_p18', 'eval_p18'))`. Otherwise it prints what other accounts hold and asks for a rerun later. The same restart rule as Phase 17 (restart the session after any error; set-up, configuration, the cell again).
 
