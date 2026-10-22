@@ -216,7 +216,7 @@ So with this design the guard advantage would probably vanish in the low hundred
     - the invalid-reply halt unchanged.
   - **Halted runs** are evaluated with the checkpoint before the first step of their halting streak (`evalAdapter`), or the warm start if that is step 0, and reported.
   - No separate pilot: the cap only changes extreme tokens, and Part B's own logs show any remaining spikes.
-- **Frozen** (2026-10-22): `RL18_PLAN` v2 with Phase 17's `p17a` recipe plus `FIX18`, 5 runs x 30 steps, `maxLen` 3,072, about 26 GPU hours for training plus 2-3 for evaluation, confirmed by the user. Its hash is recorded in [tasks.md](tasks.md).
+- **Frozen** (2026-10-22): `RL18_PLAN` v2 with Phase 17's `p17a` recipe plus `FIX18`, 5 runs x 30 steps, `maxLen` 3,072, about 26 GPU hours for training plus 2-3 for evaluation, confirmed by the user. Frozen at `0765753` (`coopHash` = `c103584f5aac`).
 - **What the lite version cannot show:** that the colony board trains better than the plain board (H18-B1). That is left for a full Part B if specialization appears.
 - **Gates:** the speed check needs only `RL17_PLAN` frozen with its recipe, which is met. The lite main run waits for a stability check of Phase 17's main runs (no halts or collapse under the recipe) and the user's confirmation of the projected hours.
 
