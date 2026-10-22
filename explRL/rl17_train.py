@@ -107,7 +107,7 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
             snap = snapshot(params, opt) if ctl.klTarget or cfg.haltJump is not None else None
             stats = ppoUpdate(model, tok, opt, params, samples, microBatches(samples, cfg), cfg.kl, cfg.maxLen, dev,
                               cfg.epochs, cfg.clip, seed=cfg.trainSeed * 100_003 + s, valueOnly=cfg.valueOnly,
-                              tokenClip=cfg.tokenClip)
+                              tokenClip=cfg.tokenClip, klClamp=cfg.klClamp)
             stepKL = probeKL(before, probeLogps(model, tok, probe, ['default'], False, cfg.maxLen, dev))
             lrNext, rejected = nextLr(lr, stepKL, ctl, warming=s + 1 < cfg.warmup, trained=bool(samples))
             if rejected:

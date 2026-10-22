@@ -52,10 +52,12 @@ class RL17Config(RLConfig):
     valueOnly: bool = False     # loss and KL on value tokens only (pilot v3: keys and punctuation are fixed by the schema)
     tokenClip: bool = False     # PPO's per-token clipped ratio instead of the reply-level mean (pilot v3)
     world: tuple = ()           # Phase 18: (key, value) pairs merged into every rollout's world (r, colony, fault)
+    klClamp: float = None       # Phase 18 Part B: cap on each token's k3 in the loss and the logged KL (None: unbounded, Phase 17)
+    haltKLRun: int = 1          # Phase 18 Part B: the KL halt needs this many steps in a row above haltKL (1: Phase 17)
 
 
 RL17_DEFAULTS = dict(guided=False, epochs=1, clip=None, mixN=((4, 1.0),), liarShare=0.0, lrFixed=None, valueOnly=False,
-                     tokenClip=False, world=())
+                     tokenClip=False, world=(), klClamp=None, haltKLRun=1)
 
 
 def runFields17(cfg):

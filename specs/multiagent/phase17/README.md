@@ -159,3 +159,14 @@ The fix worked for the single-pass recipe (pilot v2's `p17a` halted at step 28 o
 ## Main runs, amended and frozen (2026-10-20)
 
 The user confirmed a shorter main run instead of the projected 405 A100 hours: **`r17mix` only (mixed 4- and 8-agent teams with liars), 8 seeds, 60 steps** (as Phases 13-16; the pilot was still improving at step 30), with pilot v3's `p17a` recipe (one pass, `FIX17`). `r17four` (5 seeds) and its hypothesis H17-5 (does the mix itself matter?) are dropped; H17-1 to H17-4 are unchanged. Projected: 10.7 A100 hours per run, about 86 for training plus about 9 for evaluation. `RL17_PLAN` frozen at `74699a6` (`coopHash` = `8e28b5fdfb1f`) with `recipe`, `projectedHours`, `userConfirmed` and an `amended` record. Next: the "Phase 17 main" cell on both accounts.
+
+**Main runs, training (2026-10-22; read from the runs' `metrics.jsonl` on Colab before the evaluation finished).**
+- **Halts:** 3 of the 8 `r17mix` runs finished 60 steps (s4, s5, s8; welfare about 0.21 → 0.29). The other 5 halted:
+  - s1 at step 7, s6 at 11, s7 at 35 and s3 at 50, all on the KL rule;
+  - s2 at step 43 on invalid replies (10-12% for 3 steps).
+- **The KL halts were mostly measurement outliers, not policy blow-ups:**
+  - In s1, s3 and s6 the logged KL to the warm start jumped in one step (to 0.66, 3.54, 1.02) while the probe measured a step change of 0.0008-0.005 and welfare and invalid replies did not move. The per-token k3 estimate has no upper bound when the policy scores a sampled token far below the reference, so one token can move the mean.
+  - In s7 the same term made one update go wrong (step change 103). The controller undid it, but the KL rule halted the run anyway.
+  - The halted adapters are the weights at the halt step: s1, s3 and s6 are healthy but trained for only 7, 50 and 11 steps.
+- **Analysis:** `RL17_PLAN` is analysed as frozen, with these halts reported.
+- **The fix:** Phase 18 Part B uses a fix (a KL cap and a two-step KL halt, `FIX18`, [../phase18/README.md](../phase18/README.md)); Phase 17's configurations are unchanged.

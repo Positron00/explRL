@@ -193,6 +193,30 @@ So with this design the guard advantage would probably vanish in the low hundred
 | GPU | about 150 hours + 14 evaluation | **about 30 hours + 2-3 evaluation** (projected from Phase 17's speed; the speed check measures it) |
 
 - **Training trend (new, secondary).** Each run's training rollouts (`turns/step-*.jsonl`, saved every step) give the specialization index minus its null per step, and its slope. A null H18-B2 with a curve still rising at step 30 reads "not within 30 steps", not "never".
+- **Speed check (2026-10-22, account B, `speed_p18/`):**
+  - 628 seconds per step, close to Phase 17's 644;
+  - longest prompt plus reply 2,163 tokens, so `maxLen` stays at the 3,072 floor;
+  - no cut prompts; invalid replies 0.1-0.3%;
+  - projected **5.2 GPU hours per run, 26 for the 5 runs**, plus about 2-3 for the evaluation.
+- **The KL fix (the user, 2026-10-22; `FIX18`).** Phase 17's stability check failed: 5 of its 8 main runs halted. Four halts came from one-step jumps of the logged KL to the warm start, while the step's measured policy change stayed small and behaviour did not move:
+
+  | run | logged KL | step change | welfare and invalid replies |
+  |---|---|---|---|
+  | s1 | 0.05 → 0.66 | 0.0008 | unchanged |
+  | s6 | 0.03 → 1.02 | 0.005 | normal |
+  | s3 | 0.02 → 3.54 | 0.004 | best of the run |
+  | s7 | 0.05 → 1.92 | 103 | a real bad update, undone by the controller |
+
+  A fifth finished run logged an all-token KL of 92.9 at its last step with value-token KL 0.035.
+  - **Cause:** the per-token estimate k3 = exp(d) − d − 1 (d = reference minus policy log-probability) has no upper bound when the policy scores a sampled token far below the reference (vLLM samples, the trainer scores), so one token moves the mean. The same term in the loss let one token dominate an update (s7).
+  - **The fifth halt** (s2) was behavioural: invalid replies at 10-12% for 3 steps.
+  - **Fix**, as two new `RL17Config` options, off by default so Phase 17's configurations and hashes are unchanged:
+    - each token's k3 capped at 10, in the loss and the logged KL (`klClamp`);
+    - the KL halt only after 2 steps in a row above 0.5 (`haltKLRun`; fresh boards every step, so real drift persists);
+    - the invalid-reply halt unchanged.
+  - **Halted runs** are evaluated with the checkpoint before the first step of their halting streak (`evalAdapter`), or the warm start if that is step 0, and reported.
+  - No separate pilot: the cap only changes extreme tokens, and Part B's own logs show any remaining spikes.
+- **Frozen** (2026-10-22): `RL18_PLAN` v2 with Phase 17's `p17a` recipe plus `FIX18`, 5 runs x 30 steps, `maxLen` 3,072, about 26 GPU hours for training plus 2-3 for evaluation, confirmed by the user. Its hash is recorded in [tasks.md](tasks.md).
 - **What the lite version cannot show:** that the colony board trains better than the plain board (H18-B1). That is left for a full Part B if specialization appears.
 - **Gates:** the speed check needs only `RL17_PLAN` frozen with its recipe, which is met. The lite main run waits for a stability check of Phase 17's main runs (no halts or collapse under the recipe) and the user's confirmation of the projected hours.
 

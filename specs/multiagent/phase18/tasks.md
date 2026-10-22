@@ -62,6 +62,7 @@ Rules as Phases 13-17: notebook first, `nbdev-clean` then `nbdev-export`, one no
 ## T8. Part B runs (Colab, one or two Pro+ accounts; after T5 and Phase 17's frozen recipe)
 - **Part B lite** (`RL18_PLAN` v2, amended by the user 2026-10-21): 5 `c18team` runs of 30 steps, the lite evaluation.
 - **What**: push; speed check on the first free account (it prints seconds per step, the proposed `maxLen` and the projected hours for 5 runs of 30 steps); a stability check of Phase 17's main runs once its zip arrives (no halts or collapse under the recipe); report both to the user and wait for confirmation; freeze `RL18_PLAN` (`maxLen`, hours, recipe), push; run "Phase 18 main" on both accounts (`HOST` set per account); the last account to finish evaluating writes `explRL_rl18.zip`.
+- **Speed check done** (2026-10-22): 628 s per step, longest 2,163 tokens (`maxLen` 3,072), 0 cut, invalid 0.1-0.3%; 26 GPU hours for 5 runs of 30 steps. Phase 17 stability check failed (5 of 8 halted, 4 on one-step KL outliers); the user approved `FIX18` (KL cap 10, two-step KL halt, pre-halt checkpoint for halted runs) and confirmed the hours; `RL18_PLAN` frozen (2026-10-22). Next: "Phase 18 main" on both accounts.
 - **Done when**: 5 final adapters (halted runs reported), `eval_p18/runs.csv`.
 
 ## T9. Part B analysis (Mac)

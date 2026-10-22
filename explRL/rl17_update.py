@@ -98,12 +98,13 @@ def clippedTerm(lp, old, adv, clip):
 
 
 def ppoUpdate(model, tok, opt, params, samples, chunks, kl, maxLen, device, epochs=1, clip=None, seed=0, valueOnly=False,
-              tokenClip=False):
+              tokenClip=False, klClamp=None):
     """`epochs` passes over `samples` (micro-batches `chunks`; passes after the first in a seeded shuffled order); the
     reference (adapter off) and old log-probabilities once, before the first pass; per pass: the clipped term plus
     kl x k3 to the reference, gradient clipping 1.0, one optimizer step. -> loss, KL, tokens (the last pass's).
     Pilot v3's fix: `valueOnly` weights the loss and KL by `valueMask` (and adds klAll, the KL over every token);
-    `tokenClip` clips each token's ratio (`tokenTerm`) instead of the reply-level mean."""
+    `tokenClip` clips each token's ratio (`tokenTerm`) instead of the reply-level mean. Phase 18 Part B: `klClamp` caps each
+    token's k3 (loss and logged KL), so one token the policy scores far below the reference cannot dominate either."""
     import torch
     W = [[torch.tensor(valueMask(tok, x['reply'], x['eos']), dtype=torch.float32, device=device) for x in ch]
          for ch in chunks] if valueOnly else None
@@ -120,6 +121,8 @@ def ppoUpdate(model, tok, opt, params, samples, chunks, kl, maxLen, device, epoc
             for n, (x, lp, rf) in enumerate(zip(chunks[c], lps, ref[c])):
                 d = rf - lp
                 kv = torch.exp(d) - d - 1
+                if klClamp is not None:
+                    kv = kv.clamp(max=klClamp)
                 if valueOnly or tokenClip:
                     w = W[c][n] if valueOnly else torch.ones_like(lp)
                     assert len(w) == len(lp), 'the value mask and the reply tokens disagree'

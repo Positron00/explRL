@@ -50,12 +50,14 @@ def progressBar(total, start, desc, show=True):
 
 
 def haltReason(history, cfg):
-    "The stopping rule: invalid replies above haltInvalid for haltRun steps in a row, or the mean KL above haltKL."
+    "The stopping rule: invalid replies above haltInvalid for haltRun steps in a row, or the mean KL above haltKL (haltKLRun steps in a row; default 1)."
     last = history[-cfg.haltRun:]
     if len(last) == cfg.haltRun and all(h['invalid'] > cfg.haltInvalid for h in last):
         return f"invalid replies above {cfg.haltInvalid:g} for {cfg.haltRun} steps (steps {last[0]['step']}-{last[-1]['step']})"
-    if history and history[-1]['kl'] > cfg.haltKL:
-        return f"mean KL {history[-1]['kl']:.3f} above {cfg.haltKL:g} at step {history[-1]['step']}"
+    k = int(getattr(cfg, 'haltKLRun', 1))           # Phase 18 Part B: 2 (a one-step outlier does not halt)
+    lastK = history[-k:]
+    if len(lastK) == k and all(h['kl'] > cfg.haltKL for h in lastK):
+        return f"mean KL {history[-1]['kl']:.3f} above {cfg.haltKL:g} at step {history[-1]['step']}" + (f' ({k} steps in a row)' if k > 1 else '')
     return None
 
 

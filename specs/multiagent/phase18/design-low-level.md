@@ -338,7 +338,7 @@ Both stages join the cached reruns.
 
 ### `rl17_grid` and `rl17_train` change
 
-`RL17Config.world: tuple = ()` (pairs); `RL17_DEFAULTS['world'] = ()`, so `configHash17` leaves it out at the default. `trainRL17` also logs `longest` (the longest prompt plus reply of the step, `rl17_update.pairLengths`) for the speed check. `trainRL17`'s `lcfg` world becomes `{**{k: settings[k] for k in BOARD}, 'scheme': cfg.scheme, **dict(cfg.world)}`, and `play()`'s scripted slots use `faultClass(world)` instead of `ClueLiar` (the same class at the default).
+`RL17Config.world: tuple = ()` (pairs); `RL17_DEFAULTS['world'] = ()`, so `configHash17` leaves it out at the default. Part B's fix adds `klClamp: float = None` (`ppoUpdate` clamps each token's k3 `kv` at it before the loss and the logged `kl` and `klAll`) and `haltKLRun: int = 1` (`rl_control.haltReason` halts on KL only when the last `haltKLRun` steps all exceed `haltKL`), both in `RL17_DEFAULTS`, so Phase 17's hashes are unchanged. `trainRL17` also logs `longest` (the longest prompt plus reply of the step, `rl17_update.pairLengths`) for the speed check. `trainRL17`'s `lcfg` world becomes `{**{k: settings[k] for k in BOARD}, 'scheme': cfg.scheme, **dict(cfg.world)}`, and `play()`'s scripted slots use `faultClass(world)` instead of `ClueLiar` (the same class at the default).
 
 ### `rl18_grid` (new)
 
@@ -351,6 +351,8 @@ RL18_STEPS = 30
 EVAL_SEEDS, EVAL_SIZES = 900-904, (8, 32)
 def rl18Config(arm, seed, model, out, recipe, steps, maxLen)   # RL_PLAN v2 + BASE17 (with FIX17) + recipe + RL18_MIX (mixN ((4,.5),(8,.5)), liarShare 0.25) + arm
 def speedConfig(model, out, recipe)                       # c18team, seed 1, 3 steps, maxLen 4096
+FIX18 = dict(klClamp=10.0, haltKLRun=2)                   # merged into every rl18Config after the recipe
+def evalAdapter(runDir, haltRun=3, haltKLRun=2)           # 'final', or a halted run's checkpoint before its halting streak (None: warm)
 def maxLenRule(longest, floor=3072, step=512)             # FR-B2's window rule
 def colonySuite(models, seeds, sizes, boards=('colony',), liars=(True,))   # FR-B3: lite: colony board, N 8 and 32, N // 4 liars, 5 seeds;
                                                           # levels '<model>|<board>n<N>' and '...liar', study colonyEval, runner 'local'
@@ -378,7 +380,7 @@ def writeRL18, figRL18, syntheticRows18B
 
 **Phase 18 speed check** (one account): asserts `RL17_PLAN['frozen']`; trains `c18team` seed 1 for 3 steps into `speed_p18/` (its own process); prints seconds per step, the longest prompt plus reply (tokens), cut prompts, invalid share, the proposed `maxLen` and `projectHours18(seconds, steps)` for the plan's 30 steps and 5 runs (`RL18_STEPS`, `RL18_RUNS`); the user confirms the total; `RL18_PLAN` is frozen with `steps`, `maxLen` (FR-B2's rule), `projectedHours` and `userConfirmed`.
 
-**Phase 18 main** (every account, each with its own `HOST`): asserts `RL18_PLAN['frozen']` and `['userConfirmed']`; for each run in `RL18_RUNS`: skip if final, skip if `claim` refuses, else `trainRL17(rl18Config(...))` in its own process (resumes from its last step). When all runs are final: for the warm start and each run, if not evaluated and `claim(OUT / 'eval_p18' / 'claims' / model)` succeeds, `evalModels(colonySuite([model]), ...)` in its own process; when all models are evaluated, the account that wins `claims/_pack` writes `runs.csv` (read back from the per-model files) and `packZip('explRL_rl18.zip', ('runs_p18', 'eval_p18'))`. Otherwise it prints what other accounts hold and asks for a rerun later. The same restart rule as Phase 17 (restart the session after any error; set-up, configuration, the cell again).
+**Phase 18 main** (every account, each with its own `HOST`): asserts `RL18_PLAN['frozen']` and `['userConfirmed']`; for each run in `RL18_RUNS`: skip if final, skip if `claim` refuses, else `trainRL17(rl18Config(...))` in its own process (resumes from its last step). When all runs are final (halted runs use `evalAdapter`'s pre-halt checkpoint): for the warm start and each run, if not evaluated and `claim(OUT / 'eval_p18' / 'claims' / model)` succeeds, `evalModels(colonySuite([model]), ...)` in its own process; when all models are evaluated, the account that wins `claims/_pack` writes `runs.csv` (read back from the per-model files) and `packZip('explRL_rl18.zip', ('runs_p18', 'eval_p18'))`. Otherwise it prints what other accounts hold and asks for a rerun later. The same restart rule as Phase 17 (restart the session after any error; set-up, configuration, the cell again).
 
 ## Tests
 
