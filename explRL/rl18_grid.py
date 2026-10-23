@@ -6,7 +6,8 @@ Docs: https://Positron00.github.io/explRL/rl18_grid.html.md"""
 
 # %% auto #0
 __all__ = ['RL18_ARMS', 'RL18_SEEDS', 'RL18_RUNS', 'RL18_STEPS', 'RL18_MIX', 'EVAL_SEEDS', 'EVAL_SIZES', 'BOARDS18', 'FIX18',
-           'RL18_PLAN', 'rl18Config', 'speedConfig', 'evalAdapter', 'maxLenRule', 'projectHours18', 'colonySuite']
+           'RL18_PLAN', 'rl18Config', 'speedConfig', 'adapterReady', 'runDone', 'evalAdapter', 'maxLenRule',
+           'projectHours18', 'colonySuite']
 
 # %% ../nbs/rl18_grid.ipynb #09c092e6
 import math
@@ -37,6 +38,19 @@ def rl18Config(arm, seed, model, out, recipe, steps, maxLen):
 def speedConfig(model, out, recipe):
     "The speed check: c18team, seed 1, 3 steps, a 4,096-token window (to measure the longest prompt)."
     return rl18Config('c18team', 1, model, out, recipe, 3, 4096)
+
+
+def adapterReady(d):
+    "A saved LoRA adapter folder with its weights: Drive can show the folder (config files) before the ~120 MB weights arrive."
+    from pathlib import Path
+    f = Path(d) / 'adapter_model.safetensors'
+    return f.exists() and f.stat().st_size > 0
+
+
+def runDone(runDir):
+    "A Part B run is finished when it halted (halted.json) or its final adapter's weights are saved, not when `final` exists."
+    from pathlib import Path
+    return (Path(runDir) / 'halted.json').exists() or adapterReady(Path(runDir) / 'final')
 
 
 def evalAdapter(runDir, haltRun=3, haltKLRun=FIX18['haltKLRun']):
