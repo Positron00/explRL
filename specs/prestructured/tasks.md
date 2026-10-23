@@ -66,7 +66,7 @@ flowchart LR
 - **Outcome**: no parameter tuning. AC-9 first failed because 7 of 20 runs had no event in the last quarter (heavy-tailed fixations), giving `nan`. AC-9 and AC-10 were redefined as time averages using the new `heldGoal` helper (requirements and README updated). Measured: AC-8 11.5 / 10.6 / 2.5 s, AC-9 1.67 to 0.51 rad, AC-10 0.84 to 0.74 rad; AC-10 stays reported only.
 
 ## T10. Docs
-- **What**: write `specs/prestructured/RUN.md` (same layout as `specs/demo/RUN.md`), link it from the "Running the demo" section of `nbs/index.ipynb` and from `specs/demo/RUN.md`, run `nbdev-readme`, set this spec's status to implemented, replace the prototype table in this README with measured results, and update the plan doc's Phase 3 section.
+- **What**: write `specs/prestructured/RUN.md` (same layout as `specs/demo/RUN.md`), link it from the "Running the demo" section of `nbs/index.ipynb` (since renamed "Running the experiments") and from `specs/demo/RUN.md`, run `nbdev-readme`, set this spec's status to implemented, replace the prototype table in this README with measured results, and update the plan doc's Phase 3 section.
 - **Done when**: the repository README shows how to run the new demo, and the sidebar lists the new notebooks.
 
 ## Traceability

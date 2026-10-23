@@ -4,7 +4,7 @@ project:
 website:
   title: "explRL"
   site-url: "https://Positron00.github.io/explRL"
-  description: "A repo for brain-inspired AI agents that explore novel environments and map their value landscapes"
+  description: "Brain-inspired explorer agents, and experiments on keeping large teams of language-model agents effective and safe"
   repo-branch: main
   repo-url: "https://github.com/Positron00/explRL"
 

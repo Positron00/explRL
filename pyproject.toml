@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "explRL"
 dynamic = ["version"]
-description = "A repo for brain-inspired AI agents that explore novel environments and map their value landscapes"
+description = "Brain-inspired explorer agents, and experiments on keeping large teams of language-model agents effective and safe"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
