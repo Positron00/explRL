@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 14 report: trustSummaries (TRUST_PLAN: loss recovered in the 2 x 2 of trust information, the publicity and cost effects and their difference, mechanism columns), scaleSummaries (SCALE_PLAN: per N the request board’s gap closed, the track record’s loss recovered and the baseline), writeTrust, writeScale and figScale. All findings are exploratory.">
+
+<title>scale_report – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-f2788e636de456f6409e966386820849.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="scale_report – explRL">
+<meta property="og:description" content="Phase 14 report: trustSummaries (TRUST_PLAN: loss recovered in the 2 x 2 of trust information, the publicity and cost effects and their difference, mechanism columns), scaleSummaries (SCALE_PLAN: per N the request board’s gap closed, the track record’s loss recovered and the baseline), writeTrust, writeScale and figScale. All findings are exploratory.">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="scale_report – explRL">
+<meta name="twitter:description" content="Phase 14 report: trustSummaries (TRUST_PLAN: loss recovered in the 2 x 2 of trust information, the publicity and cost effects and their difference, mechanism columns), scaleSummaries (SCALE_PLAN: per N the request board’s gap closed, the track record’s loss recovered and the baseline), writeTrust, writeScale and figScale. All findings are exploratory.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./scale_report.html">scale_report</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#tests" id="toc-tests" class="nav-link active" data-scroll-target="#tests">Tests</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./scale_report.html">scale_report</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">scale_report</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 14 report: <code>trustSummaries</code> (<code>TRUST_PLAN</code>: loss recovered in the 2 x 2 of trust information, the publicity and cost effects and their difference, mechanism columns), <code>scaleSummaries</code> (<code>SCALE_PLAN</code>: per N the request board’s gap closed, the track record’s loss recovered and the baseline), <code>writeTrust</code>, <code>writeScale</code> and <code>figScale</code>. All findings are exploratory.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<div id="c17884c2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.324564+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:17.339495+00:00&quot;,&quot;total&quot;:0.014936809000005269}}" data-execution_count="3">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/scale_report.py#L176" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="figscale" class="level3">
+<h3 class="anchored" data-anchor-id="figscale">figScale</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> figScale(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    out, trust:NoneType<span class="op">=</span><span class="va">None</span>, scale:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>trust.png (loss recovered per arm and the effects) and scale.png (request’s gap and record’s recovery vs N).</em></p>
+</section>
+</div>
+<div id="e4bcf286" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.339640+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:17.345584+00:00&quot;,&quot;total&quot;:0.005948314000022492}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/scale_report.py#L151" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="writescale" class="level3">
+<h3 class="anchored" data-anchor-id="writescale">writeScale</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> writeScale(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    path, S, meta</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>report.md for Part B: provenance, per N the request’s gap closed and the record’s loss recovered, the baseline per N.</em></p>
+</section>
+</div>
+<div id="d038164b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.345725+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:17.352131+00:00&quot;,&quot;total&quot;:0.006411109000026727}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/scale_report.py#L136" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="writetrust" class="level3">
+<h3 class="anchored" data-anchor-id="writetrust">writeTrust</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> writeTrust(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    path, S, meta</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>report.md for Part A: provenance, the 2 x 2’s loss recovered, the publicity and cost effects, no-liar costs, mechanism.</em></p>
+</section>
+</div>
+<div id="57cfa8a0" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.352267+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:17.359758+00:00&quot;,&quot;total&quot;:0.0074947549999819785}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/scale_report.py#L90" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="scalesummaries" class="level3">
+<h3 class="anchored" data-anchor-id="scalesummaries">scaleSummaries</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> scaleSummaries(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    rows, study:<span class="bu">str</span><span class="op">=</span><span class="st">'scaleB'</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>SCALE_PLAN: per N, request’s pooled-share gap closed (clean, ceiling 1) and record’s loss recovered (honest loss</em> of N // 4 liars; record’s clean reference is its own clean cells if run, else the baseline’s at the same N and seed), Holm over N within each arm; the baseline’s pooled share and honest loss per N; per arm the trend across N.</p>
+</section>
+</div>
+<div id="526eb0c2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.359895+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:17.370318+00:00&quot;,&quot;total&quot;:0.010427544000009448}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/scale_report.py#L61" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="trustsummaries" class="level3">
+<h3 class="anchored" data-anchor-id="trustsummaries">trustSummaries</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> trustSummaries(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    rows13, rows14, logMetrics:NoneType<span class="op">=</span><span class="va">None</span>, study13:<span class="bu">str</span><span class="op">=</span><span class="st">'fixA'</span>, study14:<span class="bu">str</span><span class="op">=</span><span class="st">'trustA'</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>TRUST_PLAN: loss recovered per arm of the 2 x 2 (record, verify, baseline: Phase 13’s rows; recordPrivate,</em> verifyPublic: Phase 14’s) and its no-liar cost; the publicity and cost effects and their difference (bootstrap over the seeds every arm has, resampled together); Holm over the two new arms; mechanism columns per cell.</p>
+</section>
+</div>
+<div id="3ded4ac9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.370483+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:17.376231+00:00&quot;,&quot;total&quot;:0.0057518469999990884}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/scale_report.py#L32" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="trustlogmetrics" class="level3">
+<h3 class="anchored" data-anchor-id="trustlogmetrics">trustLogMetrics</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> trustLogMetrics(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    records</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>fixLogMetrics per row key plus, from the observations, the track-record entries agents saw: recordEntries,</em> recordChecked (mean checked shares behind an entry; ‘record none’ counts 0) and recordNone (share of ‘none’).</p>
+</section>
+</div>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<div id="769cc049" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-23T22:45:17.380726+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-23T22:45:22.910165+00:00&quot;,&quot;total&quot;:5.529445369000001}}" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.scale_report <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bench_grid <span class="im">import</span> rowKey</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> row(study, level, N, seed, <span class="op">**</span>m):</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(study<span class="op">=</span>study, factor<span class="op">=</span>study, level<span class="op">=</span>level, channel<span class="op">=</span><span class="st">'blackboard'</span>, budget<span class="op">=</span><span class="st">'turns'</span>, N<span class="op">=</span>N, seed<span class="op">=</span>seed, episode<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                <span class="op">**</span>{<span class="op">**</span><span class="bu">dict</span>(welfare<span class="op">=</span><span class="fl">1.0</span>, welfareHonest<span class="op">=</span><span class="fl">1.0</span>, pooledShare<span class="op">=</span><span class="fl">0.5</span>, invalid<span class="op">=</span><span class="dv">0</span>), <span class="op">**</span>m})</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Part A on synthetic rows with known effects: each arm's liar loss is baseline's x (1 - LR), seed by seed</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> <span class="bu">dict</span>(record<span class="op">=</span><span class="fl">0.6</span>, recordPrivate<span class="op">=</span><span class="fl">0.2</span>, verify<span class="op">=</span><span class="fl">0.0</span>, verifyPublic<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>seeds <span class="op">=</span> <span class="bu">range</span>(<span class="dv">900</span>, <span class="dv">910</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> {s: <span class="fl">2.0</span> <span class="op">+</span> <span class="fl">0.3</span> <span class="op">*</span> (s <span class="op">%</span> <span class="dv">4</span>) <span class="cf">for</span> s <span class="kw">in</span> seeds}</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>r13, r14 <span class="op">=</span> [], []</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> s <span class="kw">in</span> seeds:</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> a, rs <span class="kw">in</span> ((<span class="st">'baseline'</span>, r13), (<span class="st">'record'</span>, r13), (<span class="st">'verify'</span>, r13), (<span class="st">'recordPrivate'</span>, r14), (<span class="st">'verifyPublic'</span>, r14)):</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        st, clean <span class="op">=</span> (<span class="st">'fixA'</span> <span class="cf">if</span> rs <span class="kw">is</span> r13 <span class="cf">else</span> <span class="st">'trustA'</span>), <span class="fl">10.0</span> <span class="op">+</span> s <span class="op">%</span> <span class="dv">3</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        rs.append(row(st, a, <span class="dv">4</span>, s, welfareHonest<span class="op">=</span>clean, welfare<span class="op">=</span>clean <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> (a <span class="op">==</span> <span class="st">'record'</span>)))</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>        rs.append(row(st, a <span class="op">+</span> <span class="st">'|liar'</span>, <span class="dv">4</span>, s, welfareHonest<span class="op">=</span>clean <span class="op">-</span> loss[s] <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> LR.get(a, <span class="fl">0.0</span>))))</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>r13.append(row(<span class="st">'fixA'</span>, <span class="st">'request'</span>, <span class="dv">8</span>, <span class="dv">900</span>))                                          <span class="co"># other cells are ignored</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>S <span class="op">=</span> trustSummaries(r13, r14)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(S[<span class="st">'arms'</span>]) <span class="op">==</span> <span class="bu">set</span>(LR) <span class="kw">and</span> <span class="bu">all</span>(<span class="bu">abs</span>(S[<span class="st">'arms'</span>][a][<span class="st">'gap'</span>] <span class="op">-</span> LR[a]) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="cf">for</span> a <span class="kw">in</span> LR)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> S[<span class="st">'arms'</span>][<span class="st">'recordPrivate'</span>][<span class="st">'primary'</span>] <span class="kw">and</span> S[<span class="st">'arms'</span>][<span class="st">'verifyPublic'</span>][<span class="st">'primary'</span>] <span class="kw">and</span> <span class="kw">not</span> S[<span class="st">'arms'</span>][<span class="st">'record'</span>][<span class="st">'primary'</span>]</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> S[<span class="st">'arms'</span>][<span class="st">'record'</span>][<span class="st">'pHolm'</span>] <span class="op">!=</span> S[<span class="st">'arms'</span>][<span class="st">'record'</span>][<span class="st">'pHolm'</span>]                 <span class="co"># Phase 13 arms: no new test</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> S[<span class="st">'arms'</span>][<span class="st">'verifyPublic'</span>][<span class="st">'public'</span>] <span class="kw">and</span> <span class="kw">not</span> S[<span class="st">'arms'</span>][<span class="st">'verifyPublic'</span>][<span class="st">'free'</span>] <span class="kw">and</span> S[<span class="st">'arms'</span>][<span class="st">'recordPrivate'</span>][<span class="st">'free'</span>]</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>E <span class="op">=</span> S[<span class="st">'effects'</span>]</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k, v <span class="kw">in</span> ((<span class="st">'publicity'</span>, (<span class="fl">0.6</span> <span class="op">+</span> <span class="fl">0.4</span>) <span class="op">/</span> <span class="dv">2</span> <span class="op">-</span> (<span class="fl">0.2</span> <span class="op">+</span> <span class="fl">0.0</span>) <span class="op">/</span> <span class="dv">2</span>), (<span class="st">'cost'</span>, (<span class="fl">0.6</span> <span class="op">+</span> <span class="fl">0.2</span>) <span class="op">/</span> <span class="dv">2</span> <span class="op">-</span> (<span class="fl">0.0</span> <span class="op">+</span> <span class="fl">0.4</span>) <span class="op">/</span> <span class="dv">2</span>)):</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="bu">abs</span>(E[k][<span class="st">'effect'</span>] <span class="op">-</span> v) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="kw">and</span> <span class="bu">all</span>(<span class="bu">abs</span>(c <span class="op">-</span> v) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="cf">for</span> c <span class="kw">in</span> E[k][<span class="st">'ci'</span>]) <span class="kw">and</span> E[k][<span class="st">'n'</span>] <span class="op">==</span> <span class="dv">10</span>, k</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">abs</span>(E[<span class="st">'difference'</span>][<span class="st">'effect'</span>] <span class="op">-</span> <span class="fl">0.2</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">abs</span>(S[<span class="st">'cost'</span>][<span class="st">'record'</span>][<span class="st">'mean'</span>] <span class="op">-</span> <span class="fl">0.1</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="kw">and</span> S[<span class="st">'cost'</span>][<span class="st">'verifyPublic'</span>][<span class="st">'mean'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> <span class="bu">set</span>(S[<span class="st">'cost'</span>]) <span class="op">==</span> <span class="bu">set</span>(LR)</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co"># a noisy arm: the bootstrap interval opens around the estimate, the same seeds resampled for every arm</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>noisy <span class="op">=</span> [<span class="bu">dict</span>(r, welfareHonest<span class="op">=</span>r[<span class="st">'welfareHonest'</span>] <span class="op">-</span> (<span class="fl">0.5</span> <span class="cf">if</span> r[<span class="st">'seed'</span>] <span class="op">%</span> <span class="dv">2</span> <span class="cf">else</span> <span class="op">-</span><span class="fl">0.5</span>)) <span class="cf">if</span> r[<span class="st">'level'</span>] <span class="op">==</span> <span class="st">'verifyPublic|liar'</span> <span class="cf">else</span> r <span class="cf">for</span> r <span class="kw">in</span> r14]</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>e <span class="op">=</span> trustSummaries(r13, noisy)[<span class="st">'effects'</span>][<span class="st">'publicity'</span>]</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> e[<span class="st">'ci'</span>][<span class="dv">0</span>] <span class="op">&lt;</span> e[<span class="st">'effect'</span>] <span class="op">&lt;</span> e[<span class="st">'ci'</span>][<span class="dv">1</span>] <span class="kw">and</span> <span class="bu">abs</span>(e[<span class="st">'effect'</span>] <span class="op">-</span> <span class="fl">0.4</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span>          <span class="co"># mean loss unchanged (5 up, 5 down)</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co"># seeds missing from one arm drop out of the effects (all arms share the seeds)</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> trustSummaries(r13, [r <span class="cf">for</span> r <span class="kw">in</span> r14 <span class="cf">if</span> r[<span class="st">'seed'</span>] <span class="op">!=</span> <span class="dv">909</span>])[<span class="st">'effects'</span>][<span class="st">'publicity'</span>][<span class="st">'n'</span>] <span class="op">==</span> <span class="dv">9</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="co"># mechanism: checks, checks found false and the checked shares behind the track records shown</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> rowKey(row(<span class="st">'trustA'</span>, <span class="st">'recordPrivate|liar'</span>, <span class="dv">4</span>, <span class="dv">900</span>))</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>k2 <span class="op">=</span> rowKey(row(<span class="st">'trustA'</span>, <span class="st">'verifyPublic|liar'</span>, <span class="dv">4</span>, <span class="dv">900</span>))</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>recs <span class="op">=</span> [<span class="bu">dict</span>(key<span class="op">=</span>k, kind<span class="op">=</span><span class="st">'turn'</span>, valid<span class="op">=</span><span class="va">True</span>, report<span class="op">=</span><span class="va">None</span>, response<span class="op">=</span><span class="st">'{"action": "wait"}'</span>,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>             obs<span class="op">=</span><span class="st">'T1: x mod 3 = 1 (agent 0, 2 turns ago, record 1/3 true); T2: x mod 5 = 2 (agent 2, 1 turns ago, record none)'</span>),</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>        <span class="bu">dict</span>(key<span class="op">=</span>k, kind<span class="op">=</span><span class="st">'turn'</span>, valid<span class="op">=</span><span class="va">True</span>, report<span class="op">=</span><span class="va">None</span>, response<span class="op">=</span><span class="st">'{"action": "wait"}'</span>,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>             obs<span class="op">=</span><span class="st">'T1: x mod 3 = 1 (agent 0, 3 turns ago, record 0/1 true)'</span>),</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        <span class="bu">dict</span>(key<span class="op">=</span>k2, kind<span class="op">=</span><span class="st">'turn'</span>, valid<span class="op">=</span><span class="va">True</span>, report<span class="op">=</span><span class="va">None</span>, response<span class="op">=</span><span class="st">'{"action": "check"}'</span>,</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>             obs<span class="op">=</span><span class="st">'Your check: T1 x mod 3 = 1 (from agent 0) is false.</span><span class="ch">\n</span><span class="st">Checked by agent 2: T2 x mod 5 = 2 (from agent 1) is true.'</span>)]</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> trustLogMetrics(recs)</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> m[k][<span class="st">'recordEntries'</span>] <span class="op">==</span> <span class="dv">3</span> <span class="kw">and</span> <span class="bu">abs</span>(m[k][<span class="st">'recordChecked'</span>] <span class="op">-</span> <span class="dv">4</span> <span class="op">/</span> <span class="dv">3</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="kw">and</span> <span class="bu">abs</span>(m[k][<span class="st">'recordNone'</span>] <span class="op">-</span> <span class="dv">1</span> <span class="op">/</span> <span class="dv">3</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> m[k2][<span class="st">'checks'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> m[k2][<span class="st">'checkedFalse'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> m[k2][<span class="st">'recordEntries'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> m[k2][<span class="st">'recordChecked'</span>] <span class="op">!=</span> m[k2][<span class="st">'recordChecked'</span>]</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>S <span class="op">=</span> trustSummaries(r13, r14, m)</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> S[<span class="st">'mechanism'</span>][<span class="st">'recordPrivate|liar'</span>][<span class="st">'recordChecked'</span>] <span class="op">==</span> <span class="dv">4</span> <span class="op">/</span> <span class="dv">3</span> <span class="kw">and</span> S[<span class="st">'mechanism'</span>][<span class="st">'verifyPublic|liar'</span>][<span class="st">'checks'</span>] <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(S[<span class="st">'mechanism'</span>]) <span class="op">==</span> {a <span class="op">+</span> x <span class="cf">for</span> a <span class="kw">in</span> (<span class="st">'baseline'</span>, <span class="op">*</span>LR) <span class="cf">for</span> x <span class="kw">in</span> (<span class="st">''</span>, <span class="st">'|liar'</span>)} <span class="kw">and</span> S[<span class="st">'mechanism'</span>][<span class="st">'record'</span>][<span class="st">'runs'</span>] <span class="op">==</span> <span class="dv">10</span></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Part B on synthetic rows: request closes -0.1 of the gap and record recovers half the loss at every N</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> []</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> N <span class="kw">in</span> (<span class="dv">8</span>, <span class="dv">16</span>, <span class="dv">32</span>):</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">900</span>, <span class="dv">905</span>):</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>        b, cl, B <span class="op">=</span> <span class="fl">0.4</span> <span class="op">+</span> <span class="fl">0.02</span> <span class="op">*</span> (s <span class="op">%</span> <span class="dv">3</span>), <span class="fl">10.0</span> <span class="op">+</span> s <span class="op">%</span> <span class="dv">2</span>, <span class="fl">1.0</span> <span class="op">+</span> N <span class="op">/</span> <span class="dv">8</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> (s <span class="op">%</span> <span class="dv">4</span>)</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>        rows <span class="op">+=</span> [row(<span class="st">'scaleB'</span>, <span class="st">'baseline'</span>, N, s, pooledShare<span class="op">=</span>b, welfareHonest<span class="op">=</span>cl), row(<span class="st">'scaleB'</span>, <span class="st">'request'</span>, N, s, pooledShare<span class="op">=</span>b <span class="op">-</span> <span class="fl">0.1</span> <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> b)),</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>                 row(<span class="st">'scaleB'</span>, <span class="st">'baseline|liar'</span>, N, s, welfareHonest<span class="op">=</span>cl <span class="op">-</span> B), row(<span class="st">'scaleB'</span>, <span class="st">'record|liar'</span>, N, s, welfareHonest<span class="op">=</span>cl <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> B)]</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> scaleSummaries(rows <span class="op">+</span> [row(<span class="st">'trustA'</span>, <span class="st">'request'</span>, <span class="dv">8</span>, <span class="dv">900</span>, pooledShare<span class="op">=</span><span class="fl">1.0</span>)])</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(T[<span class="st">'request'</span>]) <span class="op">==</span> {<span class="st">'request|8'</span>, <span class="st">'request|16'</span>, <span class="st">'request|32'</span>} <span class="kw">and</span> <span class="bu">set</span>(T[<span class="st">'record'</span>]) <span class="op">==</span> {<span class="st">'record|8'</span>, <span class="st">'record|16'</span>, <span class="st">'record|32'</span>}</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(<span class="bu">abs</span>(v[<span class="st">'gap'</span>] <span class="op">+</span> <span class="fl">0.1</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="cf">for</span> v <span class="kw">in</span> T[<span class="st">'request'</span>].values()) <span class="kw">and</span> <span class="bu">all</span>(<span class="bu">abs</span>(v[<span class="st">'gap'</span>] <span class="op">-</span> <span class="fl">0.5</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="cf">for</span> v <span class="kw">in</span> T[<span class="st">'record'</span>].values())</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(v[<span class="st">'cleanRef'</span>] <span class="op">==</span> <span class="st">'baseline'</span> <span class="kw">and</span> v[<span class="st">'primary'</span>] <span class="kw">and</span> v[<span class="st">'n'</span>] <span class="op">==</span> <span class="dv">5</span> <span class="cf">for</span> v <span class="kw">in</span> T[<span class="st">'record'</span>].values())</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(v[<span class="st">'primary'</span>] <span class="kw">and</span> v[<span class="st">'pHolm'</span>] <span class="op">==</span> v[<span class="st">'pHolm'</span>] <span class="cf">for</span> v <span class="kw">in</span> T[<span class="st">'request'</span>].values())</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> T[<span class="st">'trend'</span>][<span class="st">'record'</span>] <span class="op">==</span> {<span class="dv">8</span>: <span class="fl">0.5</span>, <span class="dv">16</span>: <span class="fl">0.5</span>, <span class="dv">32</span>: <span class="fl">0.5</span>} <span class="kw">or</span> <span class="bu">all</span>(<span class="bu">abs</span>(x <span class="op">-</span> <span class="fl">0.5</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="cf">for</span> x <span class="kw">in</span> T[<span class="st">'trend'</span>][<span class="st">'record'</span>].values())</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">abs</span>(T[<span class="st">'baseline'</span>][<span class="dv">16</span>][<span class="st">'honestLoss'</span>][<span class="st">'mean'</span>] <span class="op">-</span> (<span class="dv">3</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> np.mean([s <span class="op">%</span> <span class="dv">4</span> <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">900</span>, <span class="dv">905</span>)]))) <span class="op">&lt;</span> <span class="fl">1e-9</span></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">abs</span>(T[<span class="st">'baseline'</span>][<span class="dv">8</span>][<span class="st">'pooledShare'</span>][<span class="st">'mean'</span>] <span class="op">-</span> np.mean([<span class="fl">0.4</span> <span class="op">+</span> <span class="fl">0.02</span> <span class="op">*</span> (s <span class="op">%</span> <span class="dv">3</span>) <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">900</span>, <span class="dv">905</span>)])) <span class="op">&lt;</span> <span class="fl">1e-9</span></span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="co"># with record's own clean cells, they are its clean reference</span></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>own <span class="op">=</span> rows <span class="op">+</span> [row(<span class="st">'scaleB'</span>, <span class="st">'record'</span>, N, s, welfareHonest<span class="op">=</span><span class="fl">11.0</span> <span class="op">+</span> s <span class="op">%</span> <span class="dv">2</span>) <span class="cf">for</span> N <span class="kw">in</span> (<span class="dv">8</span>, <span class="dv">16</span>, <span class="dv">32</span>) <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">900</span>, <span class="dv">905</span>)]</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>own <span class="op">=</span> [<span class="bu">dict</span>(r, welfareHonest<span class="op">=</span>r[<span class="st">'welfareHonest'</span>] <span class="op">+</span> <span class="dv">1</span>) <span class="cf">if</span> r[<span class="st">'level'</span>] <span class="op">==</span> <span class="st">'record|liar'</span> <span class="cf">else</span> r <span class="cf">for</span> r <span class="kw">in</span> own]</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(v[<span class="st">'cleanRef'</span>] <span class="op">==</span> <span class="st">'record'</span> <span class="kw">and</span> <span class="bu">abs</span>(v[<span class="st">'gap'</span>] <span class="op">-</span> <span class="fl">0.5</span>) <span class="op">&lt;</span> <span class="fl">1e-9</span> <span class="cf">for</span> v <span class="kw">in</span> scaleSummaries(own)[<span class="st">'record'</span>].values())</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="co"># reports and figures</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>meta <span class="op">=</span> <span class="bu">dict</span>(mode<span class="op">=</span><span class="st">'test'</span>, planHash<span class="op">=</span><span class="st">'abc'</span>, commit<span class="op">=</span><span class="st">'x'</span>, model<span class="op">=</span><span class="st">'claude-haiku-5-5'</span>, pricesChecked<span class="op">=</span><span class="st">'2026-10-12'</span>, cost<span class="op">=</span><span class="fl">0.0</span>, spent<span class="op">=</span><span class="fl">0.0</span>,</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>            cap<span class="op">=</span><span class="fl">150.0</span>, calls<span class="op">=</span><span class="dv">0</span>, wall<span class="op">=</span><span class="fl">0.0</span>)</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> tempfile.TemporaryDirectory() <span class="im">as</span> d:</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> Path(d)</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> writeTrust(d <span class="op">/</span> <span class="st">'t.md'</span>, S, meta).read_text()</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">'| recordPrivate (private/free) | 0.20 [0.20, 0.20]'</span> <span class="kw">in</span> t <span class="kw">and</span> <span class="st">'| publicity | 0.40 [0.40, 0.40] | 10 |'</span> <span class="kw">in</span> t</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">'Phase 13 |'</span> <span class="kw">in</span> t <span class="kw">and</span> <span class="st">'Mechanism'</span> <span class="kw">in</span> t <span class="kw">and</span> <span class="st">'TRUST_PLAN'</span> <span class="kw">in</span> t</span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>    sc <span class="op">=</span> writeScale(d <span class="op">/</span> <span class="st">'s.md'</span>, T, meta).read_text()</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">'| request|8 | -0.10 [-0.10, -0.10]'</span> <span class="kw">in</span> sc <span class="kw">and</span> <span class="st">'| record|32 | 0.50'</span> <span class="kw">in</span> sc <span class="kw">and</span> <span class="st">'## Baseline per N'</span> <span class="kw">in</span> sc <span class="kw">and</span> <span class="st">'SCALE_PLAN'</span> <span class="kw">in</span> sc</span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>    ps <span class="op">=</span> figScale(d, S, T)</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> [p.name <span class="cf">for</span> p <span class="kw">in</span> ps] <span class="op">==</span> [<span class="st">'trust.png'</span>, <span class="st">'scale.png'</span>] <span class="kw">and</span> <span class="bu">all</span>(p.stat().st_size <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">for</span> p <span class="kw">in</span> ps)</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> figScale(d, <span class="va">None</span>, scaleSummaries([])) <span class="op">==</span> []</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>json.dumps(S, default<span class="op">=</span><span class="bu">str</span>), json.dumps(T, default<span class="op">=</span><span class="bu">str</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>('{"arms": {"record": {"gap": 0.6, "ci": [0.5999999999999999, 0.6000000000000001], "se": 2.584629211255854e-16, "n": 10, "p": 0.001953125, "diff": {"mean": 1.434, "ci": [1.3079999999999998, 1.56], "n": 10}, "base": 2.39, "ceiling": 0.0, "arm": "record", "kind": "affordance", "public": true, "free": true, "new": false, "pHolm": NaN, "primary": false}, "recordPrivate": {"gap": 0.19999999999999996, "ci": [0.19999999999999984, 0.2000000000000003], "se": 1.4861636116507235e-16, "n": 10, "p": 0.001953125, "diff": {"mean": 0.4780000000000002, "ci": [0.4360000000000004, 0.52], "n": 10}, "base": 2.39, "ceiling": 0.0, "arm": "recordPrivate", "kind": "affordance", "public": false, "free": true, "new": true, "pHolm": 0.00390625, "primary": true}, "verify": {"gap": 0.0, "ci": [0.0, 0.0], "se": 0.0, "n": 10, "p": 1.0, "diff": {"mean": 0.0, "ci": [0.0, 0.0], "n": 10}, "base": 2.39, "ceiling": 0.0, "arm": "verify", "kind": "affordance", "public": false, "free": false, "new": false, "pHolm": NaN, "primary": false}, "verifyPublic": {"gap": 0.40000000000000013, "ci": [0.3999999999999999, 0.40000000000000047], "se": 1.3566755570740812e-16, "n": 10, "p": 0.001953125, "diff": {"mean": 0.9560000000000006, "ci": [0.872000000000001, 1.0400000000000003], "n": 10}, "base": 2.39, "ceiling": 0.0, "arm": "verifyPublic", "kind": "affordance", "public": true, "free": false, "new": true, "pHolm": 0.00390625, "primary": true}}, "cost": {"record": {"mean": 0.09999999999999964, "ci": [0.09999999999999964, 0.09999999999999964], "n": 10}, "recordPrivate": {"mean": 0.0, "ci": [0.0, 0.0], "n": 10}, "verify": {"mean": 0.0, "ci": [0.0, 0.0], "n": 10}, "verifyPublic": {"mean": 0.0, "ci": [0.0, 0.0], "n": 10}}, "effects": {"publicity": {"effect": 0.4, "ci": [0.3999999999999999, 0.40000000000000024], "n": 10}, "cost": {"effect": 0.1999999999999999, "ci": [0.19999999999999973, 0.20000000000000007], "n": 10}, "difference": {"effect": 0.20000000000000012, "ci": [0.1999999999999999, 0.2000000000000004], "n": 10}}, "mechanism": {"baseline": {"welfare": 10.9, "welfareHonest": 10.9, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "baseline|liar": {"welfare": 1.0, "welfareHonest": 8.510000000000002, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "record": {"welfare": 10.999999999999998, "welfareHonest": 10.9, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "recordPrivate": {"welfare": 10.9, "welfareHonest": 10.9, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "recordPrivate|liar": {"welfare": 1.0, "welfareHonest": 8.988000000000001, "pooledShare": 0.5, "invalid": 0.0, "checks": 0.0, "checkedFalse": 0.0, "recordChecked": 1.3333333333333333, "recordNone": 0.3333333333333333, "runs": 10}, "record|liar": {"welfare": 1.0, "welfareHonest": 9.943999999999999, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "verify": {"welfare": 10.9, "welfareHonest": 10.9, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "verifyPublic": {"welfare": 10.9, "welfareHonest": 10.9, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "verifyPublic|liar": {"welfare": 1.0, "welfareHonest": 9.466000000000001, "pooledShare": 0.5, "invalid": 0.0, "checks": 1.0, "checkedFalse": 1.0, "recordChecked": NaN, "recordNone": NaN, "runs": 10}, "verify|liar": {"welfare": 1.0, "welfareHonest": 8.510000000000002, "pooledShare": 0.5, "invalid": 0.0, "checks": NaN, "checkedFalse": NaN, "recordChecked": NaN, "recordNone": NaN, "runs": 10}}}',
+ '{"request": {"request|8": {"gap": -0.09999999999999999, "ci": [-0.1, -0.09999999999999999], "se": 2.09234361053343e-17, "n": 5, "p": 0.0625, "diff": {"mean": -0.058399999999999994, "ci": [-0.0596, -0.057199999999999994], "n": 5}, "base": 0.41600000000000004, "ceiling": 1.0, "arm": "request", "N": 8, "pHolm": 0.1875, "primary": true}, "request|16": {"gap": -0.09999999999999999, "ci": [-0.1, -0.09999999999999999], "se": 2.09234361053343e-17, "n": 5, "p": 0.0625, "diff": {"mean": -0.058399999999999994, "ci": [-0.0596, -0.057199999999999994], "n": 5}, "base": 0.41600000000000004, "ceiling": 1.0, "arm": "request", "N": 16, "pHolm": 0.1875, "primary": true}, "request|32": {"gap": -0.09999999999999999, "ci": [-0.1, -0.09999999999999999], "se": 2.09234361053343e-17, "n": 5, "p": 0.0625, "diff": {"mean": -0.058399999999999994, "ci": [-0.0596, -0.057199999999999994], "n": 5}, "base": 0.41600000000000004, "ceiling": 1.0, "arm": "request", "N": 32, "pHolm": 0.1875, "primary": true}}, "record": {"record|8": {"gap": 0.5, "ci": [0.4999999999999998, 0.5000000000000001], "se": 1.0846584848972051e-16, "n": 5, "p": 0.0625, "diff": {"mean": 1.06, "ci": [1.0099999999999998, 1.1100000000000003], "n": 5}, "base": 2.12, "ceiling": 0.0, "arm": "record", "N": 8, "cleanRef": "baseline", "pHolm": 0.1875, "primary": true}, "record|16": {"gap": 0.5, "ci": [0.4999999999999998, 0.5], "se": 8.845749647434604e-17, "n": 5, "p": 0.0625, "diff": {"mean": 1.5599999999999998, "ci": [1.5099999999999998, 1.6099999999999999], "n": 5}, "base": 3.12, "ceiling": 0.0, "arm": "record", "N": 16, "cleanRef": "baseline", "pHolm": 0.1875, "primary": true}, "record|32": {"gap": 0.5, "ci": [0.4999999999999998, 0.5], "se": 7.136641094597651e-17, "n": 5, "p": 0.0625, "diff": {"mean": 2.5599999999999996, "ci": [2.51, 2.6100000000000003], "n": 5}, "base": 5.12, "ceiling": 0.0, "arm": "record", "N": 32, "cleanRef": "baseline", "pHolm": 0.1875, "primary": true}}, "baseline": {"8": {"pooledShare": {"mean": 0.41600000000000004, "ci": [0.404, 0.42800000000000005], "n": 5}, "honestLoss": {"mean": 2.12, "ci": [2.02, 2.22], "n": 5}, "welfareHonest": {"mean": 10.4, "ci": [10.0, 10.8], "n": 5}}, "16": {"pooledShare": {"mean": 0.41600000000000004, "ci": [0.404, 0.42800000000000005], "n": 5}, "honestLoss": {"mean": 3.12, "ci": [3.02, 3.22], "n": 5}, "welfareHonest": {"mean": 10.4, "ci": [10.0, 10.8], "n": 5}}, "32": {"pooledShare": {"mean": 0.41600000000000004, "ci": [0.404, 0.42800000000000005], "n": 5}, "honestLoss": {"mean": 5.12, "ci": [5.0200000000000005, 5.220000000000001], "n": 5}, "welfareHonest": {"mean": 10.4, "ci": [10.0, 10.8], "n": 5}}}, "trend": {"request": {"8": -0.09999999999999999, "16": -0.09999999999999999, "32": -0.09999999999999999}, "record": {"8": 0.5, "16": 0.5, "32": 0.5}}}')</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
