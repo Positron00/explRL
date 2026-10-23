@@ -6,7 +6,7 @@ Docs: https://Positron00.github.io/explRL/figs_team.html.md"""
 
 # %% auto #0
 __all__ = ['ALPHA', 'NAN', 'W', 'NOTE', 'PAPER', 'SCALE_ARMS', 'GUARD_ARMS', 'sem', 'signP', 'permP', 'star', 'save', 'drawn',
-           'guardsScale', 'guards', 'trustScale']
+           'trend', 'guardsScale', 'guards', 'trustScale']
 
 # %% ../nbs/figs_team.ipynb #5f01dfe3
 import functools
@@ -83,30 +83,40 @@ GUARD_ARMS = (('plain', 'plain board', '#9aa3ad'), ('confirm', 'instruction only
               ('colonyGuards', 'counts + guards', '#1f6391'), ('record', 'oracle track record', '#7a5c99'))
 
 
+def trend(d):
+    "Mean per-seed least-squares slope over log2 N, and its two-sided sign-flip p; d: team size -> seed -> value (seeds at every size)."
+    Ns = sorted(int(N) for N, v in d.items() if v)
+    seeds = [s for s in d[str(Ns[0])] if all(s in d[str(N)] for N in Ns)] if len(Ns) > 1 else []
+    sl = [float(np.polyfit(np.log2(Ns), [d[str(N)][s] for N in Ns], 1)[0]) for s in seeds]
+    return (float(np.mean(sl)), signP(sl)) if sl else (NAN, NAN)
+
+
 @drawn
 def guardsScale(d, paper):
-    "Advantage over the plain board against team size; d: arm -> team size -> per-seed differences (arm minus plain board)."
-    fig, ax = plt.subplots(figsize=(W, 2.6) if paper else (7.2, 4.2))
+    """Advantage over the plain board against team size, each design's trend over log2 N in the legend;
+    d: arm -> team size -> seed -> difference (arm minus plain board, paired on seed)."""
+    fig, ax = plt.subplots(figsize=(W, 2.8) if paper else (7.2, 4.4))
     for k, (arm, lab, col, mk, ls) in enumerate(SCALE_ARMS):
-        pts = sorted((int(N), v) for N, v in d.get(arm, {}).items() if v)
-        if not pts:
+        a = {N: v for N, v in d.get(arm, {}).items() if v}
+        if not a:
             continue
+        pts = sorted((int(N), list(v.values())) for N, v in a.items())
         x = np.log2([N for N, _ in pts]) + (k - 1.5) * 0.05
         y, e = np.array([np.mean(v) for _, v in pts]), np.array([sem(v) for _, v in pts])
-        ax.errorbar(x, y, yerr=e, color=col, marker=mk, ls=ls, lw=1.3 if paper else 1.8, ms=4 if paper else 6,
-                    capsize=2 if paper else 3, label=lab)
+        b, p = trend(a)
+        ax.errorbar(x, y, yerr=e, color=col, marker=mk, ls=ls, lw=1.3 if paper else 1.8, ms=4 if paper else 6, capsize=2 if paper else 3,
+                    label=f'{lab}: {b:+.3f} per doubling (p = {p:.3f})' if np.isfinite(b) else lab)
         for xi, yi, ei, (_, v) in zip(x, y, e, pts):
             star(ax, xi, yi + ei, signP(v), color=col, size=9 if paper else 12)
     ax.set_xticks(np.log2([8, 16, 32, 64]), ['8', '16', '32', '64'])
-    ax.set(xlabel='agents (a quarter of them scripted liars)', ylabel='advantage over the plain board\n(honest pooled share)',
-           ylim=(0, 0.5 if paper else 0.42))
+    ax.set(xlabel='agents (a quarter of them scripted liars)', ylabel='advantage over the plain board\n(honest pooled share)', ylim=(0, 0.5))
     ax.axhline(0, color='#9aa3ad', lw=0.8)
     ax.spines[['top', 'right']].set_visible(False)
-    ax.legend(frameon=False, fontsize=None if paper else 8, loc='upper left', ncol=2 if paper else 1)
+    ax.legend(frameon=False, fontsize=None if paper else 8, loc='upper left')
     if not paper:
         ax.set_title('Guards lose ground as teams grow; squads of 8 with their own guards gain it', fontsize=10)
-        ax.text(0.99, 0.01, '8 seeds per point; ' + NOTE + ': against 0, paired on seed', transform=ax.transAxes, ha='right',
-                fontsize=7, color='#566372')
+        ax.text(0.99, 0.01, '8 seeds per point; ' + NOTE + ': against 0, paired on seed\nlegend: mean per-seed slope over log2(agents) '
+                'and its two-sided exact sign-flip p', transform=ax.transAxes, ha='right', fontsize=7, color='#566372')
     fig.tight_layout()
     return fig
 

@@ -4,8 +4,9 @@ One convention throughout: points and bars are means, error bars one standard er
 independent unit (board seeds for Claude and numpy teams; held-out boards for one trained model; for ratio measures
 such as the share of a gap closed, the bootstrap standard error over seeds); an asterisk marks p < 0.05 by a two-sided
 paired sign-flip test against the stated reference (exact up to 15 pairs, seeded random flips beyond; an exact two-sample
-permutation test between team sizes), uncorrected for multiple comparisons. The preprints report the pre-registered
-tests, with Holm correction, in the text.
+permutation test between team sizes), uncorrected for multiple comparisons; the guards-and-squads figure also gives each
+design's trend over team size (the mean of each seed's slope over log2 N, two-sided sign-flip test). The preprints report
+the pre-registered tests, with Holm correction, in the text.
 
 The team and training figures are drawn by the package (explRL.figs_team, explRL.figs_rl) from compact per-seed data, which
 this script extracts from results/multiagent/ and saves to data/highlights/highlights.json (committed, so the highlights
@@ -47,14 +48,14 @@ def fixLabel(part, key):
 # ---------- compact data for the package's figures ----------
 
 def guardsScaleData(R):
-    "Per-seed advantage over the plain board (honest pooled share, independent liars), per arm and team size."
+    "Per-seed advantage over the plain board (honest pooled share, independent liars), per arm, team size and seed."
     from explRL.bench_grid import readCSV
     rows = sum((readCSV(R / f'colony/{d}/runs.csv') for d in ('stage1', 'stage32', 'stage64', 'stage4')), [])
     out = {}
     for arm in ('colonyGuards', 'squads', 'failFlag', 'guardDeal'):
         for N in (8, 16, 32, 64):
             a, p = bySeed(rows, f'{arm}|independent', 'honestPooled', N), bySeed(rows, 'plain|independent', 'honestPooled', N)
-            if d := [a[s] - p[s] for s in sorted(a) if s in p]:
+            if d := {str(s): a[s] - p[s] for s in sorted(a) if s in p}:      # keyed by seed: the trend pairs seeds across sizes
                 out.setdefault(arm, {})[str(N)] = d
     return out
 

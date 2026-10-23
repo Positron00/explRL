@@ -261,6 +261,8 @@ v = S64['hyp']['H18_12']
 M['GuardsSixtyFour'], M['GuardsSixtyFourCI'], M['GuardsSixtyFourP'] = f"{v['estimate']:+.3f}", f"[{v['ci'][0]:.3f}, {v['ci'][1]:.3f}]", f"{v['p']:.3f}"
 M['GuardsTrendSixtyFour'], M['GuardsTrendSixtyFourP'] = f"{S64['trend']['estimate']:+.3f}", f"{S64['trend']['p']:.3f}"
 M['GuardsAdvEight'], M['GuardsAdvSixtyFour'] = (f"{S64['advantage'][str(N)] if str(N) in S64['advantage'] else S64['advantage'][N]:.2f}" for N in (8, 64))
+for N, name in ((8, 'Eight'), (16, 'Sixteen'), (32, 'ThirtyTwo'), (64, 'SixtyFour')):      # the guard advantage at each size, as in the figure
+    M['GuardsBy' + name] = f"{S64['advantage'][str(N)] if str(N) in S64['advantage'] else S64['advantage'][N]:+.3f}"
 c64 = S64['cells']
 M['GuardsSixtyFourPlainLiar'] = f"{c64['plain|independent']['honestPooled']:.2f}"
 M['GuardsSixtyFourGuardLiar'] = f"{c64['colonyGuards|independent']['honestPooled']:.2f}"
@@ -294,6 +296,14 @@ for a4, name in (('colonyGuards', 'Guards'), ('squads', 'Squads'), ('guardDeal',
 M['FourSquadsDid'] = f"{S4['did']['squads']['estimate']:+.3f}"
 M['FourSquadsDidCI'] = f"[{S4['did']['squads']['ci'][0]:.3f}, {S4['did']['squads']['ci'][1]:.3f}]"
 M['FourSquadsDidP'] = f"{S4['did']['squads']['p']:.3f}"
+# the squads' own trend over 16-64 agents (descriptive): each seed's slope of the advantage over the plain board over log2 N,
+# on the same rows as the figure (tools/figures.py)
+from explRL.colony_report import trendSlopes
+rows4all = sum((readCSV(R / f'colony/{d}/runs.csv') for d in ('stage1', 'stage32', 'stage64', 'stage4')), [])
+sl4 = list(trendSlopes(rows4all, 'squads', [16, 64]).values())
+M['FourSquadsSlope'] = f"{np.mean(sl4):+.3f}"
+M['FourSquadsSlopeP'] = f"{min(1.0, 2 * min(signFlipExact(sl4, 'greater'), signFlipExact(sl4, 'less'))):.3f}"
+M['FourSquadsSlopeRising'] = str(sum(v > 0 for v in sl4))
 c4 = S4['cells']
 M['FourSquadsLevel'] = f"{c4['squads|independent N 64']['honestPooled']:.2f}"
 M['FourGuardsEightLevel'] = f"{c4['colonyGuards|independent N 8']['honestPooled']:.2f}"
