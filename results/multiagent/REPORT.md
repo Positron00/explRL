@@ -169,5 +169,7 @@ Details: `specs/multiagent/phase18/README.md`, `results/multiagent/colony/stage1
 
 ## Where to look
 
-- Phase specs and results: `specs/multiagent/phase5/` to `phase12/` (each with a plain-language figure guide).
+- Phase specs and results: `specs/multiagent/phase5/` to `phase18/` (Phases 5-12 each with a plain-language figure guide).
 - Full per-phase reports: `results/multiagent/bench/full/report.md`, `safety/h3/report.md`, `safety/full/report.md`, `llm/full/report.md`.
+- Publication figures (mean ± SEM, * at p < 0.05): `tools/figures.py`, with the drawing code in `explRL/figs_team.py` and `explRL/figs_rl.py`; `nbs/highlights.ipynb` (on GitHub Pages) redraws them from `data/highlights/highlights.json`.
+- Preprints by Chuntao Dan and Claude Opus 5.5 (NeurIPS 2025 preprint style): `paper/main.pdf` (the five findings) and `paper2/main.pdf` (what cheap simulations predict).

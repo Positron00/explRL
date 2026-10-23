@@ -1,9 +1,10 @@
-# Preprint: From Diagnosis to Fixes
+# Preprint: Guards, Squads and Incentives
 
-Draft (2026-10-16). Sources: `main.tex`, `references.bib`, `numbers.tex` (generated), `figures/` (generated).
+*Keeping Large Teams of Language-Model Agents Effective and Safe*, by Chuntao Dan and Claude Opus 5.5 (Anthropic). Revised 2026-10-23 around the five strongest findings. Sources: `main.tex`, `references.bib`, `numbers.tex` (generated), `figures/` (generated) and `neurips_2025.sty` (the official NeurIPS 2025 style, used with its `preprint` option).
 
-- Regenerate every number and figure from the saved results (repo root): `.venv/bin/python paper/make_assets.py`. The text uses only the macros in `numbers.tex`, so no result is typed by hand.
-- Build alternatives: upload `paper/` to Overleaf. For the NeurIPS look, add `neurips_2026.sty` (official style file) to this folder; without it the draft uses a plain layout.
-- Done: the Phase 13 RL results (Section 5), the scored numpy forecast (Appendix B), the HiddenBench replication of the vote arms (Section 4.4). Open: the liar fixes on an established misinformation benchmark; a HiddenBench-protocol baseline (to explain our high baseline); `neurips_2026.sty` for the conference layout.
-- Build: `tectonic paper/main.tex` (installed 2026-10-16).
+- Regenerate every figure and number from the saved results (repo root): `.venv/bin/python tools/figures.py .` draws the figures (mean ± SEM, an asterisk at p < 0.05, at the printed width of the page), then `.venv/bin/python paper/make_assets.py` writes `numbers.tex` and copies the figures in. The text uses only the macros in `numbers.tex`, so no result is typed by hand.
+- Build: `tectonic paper/main.tex` (installed 2026-10-16), or upload `paper/` to Overleaf.
+- Structure: Introduction (the five findings), Related work, Methods (the clue board, faulty teammates, agents, the mechanisms in Table 1, training, measures, design and statistics), Results (one subsection per finding), Discussion (where to put the work, from assigned to trained roles, future directions, limitations, broader impact) and author contributions; appendices on reproducibility, the vote fix that did not replicate, and the simulation as a screen.
+- Authorship: the 2025 policies of NeurIPS, ICML and arXiv did not accept AI systems as authors. Check the venue's current policy before a submission; if needed, move Claude Opus 5.5 to the acknowledgements and keep the contribution statement.
+- Open: the liar fixes on an established misinformation benchmark; a HiddenBench-protocol baseline (to explain our high baseline).
 - Citations were checked against each paper's own page on 2026-10-16 (see the literature review).

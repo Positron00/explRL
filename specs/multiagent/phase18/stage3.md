@@ -7,7 +7,7 @@ Status: **implemented and tested** (2026-10-20; T6c): the regression gate passed
 Guards are Phase 18's strongest result, and two questions decide how far it goes:
 
 1. **Do guards survive a smart attacker?** The liars so far are scripted: every other turn a random false residue for a random clue. A Claude agent told to deceive can read the board, target clues no guard holds, confirm its own lies through other posts and stay quiet when contested. This is the safety question.
-2. **Do Claude teams divide the work on their own?** So far a quarter of the honest agents are *told* to be guards. If the role is described and anyone may take it, do agents volunteer, and does the team still gain? This is the Bitter Lesson question (an affordance and a reason, not an assignment) and the bridge to Part B, where trained clones get no role at all.
+2. **Do Claude teams divide the work on their own?** So far a quarter of the team (a third of the honest agents) is *told* to be guards. If the role is described and anyone may take it, do agents volunteer, and does the team still gain? This is the Bitter Lesson question (an affordance and a reason, not an assignment) and the bridge to Part B, where trained clones get no role at all.
 
 ## Design
 

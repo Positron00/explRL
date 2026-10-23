@@ -7,3 +7,8 @@ website:
   description: "A repo for brain-inspired AI agents that explore novel environments and map their value landscapes"
   repo-branch: main
   repo-url: "https://github.com/Positron00/explRL"
+
+format-links:
+  - html
+  - format: commonmark
+    text: Markdown
