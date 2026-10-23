@@ -6,7 +6,7 @@ Docs: https://Positron00.github.io/explRL/rl_torch.html.md"""
 
 # %% auto #0
 __all__ = ['replyLogps', 'saveMemory', 'freeGPU', 'policyUpdate', 'makePolicies', 'probeLogps', 'probeKL', 'snapshot', 'restore',
-           'saveCheckpoint', 'loadCheckpoint']
+           'ckptComplete', 'saveCheckpoint', 'loadCheckpoint']
 
 # %% ../nbs/rl_torch.ipynb #38a9faa7
 import json
@@ -144,6 +144,14 @@ def _ckpts(out):
     return sorted(Path(out).glob('ckpt-*'))
 
 
+def ckptComplete(d, names=('default',)):
+    """A checkpoint with every file non-empty: state.json, optimizer.pt and each adapter's weights (on Colab, Drive can keep
+    the small files and lose the large ones when a session ends before it has uploaded them)."""
+    d = Path(d)
+    files = [d / 'state.json', d / 'optimizer.pt'] + [d / ('' if n == 'default' else n) / 'adapter_model.safetensors' for n in names]
+    return all(f.exists() and f.stat().st_size > 0 for f in files)
+
+
 def saveCheckpoint(model, opt, step, out, config, ro=None):
     """out/ckpt-<step>: the adapters, the optimizer state, the step and the run's configuration hash; with the step's
     rollout `ro`, also its turn logs (out/turns/step-<step>.jsonl), to read what the agents do."""
@@ -161,13 +169,18 @@ def saveCheckpoint(model, opt, step, out, config, ro=None):
 
 
 def loadCheckpoint(model, opt, out, config, names):
-    "Resume from the newest checkpoint: -> its step (0 without one); refuses one written by another configuration."
+    """Resume from the newest complete checkpoint (`ckptComplete`; newer incomplete ones are skipped and reported): -> its
+    step (0 without one); refuses one written by another configuration."""
     import torch
     from peft import set_peft_model_state_dict
     from safetensors.torch import load_file
-    if not _ckpts(out):
+    ok = [d for d in _ckpts(out) if ckptComplete(d, names)]
+    skipped = [d.name for d in _ckpts(out) if ok and d > ok[-1]] if ok else [d.name for d in _ckpts(out)]
+    if skipped:
+        print(f'incomplete checkpoints skipped (files missing or empty): {skipped}', flush=True)
+    if not ok:
         return 0
-    d = _ckpts(out)[-1]
+    d = ok[-1]
     st = json.loads((d / 'state.json').read_text())
     if st['config'] != config:
         raise ValueError(f'{d} was written by another configuration ({st["config"]} != {config})')
