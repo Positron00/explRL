@@ -140,7 +140,7 @@ Scope: the claims planned in [phase18/README.md](phase18/README.md) (H18-1 to H1
 
 ## References
 
-Checked on 2026-10-16 against each paper's own page. Venues are given only where that page states them.
+Checked on 2026-10-16 against each paper's own page. Venues are given only where that page states them. Re-checked on 2026-10-23 for every source the two preprints cite (arXiv records, Crossref DOIs, the ACL Anthology, the AAAI proceedings or the publisher's page), each claim against the source's abstract; the fixes are listed in `paper/README.md`.
 
 1. Li, Naito, Shirado. Systematic Failures in Collective Reasoning under Distributed Information in Multi-Agent LLMs (HiddenBench). ICML 2026. https://arxiv.org/abs/2505.11556
 2. Anthropic Frontier Red Team (corresponding author C. Zou). Patterns and problems in emerging multiagent systems. 2026-08-13. https://www.anthropic.com/research/multiagent-systems
@@ -174,10 +174,10 @@ Checked on 2026-10-16 against each paper's own page. Venues are given only where
 30. Li et al. Counterfactual Credit Policy Optimization for Multi-Agent Collaboration (CCPO). 2026. https://arxiv.org/abs/2603.21563; Chen et al. The Trace Is the State: Exact Credit Assignment for LLM Agent Teams (C3). 2026. https://arxiv.org/abs/2603.06859; Shapley-Coop: Credit Assignment for Emergent Cooperation in Self-Interested LLM Agents. NeurIPS 2025. https://neurips.cc/virtual/2025/poster/118868
 31. Kalai, Nachum, Vempala, Zhang. Why Language Models Hallucinate. 2025. https://arxiv.org/abs/2509.04664
 32. Wei, Zeng et al. Reinforcing Multi-Turn Reasoning in LLM Agents via Fine-Grained Reward Structure and Credit Assignment. 2025-2026. https://arxiv.org/abs/2505.11821
-33. Itkin. Poor Man's Agentic Modeling: Simulating Large LLM-Agent Societies on a Laptop. 2026. https://huggingface.co/papers/2608.11215
+33. Igor Itkin. Poor Man's Agentic Modeling: Simulating Large LLM-Agent Societies on a Laptop. 2026. https://huggingface.co/papers/2608.11215
 34. Using machine learning as a surrogate model for agent-based simulations. PLOS ONE, 2022. https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0263150
 35. Miller. Adding Error Bars to Evals: A Statistical Approach to Language Model Evaluations. 2024. https://arxiv.org/abs/2411.00640
-36. Anthropic. How we built our multi-agent research system (2025-06-13), https://www.anthropic.com/engineering/multi-agent-research-system; Building multi-agent systems: when and how to use them (2026-01-23), https://www.claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them
+36. Hadfield, Zhang, Lien, Scholz, Fox, Ford (Anthropic). How we built our multi-agent research system (2025-06-13), https://www.anthropic.com/engineering/multi-agent-research-system; Building multi-agent systems: when and how to use them (2026-01-23), https://www.claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them
 37. Han, Zhang. Exploring Advanced LLM Multi-Agent Systems Based on Blackboard Architecture. 2025. https://arxiv.org/abs/2507.01701
 38. Salemi et al. LLM-Based Multi-Agent Blackboard System for Information Discovery in Data Science. 2025-2026. https://arxiv.org/abs/2510.01285
 39. Fretwell, Lucas. On territorial behavior and other factors influencing habitat distribution in birds (the ideal free distribution). Acta Biotheoretica, 1969. https://doi.org/10.1007/BF01601953; Barnard, Sibly. Producers and scroungers. Animal Behaviour, 1981. https://doi.org/10.1016/S0003-3472(81)80117-0; Caraco, Giraldeau. Social foraging: producing and scrounging in a stochastic environment. Journal of Theoretical Biology, 1991; Griffith, Yaeger. Ideal free distribution in agents with evolved neural architectures. https://www.shinyverse.org/larryy/GriffithYaeger.IFDEvoNeur.pdf; human producer-scrounger study, https://portalcientifico.universidadeuropea.com/documentos/684aaf7c8a34bb2df9fc7b5e
@@ -220,5 +220,6 @@ References 47-75 were checked on 2026-10-19 (section 15).
 73. Shehata, Li. The Bystander Effect in Multi-Agent Reasoning: Quantifying Cognitive Loafing in Collaborative Interactions. 2026. https://arxiv.org/abs/2605.10698
 74. Nakamura et al. Terrarium: Revisiting the Blackboard for Multi-Agent Safety, Privacy, and Security Studies. 2025. https://arxiv.org/abs/2510.14312
 75. El Kandoussi. "Who Am I, and Who Else Is Here?" Behavioral Differentiation Without Role Assignment in Multi-Agent LLM Systems. 2026. https://arxiv.org/abs/2604.00026; Riedl. Emergent Coordination in Multi-Agent Language Models. ICLR 2026 (arXiv journal reference). https://arxiv.org/abs/2510.05174
+76. Breed, Guzmán-Novoa, Hunt. Defensive behavior of honey bees: organization, genetics, and comparisons with other bees. Annual Review of Entomology 49, 271-298, 2004. https://doi.org/10.1146/annurev.ento.49.061802.123155 (checked on Crossref 2026-10-23; cited in `paper/` for honeybee guards, which *Honeybee Democracy* [50] does not cover)
 
 Two classic references (Caraco and Giraldeau 1991; Wolpert and Tumer 2001) are cited from background knowledge without a checked link. For [47], [48] and [55] no abstract was available on the checked pages: their metadata is checked, the content attributed to them in section 15 is background knowledge.
