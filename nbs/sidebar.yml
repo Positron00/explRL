@@ -62,6 +62,7 @@ website:
           - colony32.ipynb
           - colony4.ipynb
           - colony4_report.ipynb
+          - colony4b.ipynb
           - colony64.ipynb
           - colony_agents.ipynb
           - colony_board.ipynb

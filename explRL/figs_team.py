@@ -112,7 +112,7 @@ def guardsScale(d, paper):
     ax.set(xlabel='agents (a quarter of them scripted liars)', ylabel='advantage over the plain board\n(honest pooled share)', ylim=(0, 0.5))
     ax.axhline(0, color='#9aa3ad', lw=0.8)
     ax.spines[['top', 'right']].set_visible(False)
-    ax.legend(frameon=False, fontsize=None if paper else 8, loc='upper left')
+    ax.legend(frameon=False, fontsize=None if paper else 8, loc='lower left' if paper else 'upper left')
     if not paper:
         ax.set_title('Squads with their own guards hold their advantage as teams grow', fontsize=10)
         ax.text(0.99, 0.01, '8 seeds per point; ' + NOTE + ': against 0, paired on seed\nlegend: mean per-seed slope over log2(agents) '
@@ -164,11 +164,11 @@ def trustScale(d, paper):
     Right: honest answers built on a false clue per runner and team size (per-seed values; permutation test against the smallest team)."""
     fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.4) if paper else (11, 4.0))
     sz = 9 if paper else 12
-    for key, col, lab in (('record', '#1f6391', 'track record (each sender\'s past accuracy shown): damage won back'),
-                          ('request', '#c0392b', 'request board (agents can ask for clues): sharing gap closed')):
+    for key, col, short, lab in (('record', '#1f6391', 'public track record', 'track record (each sender\'s past accuracy shown): damage won back'),
+                                 ('request', '#c0392b', 'request board', 'request board (agents can ask for clues): sharing gap closed')):
         pts = d[key]
         x, y, e = [r[0] for r in pts], np.array([r[1] for r in pts]), np.array([r[2] for r in pts])
-        a.errorbar(x, y, yerr=e, fmt='o-', capsize=2 if paper else 3, color=col, label=lab.split(':')[0] if paper else lab)
+        a.errorbar(x, y, yerr=e, fmt='o-', capsize=2 if paper else 3, color=col, label=short if paper else lab)
         for xi, yi, ei, r in zip(x, y, e, pts):
             star(a, xi, yi + ei if yi >= 0 else yi - ei - 0.05, r[3], color=col, size=sz)
     a.axhline(0, color='k', lw=0.6)

@@ -338,7 +338,7 @@ M['FourBoardTokens'] = f"{c4['colonyGuards|independent N 64']['inTokPerCall']:,.
 M['FourFlagsSixteen'] = f"{adv4['failFlag']['16'] - adv4['colonyGuards']['16']:+.3f}"
 M['FourFlagsClean'] = f"{S4['cleanCost']['failFlag']['estimate']:+.3f}"
 M['FourFlagsOnTrue'] = f"{c4['failFlag|independent N 64']['flagsOnTrue']:.2f}"
-M['FourCopiesClean'] = f"{S4['cleanCost']['guardDeal']['estimate']:+.3f}"
+M['FourCopiesClean'] = f"{-S4['cleanCost']['guardDeal']['estimate']:.3f}"
 M['FourCopiesContest'] = f"{c4['guardDeal|independent N 64']['contestRateGuarded']:.2f}"
 M['FourGuardsContest'] = f"{c4['colonyGuards|independent N 64']['contestRateGuarded']:.2f}"
 M['FourCost'] = f"{m4['cost']:.2f}"
@@ -401,6 +401,8 @@ M['DiagContestMin'], M['DiagContestMax'] = f"{100 * min(cs):.0f}", f"{100 * max(
 M['DiagUnguardedMin'], M['DiagUnguardedMax'] = f"{100 * min(us):.0f}", f"{100 * max(us):.0f}"
 gu = [sum(b for _, b in ung[N]) / sum(nh for nh, _ in held[N]) for N in sorted(ung)]      # wrong answers per guard-held lie
 M['DiagUsesGuardedMin'], M['DiagUsesGuardedMax'] = f"{min(gu):.2f}", f"{max(gu):.2f}"
+uu = [sum(a for a, _ in ung[N]) / sum(n - nh for nh, n in held[N]) for N in sorted(ung)]     # wrong answers per unguarded lie
+M['DiagUsesUnguardedEight'] = f"{uu[0]:.2f}"
 S4F = json.loads(Path('specs/multiagent/phase18/colony4_score.json').read_text())
 M['FourForecastRight'], M['FourForecastWrong'], M['FourForecastNoCall'] = str(S4F['right']), str(S4F['wrong']), str(S4F['noCall'])
 

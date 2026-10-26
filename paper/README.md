@@ -1,6 +1,6 @@
 # Preprint: Guards, Squads and Incentives
 
-*Keeping Large Teams of Language-Model Agents Effective and Safe*, by Chuntao Dan and Claude Opus 5.5 (Anthropic). Revised 2026-10-23 around the five strongest findings. Sources: `main.tex`, `references.bib`, `numbers.tex` (generated), `figures/` (generated) and `neurips_2025.sty` (the official NeurIPS 2025 style, used with its `preprint` option).
+*Keeping Large Teams of Language-Model Agents Effective and Safe*, by Chuntao Dan and Claude Opus 5.5 (Anthropic). Revised 2026-10-23 around the five strongest findings, and on 2026-10-26 with the 32-agent runs of the design changes. Sources: `main.tex`, `references.bib`, `numbers.tex` (generated), `figures/` (generated) and `neurips_2025.sty` (the official NeurIPS 2025 style, used with its `preprint` option).
 
 - Regenerate every figure and number from the saved results (repo root): `.venv/bin/python tools/figures.py .` draws the figures (mean ± SEM, an asterisk at p < 0.05, each design's trend over team size in the guards-and-squads legend, at the printed width of the page), then `.venv/bin/python paper/make_assets.py` writes `numbers.tex` and copies the figures in. The text uses only the macros in `numbers.tex`, so no result is typed by hand.
 - Build: `tectonic paper/main.tex` (installed 2026-10-16), or upload `paper/` to Overleaf.
