@@ -350,3 +350,23 @@ Failures are counted from the board's own shares (`shareLog`) and its record of 
 | The honest pooled share's bound depends on performance | the robustness check on raw honest welfare for every primary |
 | Two sizes cannot show a trend | the difference-in-differences is labelled descriptive; a third size (32) is the follow-up if an arm stops the decline |
 | The numpy forecast misreads Claude again | it is a screen, frozen and scored, not a gate |
+
+## Stage 4b: the three designs at 32 agents (a user-approved deviation, 2026-10-25)
+
+**Why.** Each Stage 4 design ran at 16 and 64 agents only, and two sizes cannot show the shape of a trend (the risk table above names a third size, 32, as the follow-up). Squads' advantage over the plain board rose from 0.26 to 0.34 in all 8 seeds (+0.038 per doubling, p 0.008, descriptive); guard copies lost to guards at 16 agents and beat them at 64. A 32-agent point for every design tests whether squads rise steadily and shows where guard copies cross over.
+
+**Cells** (`nbs/colony4b.ipynb`, study `colony4b`): `guardDeal`, `failFlag` and `squads`, each with independent liars at N = 32 (a quarter of the agents liars, two holders per clue, 40 turns), Stage 1's seeds 1800-1807: 24 boards, 23,040 calls. The references are the 32-agent run's `plain` and `colonyGuards` cells with independent liars (16 boards), replayed from the cache at $0 with Stage 4's columns (`reused.csv`); every saved column must be unchanged.
+
+**`STAGE4B_PLAN`**, frozen and committed before the pilot (`coopHash` = `4d5d0a8e4f5b`; forecast SHA-256 `629f5c788a51…`):
+
+| item | definition |
+|---|---|
+| H18-16, H18-17, H18-18 (primary) | guard copies, failure flags, squads, each minus `colonyGuards` at N = 32, honest pooled share, independent liars, paired on seed: one-sided exact sign-flip over 8 seeds (> 0), Holm over the three, alpha 0.05 |
+| robustness | each primary on raw honest welfare; an estimate of the opposite sign marks it not robust |
+| trend (descriptive) | per design, each seed's least-squares slope over log2 N of (design − plain board): guards at 8-64, the designs at 16, 32 and 64; mean and two-sided exact sign-flip p. Descriptive, because the 16- and 64-agent results were seen before this plan |
+| advantage (descriptive) | each design minus the plain board at 32 agents |
+| pilot | the three designs at N = 32, seed 1890 (not analysed): invalid replies under 5% |
+| cost rule | run if Stage 4b's projected cost (calls × the pilot's cost per call, by board kind) is at most $20, else stop and ask; about $11.50 expected; API cap $250 ($221.44 spent before Stage 4b) |
+| forecast | `specs/multiagent/phase18/colony4b_predictions.json`, from Stage 4's numpy forecast rows at 32 agents (frozen at `1e9c53d`; 30 seeds), written by `python tools/colony_forecast.py stage4b $PWD` and committed before the freeze; its SHA-256 is in the plan |
+
+**Forecast** (the sign rule of Stage 4: + or − when the 95% interval over seeds excludes 0): guard copies lose to guards at 32 agents (−0.041), failure flags beat them (+0.023), squads beat them (+0.043); no call on any trend (every interval includes 0).

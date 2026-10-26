@@ -4,6 +4,7 @@ scoring against the Haiku runs (specs/multiagent/phase18/, requirements FR-01 to
   python tools/colony_forecast.py run <repo> [workers]      -> results/multiagent/colony/forecast/runs.csv and
                                                                specs/multiagent/phase18/colony_predictions.json
   python tools/colony_forecast.py score <repo> <runs.csv>   -> specs/multiagent/phase18/colony_score.json
+  python tools/colony_forecast.py stage4b <repo>             -> specs/multiagent/phase18/colony4b_predictions.json (from forecast4)
   python tools/colony_forecast.py stage4 <repo> [workers]   -> results/multiagent/colony/forecast4/runs.csv and
                                                                specs/multiagent/phase18/colony4_predictions.json (Stage 4)
   python tools/colony_forecast.py score4 <repo>             -> specs/multiagent/phase18/colony4_score.json
@@ -163,11 +164,37 @@ def score4(repo):
     print(json.dumps(out, indent=1))
 
 
+def stage4b(repo, nboot=2000):
+    """Stage 4b's forecast from Stage 4's frozen numpy rows at 32 agents (forecast4/runs.csv, no new simulation): each design
+    minus guards at 32 (H18-16 to H18-18) and each design's trend over team size, signed by the 95% interval rule."""
+    sys.path.insert(0, str(repo))
+    from explRL.bench_grid import readCSV
+    from explRL.colony4_report import diffs
+    from explRL.colony4b import HYP4B, TRENDS4B
+    from explRL.colony_report import bootSeeds, trendSlopes
+    rows = readCSV(Path(repo) / 'results/multiagent/colony/forecast4/runs.csv')
+    pred = {}
+    for h, arm in HYP4B:
+        est, lo, hi = bootSeeds(diffs(rows, arm, 'colonyGuards', 'honestPooled', 'independent', 32), nboot=nboot)
+        pred[h] = dict(arm=arm, estimate=est, ci=[lo, hi], sign=_sign(lo, hi))
+    for arm, sizes in TRENDS4B:
+        sl = trendSlopes(rows, arm, list(sizes))
+        est, lo, hi = bootSeeds({(k, 0): v for k, v in sl.items()}, nboot=nboot)
+        pred[f'trend_{arm}'] = dict(arm=arm, sizes=list(sizes), estimate=est, ci=[lo, hi], sign=_sign(lo, hi))
+    spec = Path(repo) / 'specs/multiagent/phase18/colony4b_predictions.json'
+    spec.write_text(json.dumps(dict(predictions=pred, source='forecast4/runs.csv (numpy, 30 seeds, frozen at 1e9c53d)',
+                                    rule='sign + or - when the 95% interval over seeds excludes 0, else 0'), indent=1, default=float) + '\n')
+    for k, v in pred.items():
+        print(k, v['sign'], round(v['estimate'], 4), [round(x, 4) for x in v['ci']])
+
+
 if __name__ == '__main__':
     if sys.argv[1] == 'run':
         run(Path(sys.argv[2]), int(sys.argv[3]) if len(sys.argv) > 3 else 8)
     elif sys.argv[1] == 'stage4':
         stage4(Path(sys.argv[2]), int(sys.argv[3]) if len(sys.argv) > 3 else 8)
+    elif sys.argv[1] == 'stage4b':
+        stage4b(Path(sys.argv[2]))
     elif sys.argv[1] == 'score4':
         score4(Path(sys.argv[2]))
     else:
