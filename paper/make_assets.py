@@ -372,11 +372,14 @@ M['PartBGain'], M['PartBGainP'] = f"{SPB['hyp']['H18_B3']['estimate']:+.3f}", f"
 M['PartBPlanHash'] = SPB['planHash']
 
 # Guards' clean-board cost per size, the unassigned role, the coverage diagnosis at every size and the Stage 4 forecast
-from explRL.colony_report import cellVals
+from explRL.colony_report import cellVals, lossRecovered
 gr = rows('colony/stage1/runs.csv') + rows('colony/stage32/runs.csv')
 for N, w in ((8, 'Eight'), (16, 'Sixteen'), (32, 'ThirtyTwo')):
     g, pl = cellVals(gr, 'colonyGuards', 'clean', 'honestPooled', [N]), cellVals(gr, 'plain', 'clean', 'honestPooled', [N])
     M['GuardsClean' + w] = f"{np.mean([pl[k] - g[k] for k in g if k in pl]):.2f}"
+    M['GuardsRecover' + w] = f"{lossRecovered(gr, 'colonyGuards', [N]):.2f}"
+M['GuardsEightPlainClean'], M['GuardsEightPlainLiar'] = (f"{np.mean(list(cellVals(gr, 'plain', f, 'honestPooled', [8]).values())):.2f}"
+                                                         for f in ('clean', 'independent'))
 vb = [r for r in rows('colony/stage3/runs.csv') if r['level'].startswith('colonyVolunteer')]
 M['VolunteerBoards'], M['Volunteers'] = str(len(vb)), str(int(sum(float(r['volunteers']) for r in vb)))
 from explRL.colony_grid import stage1Grid
@@ -403,6 +406,14 @@ gu = [sum(b for _, b in ung[N]) / sum(nh for nh, _ in held[N]) for N in sorted(u
 M['DiagUsesGuardedMin'], M['DiagUsesGuardedMax'] = f"{min(gu):.2f}", f"{max(gu):.2f}"
 uu = [sum(a for a, _ in ung[N]) / sum(n - nh for nh, n in held[N]) for N in sorted(ung)]     # wrong answers per unguarded lie
 M['DiagUsesUnguardedEight'] = f"{uu[0]:.2f}"
+pu = {}                                                                                   # the plain board: every lie unguarded
+for c in [x for x in stage1Grid() + stage32Grid() + stage64Grid() if x['level'] == 'plain|independent']:
+    cfg = LLMConfig.fromDict(c['cfg'])
+    rp = replay(cfg, c['seed'], cacheOnlyClient(cfg, R / 'llm/cache'))
+    t, n = lieTiming(rp.board, rp.answers, rp.nLiar, 0), len(falseValues(rp.board))
+    pu.setdefault(cfg.N, []).append((n * t['usesPerLieUnguarded'], n))
+pp = {N: sum(a for a, _ in v) / sum(b for _, b in v) for N, v in pu.items()}
+M['PlainUsesPerLieEight'], M['PlainUsesPerLieSixtyFour'] = f"{pp[8]:.1f}", f"{pp[64]:.1f}"
 S4F = json.loads(Path('specs/multiagent/phase18/colony4_score.json').read_text())
 M['FourForecastRight'], M['FourForecastWrong'], M['FourForecastNoCall'] = str(S4F['right']), str(S4F['wrong']), str(S4F['noCall'])
 
