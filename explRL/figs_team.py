@@ -114,7 +114,7 @@ def guardsScale(d, paper):
     ax.spines[['top', 'right']].set_visible(False)
     ax.legend(frameon=False, fontsize=None if paper else 8, loc='upper left')
     if not paper:
-        ax.set_title('Guards lose ground as teams grow; squads of 8 with their own guards gain it', fontsize=10)
+        ax.set_title('Squads with their own guards hold their advantage as teams grow', fontsize=10)
         ax.text(0.99, 0.01, '8 seeds per point; ' + NOTE + ': against 0, paired on seed\nlegend: mean per-seed slope over log2(agents) '
                 'and its two-sided exact sign-flip p', transform=ax.transAxes, ha='right', fontsize=7, color='#566372')
     fig.tight_layout()
@@ -193,7 +193,7 @@ def trustScale(d, paper):
         fig.tight_layout()
     else:
         fig.text(0.5, 0.005, 'Left: 10 seeds at 4 agents, 5 per larger size; mean ± bootstrap SE; * p < 0.05, two-sided exact sign-flip test '
-                 'against 0\n(with 5 seeds the exact two-sided p cannot fall below 0.0625). Right: mean ± SEM over seeds (Haiku 5, rule '
-                 'agents 20); * p < 0.05, exact permutation test against 8 agents.', ha='center', fontsize=7, color='#566372')
+                 'against 0\n(with 5 seeds the exact two-sided p cannot fall below 0.0625). Right: mean ± SEM over seeds (5 for Claude '
+                 'Haiku, 20 for rule agents); * p < 0.05, exact permutation test against 8 agents.', ha='center', fontsize=7, color='#566372')
         fig.tight_layout(rect=(0, 0.07, 1, 1))
     return fig

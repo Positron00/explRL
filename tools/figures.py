@@ -14,7 +14,7 @@ notebook redraws them without the raw results). The summary page uses the wide f
 drawn at the printed width of a NeurIPS page (5.5 in) with the convention in their captions instead of a footnote.
 
   python tools/figures.py <repo>   -> data/highlights/highlights.json,
-                                      results/multiagent/report/{guards_scale,guards,trust_scale,incentives}.png
+                                      docs/summary/{guards_scale,guards,trust_scale,incentives}.png (the summary page)
                                       and results/multiagent/report/fig_{guards_scale,guards,trust_scale,fixes,rl_main,scaling,robustness}.png
 """
 import json
@@ -50,7 +50,7 @@ def fixLabel(part, key):
 def guardsScaleData(R):
     "Per-seed advantage over the plain board (honest pooled share, independent liars), per arm, team size and seed."
     from explRL.bench_grid import readCSV
-    rows = sum((readCSV(R / f'colony/{d}/runs.csv') for d in ('stage1', 'stage32', 'stage64', 'stage4')), [])
+    rows = sum((readCSV(R / f'colony/{d}/runs.csv') for d in ('stage1', 'stage32', 'stage64', 'stage4', 'stage4b')), [])
     out = {}
     for arm in ('colonyGuards', 'squads', 'failFlag', 'guardDeal'):
         for N in (8, 16, 32, 64):
@@ -131,24 +131,29 @@ def _draw(f, data, out, name, paper=False):
     print(out / name)
 
 
+def _web(R):
+    "The summary page's folder (docs/summary/ in the repo): its four wide figures live only there, beside its source."
+    return Path(R).resolve().parents[1] / 'docs/summary'
+
+
 def guardsScale(R, out, paper=False):
     from explRL.figs_team import guardsScale as draw
-    _draw(draw, guardsScaleData(R), out, 'fig_guards_scale.png' if paper else 'guards_scale.png', paper)
+    _draw(draw, guardsScaleData(R), out if paper else _web(R), 'fig_guards_scale.png' if paper else 'guards_scale.png', paper)
 
 
 def guards(R, out, paper=False):
     from explRL.figs_team import guards as draw
-    _draw(draw, guardsData(R), out, 'fig_guards.png' if paper else 'guards.png', paper)
+    _draw(draw, guardsData(R), out if paper else _web(R), 'fig_guards.png' if paper else 'guards.png', paper)
 
 
 def trustScale(R, out, paper=False):
     from explRL.figs_team import trustScale as draw
-    _draw(draw, trustData(R), out, 'fig_trust_scale.png' if paper else 'trust_scale.png', paper)
+    _draw(draw, trustData(R), out if paper else _web(R), 'fig_trust_scale.png' if paper else 'trust_scale.png', paper)
 
 
 def incentives(R, out):
     from explRL.figs_rl import incentives as draw
-    _draw(draw, incentivesData(R), out, 'incentives.png')
+    _draw(draw, incentivesData(R), _web(R), 'incentives.png')
 
 
 def fixes(R, out):
@@ -270,10 +275,11 @@ def main(repo):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(H, indent=1) + '\n')
     print(path)
+    web = _web(R)
     for draw, key, name in ((drawScale, 'guardsScale', 'guards_scale'), (drawGuards, 'guards', 'guards'), (drawTrust, 'trust', 'trust_scale')):
-        _draw(draw, H[key], out, f'{name}.png')
+        _draw(draw, H[key], web, f'{name}.png')
         _draw(draw, H[key], out, f'fig_{name}.png', paper=True)
-    _draw(drawIncentives, H['incentives'], out, 'incentives.png')
+    _draw(drawIncentives, H['incentives'], web, 'incentives.png')
     _draw(drawFixes, H['fixes'], out, 'fig_fixes.png', paper=True)
     for f in (rlMain, scaling, robustness):
         f(R, out)

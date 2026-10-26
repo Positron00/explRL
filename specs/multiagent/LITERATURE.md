@@ -97,6 +97,8 @@ Ideal free distribution (Fretwell and Lucas) and its computational study with ev
 **Claims to avoid.** That LLM teams fail hidden profiles, conform, or are vulnerable to liars (known); that RL "does not help" (scale too small to say); that the fixes generalize beyond these tasks (untested; HiddenBench is the obvious next test).
 
 ## 14. Gaps this work could fill next
+
+*Updated 2026-10-26: the current ranked next steps are in [the plan README](README.md#strongest-findings-and-next-steps-2026-10-26); the items below are the 2026-10-16 list, kept with their outcomes.*
 Ordered by expected impact, largest first.
 
 1. **Do the two strongest fixes hold outside our own tasks?** *Vote part done 2026-10-16 ([phase13/hiddenbench.md](phase13/hiddenbench.md)): the fact table did not replicate on HiddenBench; a speak-up instruction helped through disclosure. The liar part remains.* Replicate A2 and A3 on established benchmarks: HiddenBench's 65 tasks [1] for `table` and `dissent`, and a misinformation setting like [11] for `record` vs `verify`. This turns exploratory results on toy tasks into claims comparable with the 30% and 72.5% -> 14.2% baselines others report.

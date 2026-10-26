@@ -370,3 +370,25 @@ Failures are counted from the board's own shares (`shareLog`) and its record of 
 | forecast | `specs/multiagent/phase18/colony4b_predictions.json`, from Stage 4's numpy forecast rows at 32 agents (frozen at `1e9c53d`; 30 seeds), written by `python tools/colony_forecast.py stage4b $PWD` and committed before the freeze; its SHA-256 is in the plan |
 
 **Forecast** (the sign rule of Stage 4: + or − when the 95% interval over seeds excludes 0): guard copies lose to guards at 32 agents (−0.041), failure flags beat them (+0.023), squads beat them (+0.043); no call on any trend (every interval includes 0).
+
+## Stage 4b results (2026-10-25; 24 boards, 23,040 calls, $10.44, 54 minutes; pilot $1.30, 0.3% invalid replies, projected $10.36; references replayed from the cache at $0; cached rerun byte-identical; API spent $233.18 of $250; `results/multiagent/colony/stage4b/report.md`)
+
+| hypothesis (N 32, independent liars) | design − colonyGuards | 95% interval | exact p | Holm | verdict | on raw welfare |
+|---|---|---|---|---|---|---|
+| H18-16 guard copies | +0.012 | [−0.004, 0.029] | 0.113 | 0.113 | not supported | +0.019 |
+| H18-17 failure flags | +0.068 | [0.044, 0.092] | 0.004 | 0.012 | supported | +0.088 |
+| H18-18 squads | +0.113 | [0.086, 0.139] | 0.004 | 0.012 | supported | +0.143 |
+
+**Advantage over the plain board** (honest pooled share; 8 seeds per point):
+
+| design | 16 | 32 | 64 |
+|---|---|---|---|
+| guards on one board | 0.200 | 0.229 | 0.165 |
+| squads | 0.260 | 0.342 | 0.336 |
+| failure flags | 0.254 | 0.297 | 0.227 |
+| guard copies | 0.174 | 0.241 | 0.208 |
+
+- **Squads rise, then hold.** Their advantage rose from 16 to 32 agents (+0.082, two-sided p 0.023, up in 7 of 8 seeds) and stayed level from 32 to 64 (−0.006, p 0.86). The Stage 4 reading "grows with size" is a step from 16 to 32 and then a plateau, not steady growth. The squads' lead over guards on one board widened at every size: +0.06, +0.11, +0.17. The per-seed slope over 16-64 (+0.038 per doubling, p 0.008) is unchanged, because with evenly spaced sizes a least-squares slope depends only on the end points.
+- **Guard copies cross over at about 32 agents:** behind guards at 16, level at 32, ahead at 64.
+- **Failure flags help at every size** (+0.054, +0.068, +0.062 over guards) with no trend of their own.
+- **Forecast:** 2 right (flags and squads beat guards), 1 no call (it predicted guard copies would lose; they drew level).

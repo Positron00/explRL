@@ -2,7 +2,7 @@
 
 Now a wrapper: the figure is drawn by `tools/figures.py` (trustScale), with the publication convention (mean ± SEM, * p < 0.05).
 
-  python tools/scale_figure.py <repo>   -> results/multiagent/report/trust_scale.png
+  python tools/scale_figure.py <repo>   -> docs/summary/trust_scale.png (the summary page)
 """
 import sys
 from pathlib import Path

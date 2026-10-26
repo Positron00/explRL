@@ -108,6 +108,14 @@ P4 = json.loads(Path('specs/multiagent/phase18/colony4_predictions.json').read_t
 S4F = json.loads(Path('specs/multiagent/phase18/colony4_score.json').read_text())
 O4 = json.loads((R / 'colony/stage4/metrics.json').read_text())['summary']
 M['FourRight'], M['FourWrong'], M['FourNoCall'] = str(S4F['right']), str(S4F['wrong']), str(S4F['noCall'])
+# Stage 4b: the same designs at 32 agents; its forecast (from the frozen numpy rows) scored on the three primary tests
+S4b = json.loads(Path('results/multiagent/colony/stage4b/metrics.json').read_text())['summary']
+pred4b = json.loads(Path('specs/multiagent/phase18/colony4b_predictions.json').read_text())['predictions']
+sg4 = lambda lo, hi: '+' if lo > 0 else '-' if hi < 0 else '0'
+res4b = ['no call' if sg4(*S4b['hyp'][h]['ci']) == '0' else 'right' if sg4(*S4b['hyp'][h]['ci']) == pred4b[h]['sign'] else 'wrong'
+         for h in ('H18_16', 'H18_17', 'H18_18')]
+M['FourBRight'], M['FourBWrong'], M['FourBNoCall'] = (str(res4b.count(k)) for k in ('right', 'wrong', 'no call'))
+M['FourBCalled'] = str(len(res4b) - res4b.count('no call'))
 M['FourCalled'] = str(S4F['right'] + S4F['wrong'])
 for k, name in (('H18_13', 'Copies'), ('H18_14', 'Flags'), ('H18_15', 'Squads')):
     M['FourPred' + name] = f"{P4['predictions'][k]['estimate']:+.3f}"

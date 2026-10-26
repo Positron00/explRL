@@ -304,6 +304,32 @@ sl4 = list(trendSlopes(rows4all, 'squads', [16, 64]).values())
 M['FourSquadsSlope'] = f"{np.mean(sl4):+.3f}"
 M['FourSquadsSlopeP'] = f"{min(1.0, 2 * min(signFlipExact(sl4, 'greater'), signFlipExact(sl4, 'less'))):.3f}"
 M['FourSquadsSlopeRising'] = str(sum(v > 0 for v in sl4))
+
+# Stage 4b: the three designs at 32 agents (results/multiagent/colony/stage4b; a user-approved deviation, plan frozen first)
+from explRL.colony4_report import diffs as diffs4
+m4b = json.loads((R / 'colony/stage4b/metrics.json').read_text())
+S4b = m4b['summary']
+for k, name in (('H18_16', 'Copies'), ('H18_17', 'Flags'), ('H18_18', 'Squads')):
+    v = S4b['hyp'][k]
+    M['FourB' + name] = f"{v['estimate']:+.3f}"
+    M['FourB' + name + 'CI'] = f"[{v['ci'][0]:.3f}, {v['ci'][1]:.3f}]"
+    M['FourB' + name + 'Holm'] = f"{v['pHolm']:.3f}"
+M['FourBCost'], M['FourBPlanHash'] = f"{m4b['cost']:.2f}", m4b['planHash']
+for a4, name in (('colonyGuards', 'Guards'), ('squads', 'Squads'), ('guardDeal', 'Copies'), ('failFlag', 'Flags')):
+    M['FourAdv' + name + 'ThirtyTwo'] = f"{S4b['advantage'][a4]:.2f}"
+rows4c = rows4all + readCSV(R / 'colony/stage4b/runs.csv') + readCSV(R / 'colony/stage4b/reused.csv')
+for N, name in ((16, 'Sixteen'), (32, 'ThirtyTwo'), (64, 'SixtyFour')):     # squads minus guards on one board, at each size
+    M['SquadsGap' + name] = f"{np.mean(list(diffs4(rows4c, 'squads', 'colonyGuards', 'honestPooled', 'independent', N).values())):+.2f}"
+two = lambda v: min(1.0, 2 * min(signFlipExact(v, 'greater'), signFlipExact(v, 'less')))
+for (n1, n2), name in (((16, 32), 'Up'), ((32, 64), 'Flat')):              # the squads' step from 16 to 32 and their plateau to 64
+    d1, d2 = (diffs4(rows4c, 'squads', 'plain', 'honestPooled', 'independent', N) for N in (n1, n2))
+    v = [d2[(sd, n2)] - d1[(sd, n1)] for sd, _ in d1 if (sd, n2) in d2]
+    M['SquadsStep' + name], M['SquadsStep' + name + 'P'], M['SquadsStep' + name + 'Seeds'] = f"{np.mean(v):+.3f}", f"{two(v):.3f}", str(sum(x > 0 for x in v))
+pred4b = json.loads(Path('specs/multiagent/phase18/colony4b_predictions.json').read_text())['predictions']
+sg = lambda lo, hi: '+' if lo > 0 else '-' if hi < 0 else '0'
+res4b = ['no call' if sg(*S4b['hyp'][h]['ci']) == '0' else 'right' if sg(*S4b['hyp'][h]['ci']) == pred4b[h]['sign'] else 'wrong'
+         for h in ('H18_16', 'H18_17', 'H18_18')]
+M['FourBForecastRight'], M['FourBForecastWrong'], M['FourBForecastNoCall'] = (str(res4b.count(k)) for k in ('right', 'wrong', 'no call'))
 c4 = S4['cells']
 M['FourSquadsLevel'] = f"{c4['squads|independent N 64']['honestPooled']:.2f}"
 M['FourGuardsEightLevel'] = f"{c4['colonyGuards|independent N 8']['honestPooled']:.2f}"

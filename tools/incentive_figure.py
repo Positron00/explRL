@@ -2,7 +2,7 @@
 
 Now a wrapper: the figure is drawn by `tools/figures.py` (incentives), with the publication convention (mean ± SEM, * p < 0.05).
 
-  python tools/incentive_figure.py <repo>   -> results/multiagent/report/incentives.png
+  python tools/incentive_figure.py <repo>   -> docs/summary/incentives.png (the summary page)
 """
 import sys
 from pathlib import Path

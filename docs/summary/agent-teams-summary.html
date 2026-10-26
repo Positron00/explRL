@@ -1,0 +1,223 @@
+<title>Incentives and Trust in Agent Teams</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column (lab-notebook page): masthead, the figure that carries the main result, five findings as a ledger ranked by strength, supporting figures, then method and limits. */
+:root {
+  --bg: #f6f7f9;
+  --paper: #ffffff;
+  --ink: #18222e;
+  --muted: #566372;
+  --rule: #d9dee5;
+  --accent: #1f6391;
+  --warn: #b03a2e;
+  --chip: #e8eef4;
+  --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11171e; --paper: #182029; --ink: #e4e9ef; --muted: #9aa7b5; --rule: #2c3743;
+    --accent: #6cb2e4; --warn: #ec7a6c; --chip: #1f2a35; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11171e; --paper: #182029; --ink: #e4e9ef; --muted: #9aa7b5; --rule: #2c3743;
+  --accent: #6cb2e4; --warn: #ec7a6c; --chip: #1f2a35; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.page { max-width: 980px; margin: 0 auto; padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 40px; }
+.text { max-width: 68ch; }
+header { display: grid; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 24px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(32px, 5vw, 46px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.dek { font-size: 18px; color: var(--muted); margin: 0; }
+.byline { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
+.byline a { color: var(--accent); }
+.byline .aff { color: var(--muted); font-weight: 400; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 26px; line-height: 1.2; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+section { display: grid; gap: 16px; }
+figure { margin: 0; display: grid; gap: 12px; }
+.plate { background: #ffffff; border: 1px solid var(--rule); border-radius: 4px; padding: 12px; overflow-x: auto; }
+.plate img { display: block; width: 100%; min-width: 640px; height: auto; }
+figcaption { font-size: 14px; color: var(--muted); max-width: 80ch; }
+.lede { font-size: 17px; }
+.ledger { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.ledger li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 4px 16px; padding-block: 18px; border-bottom: 1px solid var(--rule); }
+.ledger .n { font-family: var(--mono); font-size: 14px; color: var(--accent); padding-top: 3px; }
+.ledger h3 { font-family: var(--body); font-weight: 600; font-size: 17px; margin: 0 0 4px; text-wrap: balance; }
+.ledger p { color: var(--ink); font-size: 15px; }
+.ledger p + p { margin-top: 8px; }
+.ledger p.setup { font-size: 13.5px; color: var(--muted); margin-bottom: 6px; }
+.ledger p.setup b { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-right: 6px; }
+.num { font-family: var(--mono); font-size: 0.92em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { font-family: var(--mono); font-size: 11.5px; background: var(--chip); color: var(--muted); padding: 2px 8px; border-radius: 3px; }
+.twocol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.twocol > div { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; font-size: 15px; }
+.facts dt { font-family: var(--mono); font-size: 13px; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.facts dd { margin: 0; }
+.limit { border-left: 3px solid var(--warn); padding-left: 14px; font-size: 15px; }
+footer { border-top: 1px solid var(--rule); padding-top: 18px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; }
+footer a, .twocol a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 720px) { .twocol { grid-template-columns: minmax(0, 1fr); } .page { gap: 32px; padding-block: 28px 40px; } }
+@media (max-width: 520px) { .facts { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } .facts dd { margin-bottom: 8px; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Independent research · 2026 · explRL</div>
+    <h1>Incentives and Trust in Agent Teams</h1>
+    <p class="dek text">What keeps large teams of Claude agents effective and safe when some members are wrong or lying: assigned verification roles, team structure that scales, and what training does and does not teach.</p>
+    <div class="byline">
+      <span class="authors"><strong>Chuntao Dan, PhD</strong> and <strong>Claude Opus 5.5</strong> <span class="aff">(Anthropic, AI co-author)</span></span>
+      <a href="https://github.com/Positron00/explRL">Code and notebooks (GitHub)</a>
+      <a href="https://positron00.github.io/explRL/highlights.html">Highlights, redrawn from the data (GitHub Pages)</a>
+      <a href="https://github.com/Positron00/explRL/blob/main/paper/main.pdf">Preprint: guards, squads and incentives</a>
+      <a href="https://github.com/Positron00/explRL/blob/main/paper2/main.pdf">Preprint: simulate first?</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>Assigned verifiers keep large Claude teams robust, and squads make them scale</h2>
+    <p class="lede text">Teams of Claude Haiku 5.5 agents solve puzzles on a shared board. Every answer needs a clue held by a teammate, and a quarter of the agents are liars who post false clues. Taking a cue from social insects, we made another quarter of the team <em>guards</em>: they post, confirm and contest clues, but never solve. Guards cannot tell which clues are true, yet they won back <span class="num">72%</span> of the points the liars cost the honest agents. The next best defence won back <span class="num">34%</span>, although it had more to go on: it showed, beside each clue, how often its sender's earlier clues had turned out true, which needs the true answers. Guards beat the unprotected team at every size from 8 to 64 agents, but their advantage shrank as teams grew, because a guard can only check the clues it holds. Splitting the team into squads of eight, each with its own guards, kept the advantage as teams grew: it rose from 16 to 32 agents and held at 64, while guards on one board kept losing ground.</p>
+    <figure>
+      <div class="plate"><img src="guards_scale.png" alt="Advantage over the plain board against team size. Guards on one board: 0.26 at 8 agents, 0.20 at 16, 0.23 at 32, 0.17 at 64. Squads of 8 with guards: 0.26 at 16, 0.34 at 32, 0.34 at 64. Guards plus failure flags: 0.25 at 16, 0.30 at 32, 0.23 at 64. Guards plus a copy of every clue: 0.17 at 16, 0.24 at 32, 0.21 at 64. Trends per doubling of team size: guards -0.026 (p = 0.016), squads +0.038 (p = 0.008), failure flags -0.014 (p = 0.28), guard copies +0.017 (p = 0.30)."></div>
+      <figcaption>Each point is a design's gain over the plain board in honest pooled share (what the honest agents scored, as a share of the most they could score with every clue shared), with a quarter of the agents scripted liars; 8 seeds per point (the three designs ran at 16, 32 and 64 agents); mean ± SEM; * p &lt; 0.05 against no gain (two-sided exact sign-flip test, paired on seed, uncorrected). The legend gives each design's trend: its average change per doubling of team size, with a two-sided exact sign-flip p (with evenly spaced sizes this depends only on the smallest and largest). Guards on one board beat the plain board in all eight seeds at every size (one-sided exact p = 0.004 each; pre-registered at 32 and 64 agents). At 64 agents, squads beat guards on one board by <span class="num">+0.17</span>, failure flags by <span class="num">+0.06</span> and guard copies by <span class="num">+0.04</span> (Holm p = 0.012 each, in all eight seeds), and on raw welfare too. At 32 agents, squads (<span class="num">+0.11</span>) and failure flags (<span class="num">+0.07</span>) beat them as well (Holm p = 0.012 each), and guard copies drew level (<span class="num">+0.01</span>). Every analysis plan was frozen before its runs; the 32-agent runs were a declared addition with their own plan.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>The setup</h2>
+    <p class="text">Every Claude experiment uses one small task, built so that no agent can succeed alone: whether a team pools what its members know, and whom it trusts, decides its score.</p>
+    <dl class="facts">
+      <dt>the task</dt><dd>A <em>clue board</em>. N agents share 2N + 2 open subtasks worth 1 to 3 points each. Each answer is a number fixed by two clues (“x mod p = r”) dealt to different agents, so every solve needs a teammate's clue. Each turn an agent opens a subtask, answers it (a wrong answer costs 0.5), posts a clue to a shared board, or waits; posting costs the poster a turn.</dd>
+      <dt>the agents</dt><dd>Claude Haiku 5.5 at low effort, one JSON action per turn, in teams of 4 to 64. Every reply is cached, so reruns are byte-identical and past runs can be replayed turn by turn at no cost.</dd>
+      <dt>faulty teammates</dt><dd>In the defence experiments a quarter of the agents are scripted liars that post a false clue every other turn, and each clue is dealt to two agents, so a lie can be contradicted. Variants: honest agents that misread 30% of their clues, liars that back each other's lies, and Claude agents told in secret to make their teammates answer wrongly.</dd>
+      <dt>defences</dt><dd>Each is compared with the <em>plain board</em>, a shared list of posted clues: a board that counts how many agents posted each value; the same advice as a one-sentence instruction; <em>guards</em>, a quarter of the team told to post, confirm and contest clues and never to solve; a <em>track record</em> beside each clue, showing how often its sender's earlier clues were true (an oracle: it needs the true answers); and, for large teams, squads, failure flags and guard copies.</dd>
+      <dt>the measures</dt><dd><em>Welfare</em> is points per agent-turn, after the cost of wrong answers. The <em>honest pooled share</em> divides the honest agents' welfare by what the team would earn with every clue known to all: 1 is the ceiling, and liars can push it below 0. Effects are differences from the plain board on the same seed.</dd>
+      <dt>training</dt><dd>Copies of Qwen2.5-3B-Instruct share one LoRA adapter, start from imitation of a rule agent, and train with group-relative policy gradients under individual, team or credit reward. Each run is scored by welfare on held-out boards, against the model it started from.</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Five findings, strongest first</h2>
+    <ol class="ledger">
+      <li><span class="n">01</span><div>
+        <h3>Verification works as an assigned role, with no ground truth.</h3>
+        <p class="setup"><b>Setup</b>Two holders per clue, a quarter of the agents liars, 8 seeds per cell. The plain board and four defences at 8 and 16 agents; guards against the plain board at 32 and 64; mistaken and colluding teammates at 32; Claude liars at 16.</p>
+        <p>Guards, as many as there are liars, beat the plain board by <span class="num">+0.26</span>, <span class="num">+0.20</span>, <span class="num">+0.23</span> and <span class="num">+0.17</span> in honest pooled share at 8, 16, 32 and 64 agents, in all eight seeds at each size. They held against every fault we tested: teammates who misread 30% of their clues (<span class="num">+0.06</span>, p = 0.023), liars who back each other's lies to fool a two-agent quorum (<span class="num">+0.09</span>, p = 0.008), and Claude agents told in secret to deceive (<span class="num">+0.06</span>, Holm p = 0.039, <span class="num">70%</span> of their damage recovered).</p>
+        <p>They worked by concentrating the checking: guards contested <span class="num">0.31</span> false values per lie (agreement board alone <span class="num">0.21</span>, plain board <span class="num">0.06</span>) and cut the honest answers built on lies to <span class="num">0.25–0.37</span> (plain board <span class="num">0.73</span>). A board that only displays how many agents agree helped no more than a one-sentence instruction. Checking costs turns: on boards without liars, guards cost <span class="num">0.04–0.09</span> pooled share.</p>
+        <div class="chips"><span class="chip">Claude Haiku 5.5 · 8 to 64 agents</span><span class="chip">scripted and Claude liars, mistakes, collusion</span><span class="chip">exact sign-flip tests, Holm</span><span class="chip">no ground truth used</span></div>
+      </div></li>
+      <li><span class="n">02</span><div>
+        <h3>Splitting a large team makes verification scale.</h3>
+        <p class="setup"><b>Setup</b>Every guard board replayed from the response cache to trace each lie, at no cost; then squads, failure flags and guard copies against guards on one board at 16, 32 and 64 agents (a quarter liars, 8 seeds), each stage with a numpy forecast frozen first.</p>
+        <p>On one board the guards' advantage fell by <span class="num">0.026</span> per doubling of team size (p = 0.016). Replaying every board from the response cache at no cost showed why. The guards did not weaken: they contested <span class="num">75–79%</span> of the lies on clues they held, with a median delay of about one round. But only <span class="num">37–43%</span> of lies landed on a clue a guard held, and lies on the other clues caused <span class="num">81–91%</span> of the answers built on lies, more as teams grew.</p>
+        <p>Squads of eight, each with its own guards and subtasks, beat guards on one board by <span class="num">+0.17</span> at 64 agents, and their advantage over the unprotected team rose from <span class="num">0.26</span> at 16 agents to <span class="num">0.34</span> at 32 (p = 0.023) and held at <span class="num">0.34</span> at 64, while guards on one board fell to <span class="num">0.17</span>: the squads' lead over one board widened from <span class="num">+0.06</span> to <span class="num">+0.11</span> to <span class="num">+0.17</span>. A 64-agent team of squads kept <span class="num">0.25</span> honest pooled share, near an 8-agent guard board's <span class="num">0.28</span>, with prompts of 780 tokens instead of 6,463. Marking every posted value that agreed with a failed answer added <span class="num">+0.06</span> to <span class="num">+0.07</span> at every size, at no cost on clean boards, though 23–27% of the marks fell on true values. Dealing guards a copy of every clue lost at 16 agents, drew level at 32, won only at 64, and cost <span class="num">0.13</span> on clean boards at 16: the guards, now responsible for every clue, contested <span class="num">61%</span> of lies instead of <span class="num">75%</span>. Squads shared no subtasks across squads, so their gain is an upper bound for tasks that split cleanly.</p>
+        <div class="chips"><span class="chip">plan and numpy forecast frozen first</span><span class="chip">$0 replay of every board</span><span class="chip">Holm p = 0.012, all seeds</span></div>
+      </div></li>
+      <li><span class="n">03</span><div>
+        <h3>Larger Claude teams are more gullible, for a traceable reason.</h3>
+        <p class="setup"><b>Setup</b>One holder per clue, a quarter of the agents liars, 8 to 32 agents (5 seeds), each against the same board without liars; every turn replayed with a tracer and the honest agents' loss split into terms that add up exactly.</p>
+        <p>With a quarter of the agents liars, the honest agents' loss rose from <span class="num">0.47</span> at 8 agents to <span class="num">0.58</span> at 16 and <span class="num">0.54</span> at 32, and without a defence the team's honest pooled share fell below zero at 32 and 64 agents (<span class="num">−0.08</span>, <span class="num">−0.09</span>). Tracing every turn from the response cache, with the loss split into terms that add up exactly: the share of honest answers built on a false clue rose from <span class="num">79%</span> at 8 agents to <span class="num">91%</span> at 32, and such answers were wrong 95–97% of the time. Lies were not more visible in larger teams and almost never passed on. Once a liar had posted a clue, the true one never followed in <span class="num">89–94%</span> of cases: agents treat a posted clue as settled. This is the failure guards repair. Our numpy forecast predicted the opposite trend.</p>
+        <div class="chips"><span class="chip">19,600 replayed calls · $0</span><span class="chip">exact loss accounting</span><span class="chip">a forecast that failed, and why</span></div>
+      </div></li>
+      <li><span class="n">04</span><div>
+        <h3>Copies of one model don't divide labour on their own, and the reward decides whether they cooperate.</h3>
+        <p class="setup"><b>Setup</b>The guard role offered to 16-agent Claude teams with no assignment. 3B copies trained at 4 agents under individual, team, credit and priced-guessing rewards (one to five runs per design), on mixed 4- and 8-agent teams (8 runs), and with team reward on the counting board (5 runs).</p>
+        <p>Offered the guard role with its rationale but no assignment, no agent took it on any of 24 boards. Training copies of a 3B model with team reward didn't create the role either: the untrained starting model was already about as specialized as the best of five trained runs (<span class="num">+3.44</span> against <span class="num">+3.57</span> above a shuffled baseline), and two runs collapsed to every agent posting and none solving, because a post is never penalized and an answer can be.</p>
+        <p>Individual reward taught selfish guessing: sharing fell from <span class="num">0.92</span> to <span class="num">0.15</span> clues per held clue and <span class="num">74%</span> of solves were guesses (on replication the drift appeared in 2 of 4 runs). Pricing wrong answers cut guessing in every run (<span class="num">49–90</span> to <span class="num">0.1–15</span> guesses per board), but its effect on sharing proved seed-dependent and we withdrew that claim; credit reward, which pays agents whose clues were used, kept sharing. Training on 4- and 8-agent teams raised welfare at 4 agents (<span class="num">0.26 → 0.34</span>, 7 of 8 runs, not significant after Holm) but not at 32 (<span class="num">0.08 → 0.09</span>), though trained teams lost less to liars there (p = 0.023).</p>
+        <div class="chips"><span class="chip">Qwen2.5-3B · GRPO · LoRA</span><span class="chip">exact tests over training runs · up to 8 per design</span><span class="chip">a claim withdrawn on replication</span></div>
+      </div></li>
+      <li><span class="n">05</span><div>
+        <h3>Move information; don't add work.</h3>
+        <p class="setup"><b>Setup</b>Mostly four agents (10 seeds per arm for the fixes), each mechanism against the plain board and paired with a one-sentence instruction giving the same advice; the request board and the track record rerun at 8 to 32 agents (5 seeds).</p>
+        <p>A shared board added <span class="num">+0.39</span> welfare per agent-turn over no channel. A coordinator helped by moving information, not by giving orders: telling agents to follow it cost <span class="num">−0.13</span>, while having it pass on the clues it collected gained <span class="num">+0.12</span>. Fixes that cost every agent a turn backfired: a request board widened the information-pooling gap by about <span class="num">0.16</span> at every size from 8 to 32 agents, and an instruction to share first lowered output. A free, public track record of each sender recovered <span class="num">30%</span>, <span class="num">22%</span> and <span class="num">31%</span> of liars' damage at 8, 16 and 32 agents, while a private check that costs a turn caught lies and recovered nothing; being public and being free each added about equally (<span class="num">+0.18</span>, <span class="num">+0.16</span>).</p>
+        <div class="chips"><span class="chip">each mechanism against a prompt-only control</span><span class="chip">a vote fix that did not replicate on HiddenBench, reported</span></div>
+      </div></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Guards against every other defence, 8 to 32 agents</h2>
+    <figure>
+      <div class="plate"><img src="guards.png" alt="Two bar charts at 8, 16 and 32 agents with a quarter liars. Left, honest pooled share: plain board 0.02, 0.02 and -0.08; instruction only 0.15 and 0.04; agreement counts 0.14 and 0.05; counts plus guards 0.28, 0.22 and 0.15; oracle track record 0.18 and 0.10. Right, share of honest answers built on a false clue: plain 0.72, 0.73 and 0.85; instruction 0.46 and 0.67; agreement counts 0.52 and 0.67; guards 0.25, 0.37 and 0.45; track record 0.44 and 0.54. At 32 agents only the plain board and guards ran."></div>
+      <figcaption>8 seeds per bar; mean ± SEM over seeds; * p &lt; 0.05 against the plain board (two-sided exact sign-flip test, paired on seed, uncorrected). Guards beat the agreement board alone by <span class="num">+0.16</span> (Holm p &lt; 0.001). The 32- and 64-agent runs were declared deviations from the first plan, each with its own plan frozen first.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Larger teams build on lies more often; a public record holds up</h2>
+    <figure>
+      <div class="plate"><img src="trust_scale.png" alt="Left: share of the liars' damage recovered by a public track record at 4, 8, 16 and 32 agents (0.32, 0.30, 0.22, 0.31, all above zero) and the request board's pooling gap closed at 8, 16 and 32 agents (about -0.16 each). Right: the share of honest answers built on a false clue rising from 0.79 at 8 agents to 0.91 at 32 for Claude Haiku, and staying near 0.97-0.99 for rule agents."></div>
+      <figcaption>Left: 10 seeds at 4 agents, 5 per larger size; mean ± bootstrap SE; * p &lt; 0.05 against zero (two-sided exact sign-flip test; with five seeds no exact two-sided p can fall below 0.0625, so only the 4-agent point can carry a star). Right: mean ± SEM over seeds (5 for Claude Haiku, 20 for rule agents); * p &lt; 0.05 against 8 agents (exact permutation test); every turn traced from the response cache at no API cost. Exploratory; analysis plans frozen before each run.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>What rewards teach trained copies, every training run</h2>
+    <figure>
+      <div class="plate"><img src="incentives.png" alt="Four panels, one row per trained run. Guesses per board: individual-reward runs 49 to 90, priced-loophole runs 0.1 to 15. Clues shared per held clue, solo solves and welfare vary widely within each arm."></div>
+      <figcaption>Each training run is its own row; mean ± SEM over 15 held-out boards; * p &lt; 0.05 against the warm start (two-sided exact sign-flip test, paired on board, uncorrected). Guessing separates individual reward from the priced loophole in every run (a post-hoc observation); sharing, solo solves and welfare overlap between the arms. The trained 3B teams remain below Claude Haiku on the same boards.</figcaption>
+    </figure>
+  </section>
+
+  <div class="twocol">
+    <div>
+      <h2>How the work was done</h2>
+      <dl class="facts">
+        <dt>frozen plans</dt><dd>Every analysis plan hashed and committed before its runs, including the replication that withdrew a claim and the go/no-go rule that stopped a stage.</dd>
+        <dt>byte-identical</dt><dd>Every LLM reply cached; reruns reproduce every row and turn log at no cost, and saved runs can be replayed with new measures.</dd>
+        <dt>$233 API</dt><dd>Claude Haiku 5.5 runs in total, under a cap raised to $250; about 160 GPU hours of RL training on Colab, plus evaluation.</dd>
+        <dt>simulate first</dt><dd>Numpy forecasts frozen before the expensive runs called 4 of 8, 1 of 2, 3 of 4, 4 of 5 and 2 of 2 effects right; their misses (guards, the gullibility trend) mark what language models do that rule agents cannot.</dd>
+      </dl>
+    </div>
+    <div>
+      <h2>Scope and limits</h2>
+      <p class="limit">One Claude model (Haiku 5.5) on a synthetic clue task built to isolate information pooling and deception; up to 64 agents; mostly scripted liars, and Claude liars could act only through clue posts, not free-text persuasion; errors shared by every copy of a model and compromised agents untested; squads had no subtasks spanning squads; RL on a 3B open model with one to eight training runs per design. The methods (environment design, frozen plans, exact accounting, cache replay) are built to scale; the effect sizes are exploratory.</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Future directions</h2>
+    <p class="text">Most promising first. Squads on coupled work (02) is the cheapest next test of the headline result; training the role (01) is the main project.</p>
+    <ol class="ledger next">
+      <li><span class="n">01</span><div>
+        <h3>Train the role, not just the team.</h3>
+        <p>Assigned guards worked; an offered role was never taken, and team reward did not create one. Next: a reward that pays a guard when its contest prevents a wrong answer (as credit reward paid for shared clues), or a role-conditioned objective, trained at 16 agents and up and judged against the warm start, which was already about as specialized as the best trained run.</p>
+      </div></li>
+      <li><span class="n">02</span><div>
+        <h3>Squads on work that doesn't split cleanly.</h3>
+        <p>Squads shared no subtasks, so their <span class="num">+0.17</span> at 64 agents is an upper bound. Next: subtasks whose clues span squads, with bridge agents that carry clues between them, to measure what coupling costs and how many bridges a team needs.</p>
+      </div></li>
+      <li><span class="n">03</span><div>
+        <h3>Stronger adversaries.</h3>
+        <p>Claude liars lied less often than scripted ones and could act only through clue posts. Next: Claude liars in 64-agent teams, liars that aim at the clues no guard holds, and free-text persuasion, tested against squads and failure flags.</p>
+      </div></li>
+      <li><span class="n">04</span><div>
+        <h3>Correlated errors and real work.</h3>
+        <p>Copies of one model share its blind spots, and a guard drawn from the same model may share them too. Next: guards from a different model, mixed-model teams, and verification on coding and research tasks, where a check costs more than a turn.</p>
+      </div></li>
+      <li><span class="n">05</span><div>
+        <h3>A better cheap screen.</h3>
+        <p>Rule-agent forecasts got team structure right and missed what language models do: guards paying off, agents building on a posted lie. Next: give the simulator those behaviours, fitted from a cheap pilot, and score whether it forecasts the next study better than the pilot alone.</p>
+      </div></li>
+    </ol>
+  </section>
+
+  <footer>
+    <span>Chuntao Dan, PhD · Claude Opus 5.5 (Anthropic)</span>
+    <a href="https://github.com/Positron00/explRL">github.com/Positron00/explRL</a>
+    <a href="https://positron00.github.io/explRL/">positron00.github.io/explRL</a>
+    <a href="https://www.linkedin.com/in/chuntaodan/">linkedin.com/in/chuntaodan</a>
+  </footer>
+</div>

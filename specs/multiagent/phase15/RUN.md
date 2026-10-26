@@ -31,4 +31,4 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command; none
 
 ## Summary figure (Phases 13-15)
 
-`python tools/scale_figure.py $PWD` -> `results/multiagent/report/trust_scale.png`: the public track record's share of liars' damage recovered and the request board's pooling gap closed against team size (Phases 13-14), and the share of honest answers built on a false clue, Claude Haiku against rule agents (Phase 15). Reads the saved results only.
+`python tools/scale_figure.py $PWD` -> `docs/summary/trust_scale.png`: the public track record's share of liars' damage recovered and the request board's pooling gap closed against team size (Phases 13-14), and the share of honest answers built on a false clue, Claude Haiku against rule agents (Phase 15). Reads the saved results only.

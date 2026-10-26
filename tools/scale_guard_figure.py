@@ -2,7 +2,7 @@
 
 Now a wrapper: the figure is drawn by `tools/figures.py` (guardsScale), with the publication convention (mean ± SEM, * p < 0.05).
 
-  python tools/scale_guard_figure.py <repo>   -> results/multiagent/report/guards_scale.png
+  python tools/scale_guard_figure.py <repo>   -> docs/summary/guards_scale.png (the summary page)
 """
 import sys
 from pathlib import Path

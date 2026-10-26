@@ -2,7 +2,7 @@
 
 Now a wrapper: the figure is drawn by `tools/figures.py` (guards), with the publication convention (mean ± SEM, * p < 0.05).
 
-  python tools/guard_figure.py <repo>   -> results/multiagent/report/guards.png
+  python tools/guard_figure.py <repo>   -> docs/summary/guards.png (the summary page)
 """
 import sys
 from pathlib import Path

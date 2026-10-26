@@ -26,4 +26,4 @@ From the repo root (`.venv/bin` first on `PATH`), one notebook per command; none
 ## Artifacts
 
 - Colab (Google Drive, `MyDrive/explRL_rl/`): `runs_p16/<arm>_s<seed>/` (config, metrics, final adapter), `eval_p16/runs.csv` and turn logs, all in `explRL_rl16.zip`.
-- Mac: `results/multiagent/rl/colab/{runs_p16, eval_p16}/`; `results/multiagent/rl/eval_p16/{report.md, rl16.png, summary.json}` (quick: `quick_p16/`); `results/multiagent/report/incentives.png`.
+- Mac: `results/multiagent/rl/colab/{runs_p16, eval_p16}/`; `results/multiagent/rl/eval_p16/{report.md, rl16.png, summary.json}` (quick: `quick_p16/`); `docs/summary/incentives.png`.
