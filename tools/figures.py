@@ -93,10 +93,10 @@ def incentivesData(R):
     runs = [('imitation (warm start)', 'eval', 'warm', '#555555'), ('individual reward (seed 1)', 'eval', 'individual', '#c0392b')]
     runs += [(f'individual reward (seed {s})', 'eval_p16', f'individual_s{s}', '#c0392b') for s in (2, 3, 4)]
     runs += [('team reward', 'eval', 'team', '#999999')]
-    runs += [(f'individual, loophole priced (seed {s})', 'eval_p13', f'indpen_s{s}', '#e67e22') for s in (1, 2)]
-    runs += [(f'individual, loophole priced (seed {s})', 'eval_p16', f'indpen_s{s}', '#e67e22') for s in (3, 4, 5)]
+    runs += [(f'individual + penalty (seed {s})', 'eval_p13', f'indpen_s{s}', '#e67e22') for s in (1, 2)]
+    runs += [(f'individual + penalty (seed {s})', 'eval_p16', f'indpen_s{s}', '#e67e22') for s in (3, 4, 5)]
     runs += [(f'credit reward (seed {s})', 'eval_p13', f'credit_s{s}', '#2471a3') for s in (1, 2)]
-    runs += [(f'credit, per-turn (seed {s})', 'eval_p13', f'credturn_s{s}', '#5dade2') for s in (1, 2)]
+    runs += [(f'credit, per-turn + penalty (seed {s})', 'eval_p13', f'credturn_s{s}', '#5dade2') for s in (1, 2)]
     board = lambda d, lv, m: {str(int(r['seed'])): float(r[m]) for r in data[d] if r['level'] == f'{lv}|main' and np.isfinite(float(r[m]))}
     clue = readCSV(R / 'clue/full/runs.csv')
     ref = lambda study: float(np.mean([float(r['welfare']) for r in clue if r['study'] == study and r['channel'] == 'blackboard'

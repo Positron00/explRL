@@ -164,17 +164,18 @@ def trustScale(d, paper):
     Right: honest answers built on a false clue per runner and team size (per-seed values; permutation test against the smallest team)."""
     fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.4) if paper else (11, 4.0))
     sz = 9 if paper else 12
-    for key, col, lab in (('record', '#1f6391', 'public track record: liar damage recovered'), ('request', '#c0392b', 'request board: pooling gap closed')):
+    for key, col, lab in (('record', '#1f6391', 'track record (each sender\'s past accuracy shown): damage won back'),
+                          ('request', '#c0392b', 'request board (agents can ask for clues): sharing gap closed')):
         pts = d[key]
         x, y, e = [r[0] for r in pts], np.array([r[1] for r in pts]), np.array([r[2] for r in pts])
         a.errorbar(x, y, yerr=e, fmt='o-', capsize=2 if paper else 3, color=col, label=lab.split(':')[0] if paper else lab)
         for xi, yi, ei, r in zip(x, y, e, pts):
             star(a, xi, yi + ei if yi >= 0 else yi - ei - 0.05, r[3], color=col, size=sz)
     a.axhline(0, color='k', lw=0.6)
-    a.set(xscale='log', xticks=[4, 8, 16, 32], xlabel='team size (Claude Haiku 5.5 agents)', ylim=(-0.32, 0.55),
-          ylabel='damage recovered or gap closed' if paper else 'share of the gap', title='' if paper else 'Fixes hold as teams grow')
-    a.set_xticklabels(['4', '8', '16', '32'])
-    a.legend(fontsize=None if paper else 8, loc='center left')
+    a.set(xscale='log', xticks=[4, 8, 16, 32], xlabel='team size (Claude Haiku 5.5 agents)', ylim=(-0.32, 0.55 if paper else 0.7),
+          ylabel='damage recovered or gap closed' if paper else 'share of the gap closed (1 = all of it)',
+          title='' if paper else 'Two fixes keep their effect from 4 to 32 agents')
+    a.set_xticklabels(['4', '8', '16', '32']), a.legend(fontsize=None if paper else 8, loc='center left' if paper else 'upper right')
     for who, mk, col, lab in (('haiku', 'o-', '#1f6391', 'Claude Haiku 5.5'), ('numpy', 's--', '#999999', 'rule agents')):
         per = {int(N): v for N, v in d['contaminated'][who].items() if v}
         Ns = sorted(per)

@@ -994,7 +994,7 @@
     }
    ],
    [
-    "individual, loophole priced (seed 1)",
+    "individual + penalty (seed 1)",
     "#e67e22",
     {
      "sharePerHeld": {
@@ -1068,7 +1068,7 @@
     }
    ],
    [
-    "individual, loophole priced (seed 2)",
+    "individual + penalty (seed 2)",
     "#e67e22",
     {
      "sharePerHeld": {
@@ -1142,7 +1142,7 @@
     }
    ],
    [
-    "individual, loophole priced (seed 3)",
+    "individual + penalty (seed 3)",
     "#e67e22",
     {
      "sharePerHeld": {
@@ -1216,7 +1216,7 @@
     }
    ],
    [
-    "individual, loophole priced (seed 4)",
+    "individual + penalty (seed 4)",
     "#e67e22",
     {
      "sharePerHeld": {
@@ -1290,7 +1290,7 @@
     }
    ],
    [
-    "individual, loophole priced (seed 5)",
+    "individual + penalty (seed 5)",
     "#e67e22",
     {
      "sharePerHeld": {
@@ -1512,7 +1512,7 @@
     }
    ],
    [
-    "credit, per-turn (seed 1)",
+    "credit, per-turn + penalty (seed 1)",
     "#5dade2",
     {
      "sharePerHeld": {
@@ -1586,7 +1586,7 @@
     }
    ],
    [
-    "credit, per-turn (seed 2)",
+    "credit, per-turn + penalty (seed 2)",
     "#5dade2",
     {
      "sharePerHeld": {
