@@ -35,9 +35,9 @@ def incentives(d, paper):
             if y:
                 star(ax, mu + e, y, signP([v[s] - warm[m][s] for s in sorted(v, key=int) if s in warm[m]]), horizontal=True)
         for x, name, ls in refs.get(m, ()):
-            ax.axvline(x, ls=ls, lw=1.2, color='k', alpha=0.6, label=f'{name} ({x:.2f})')
-        if m in refs:
-            ax.legend(fontsize=8, loc='lower right', framealpha=1, title='references (same boards)', title_fontsize=8)
+            ax.axvline(x, ls=ls, lw=1.2, color='k', alpha=0.6)
+            ax.annotate(f'{name} ({x:.2f})', (x, (len(runs) - 1) / 2), xytext=(-3, 0), textcoords='offset points', rotation=90,
+                        ha='right', va='center', fontsize=8, color='#566372')
         ax.set_title(title, fontsize=11)
         ax.grid(axis='x', alpha=0.3)
     axs[0].set_yticks(range(len(runs)), [r[0] for r in runs], fontsize=9)
@@ -45,7 +45,8 @@ def incentives(d, paper):
     fig.suptitle('Trained 3B teams under five reward designs, every training run shown: guessing separates the arms; '
                  'sharing and welfare vary from run to run', fontsize=12)
     fig.text(0.5, 0.005, 'Qwen2.5-3B-Instruct, 4 agents sharing one LoRA adapter, GRPO; 15 held-out boards; mean ± SEM over boards; '
-             '* p < 0.05, two-sided exact sign-flip test against the warm start, paired on board', ha='center', fontsize=8, color='#566372')
+             '* p < 0.05, two-sided exact sign-flip test against the warm start, paired on board; '
+             'vertical lines: Claude Haiku 5.5 and rule agents on the same boards', ha='center', fontsize=8, color='#566372')
     fig.tight_layout(rect=(0, 0.03, 1, 0.95))
     return fig
 

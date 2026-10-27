@@ -166,7 +166,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   <section>
     <h2>Individual reward teaches guessing; a wrong-answer penalty stops it</h2>
     <figure>
-      <div class="plate"><img src="incentives.png" alt="Four panels, one row per trained run. Guesses per board: individual-reward runs 49 to 90, individual-plus-penalty runs 0.1 to 15. Clues shared per held clue, solo solves and welfare vary widely within each arm."></div>
+      <div class="plate"><img src="incentives.png" alt="Four panels, one row per trained run. Guesses per board: individual-reward runs 49 to 90, individual-plus-penalty runs 0.1 to 15. Clues shared per held clue, solo solves and welfare vary widely within each arm. In the welfare panel, vertical lines mark Claude Haiku 5.5 (0.55) and rule agents (0.61) on the same boards."></div>
       <figcaption>Each row is one training run of copies of a 3B model, scored on 15 held-out boards. Rewards: <em>individual</em> (an agent's own points); <em>team</em> (the team's mean); <em>credit</em> (the solver keeps half and the agents whose clues it used share the rest); <em>individual + penalty</em> (a wrong answer costs 3 points in training instead of 0.5, so guessing stops paying); and <em>credit, per-turn + penalty</em> (credit reward with the same penalty, assigned turn by turn). Mean ± SEM over boards; * p &lt; 0.05 against the warm start (two-sided exact sign-flip test, paired on board, uncorrected). Guessing separates individual reward from individual + penalty in every run (a post-hoc observation); sharing, solo solves and welfare overlap between the arms. The trained 3B teams remain below Claude Haiku on the same boards.</figcaption>
     </figure>
   </section>
