@@ -4,6 +4,8 @@ import json
 import shutil
 from pathlib import Path
 
+import numpy as np
+
 from explRL.bench_grid import readCSV
 from explRL.clue_report import summaries as clueSummaries
 from explRL.llm_report import summaries as llmSummaries
@@ -65,6 +67,18 @@ for k, name in (('indpen|sharePerHeld', 'ObsIndpenShare'), ('indpen|welfare', 'O
                 ('credturn|welfare', 'ObsCredturnWelfare')):
     M[name] = f"{llm13[k]['mean']:+.3f}"
     M[name + 'CI'] = f"[{llm13[k]['ci'][0]:+.3f}, {llm13[k]['ci'][1]:+.3f}]"
+for arm in ('individual', 'team', 'credit'):
+    M['RetroAgree' + arm.capitalize()] = str(sum(p == q for k, (p, q) in score['retrodiction']['pairs'].items() if k.startswith(arm + '|')))
+# post hoc (specs/multiagent/phase13/forecast.md): a numpy effect smaller than a tenth of the LLM warm start's value counts as 0
+warm = {m: np.nanmean([r[m] for r in ev if r['level'] == 'warm|main']) for m in ('welfare', 'sharePerHeld', 'soloShare', 'wrongPerSolve')}
+post = lambda part: sum(('0' if abs(pred[k]['mean']) < 0.1 * abs(warm[k.split('|')[1]]) else pred[k]['sign']) == q
+                        for k, (_, q) in score[part]['pairs'].items())
+M['RetroAgreePostHoc'], M['ForecastAgreePostHoc'] = str(post('retrodiction')), str(post('forecast'))
+
+# Phase 16: penalized runs that still drifted selfish (RL16_PLAN's rule: a run's solo share above 0.5)
+r16 = json.loads((R / 'rl/eval_p16/summary.json').read_text())['runs']
+pen = [n for n in r16 if n.startswith('indpen')]
+M['SixteenPenRuns'], M['SixteenPenDrift'] = str(len(pen)), str(sum(r16[n]['soloShare'] > 0.5 for n in pen))
 
 # Phase 14: the numpy forecast of team-size trends, scored
 sc = json.loads((R / 'forecast/scale_score.json').read_text())
@@ -102,12 +116,19 @@ M['ColonyRight'], M['ColonyWrong'], M['ColonyNoCall'] = str(SC['right']), str(SC
 M['ColonyCalled'] = str(SC['right'] + SC['wrong'])
 M['ColonyPredGuards'] = f"{SP['H18_4']['estimate']:+.3f}"
 M['ColonyPredBoard'] = f"{SP['H18_1']['estimate']:+.2f}"
+M['ColonyPredTotal'], M['ColonyScored'] = str(len(SP)), str(len(SC['items']))
+# what changed with Claude guards: honest agents' means on the Stage 1 liar boards (8 and 16 agents)
+r18 = readCSV(R / 'colony/stage1/runs.csv')
+for col, name in (('shareShare', 'ShareTurns'), ('contestFalse', 'Contests'), ('confirmFalse', 'Confirms')):
+    for arm, who in (('colonyGuards', 'Guards'), ('colony', 'Board')):
+        M['Colony' + who + name] = f"{np.nanmean([r[col] for r in r18 if r['level'] == arm + '|independent']):.2f}"
 
 # Phase 18, Stage 4: the design-change forecast (colony4_predictions.json, frozen before the pilot; colony4_score.json)
 P4 = json.loads(Path('specs/multiagent/phase18/colony4_predictions.json').read_text())
 S4F = json.loads(Path('specs/multiagent/phase18/colony4_score.json').read_text())
 O4 = json.loads((R / 'colony/stage4/metrics.json').read_text())['summary']
 M['FourRight'], M['FourWrong'], M['FourNoCall'] = str(S4F['right']), str(S4F['wrong']), str(S4F['noCall'])
+M['FourScored'] = str(len(S4F['items']))
 # Stage 4b: the same designs at 32 agents; its forecast (from the frozen numpy rows) scored on the three primary tests
 S4b = json.loads(Path('results/multiagent/colony/stage4b/metrics.json').read_text())['summary']
 pred4b = json.loads(Path('specs/multiagent/phase18/colony4b_predictions.json').read_text())['predictions']

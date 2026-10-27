@@ -2,11 +2,12 @@
 number in the text is traceable to `results/multiagent/`. Run from the repo root: `.venv/bin/python paper/make_assets.py`."""
 import json
 import shutil
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
 
-from explRL.bench_grid import readCSV
+from explRL.bench_grid import readCSV, rowKey
 from explRL.clue_report import summaries as clueSummaries
 from explRL.coop_report import trackASummaries
 from explRL.fix_report import fixLogMetrics, fixSummaries
@@ -74,6 +75,9 @@ M['BasePooledFour'] = f"{mech['A1']['baseline|4']['pooledShare']:.2f}"
 M['AsksFour'] = f"{mech['A1']['request|4']['asks']:.0f}"
 M['SharePerHeldBase'] = f"{mech['A1']['baseline|4']['sharePerHeld']:.2f}"
 M['SharePerHeldEvidence'] = f"{mech['A1']['evidence|4']['sharePerHeld']:.2f}"
+lm, nt = fixLogMetrics(logs), Counter(x['key'] for x in logs if x.get('kind', 'turn') == 'turn')
+rq = [rowKey(r) for r in fx if r['level'] == 'request' and int(r['N']) == 4]
+M['AskShareFour'] = f"{sum(lm[k]['asks'] for k in rq) / sum(nt[k] for k in rq):.2f}"           # the share of turns spent asking
 M['ChecksLiar'] = f"{mech['A2']['verify|liar|4']['checks']:.0f}"
 M['CheckedFalseLiar'] = f"{mech['A2']['verify|liar|4']['checkedFalse']:.0f}"
 M['BaseHonestLoss'] = f"{SF['A2']['record']['base']:.2f}"
@@ -161,6 +165,13 @@ M['SixteenDrift'] = str(S16['drift'])
 r16 = S16['runs']
 M['SixteenPenShareMin'] = f"{min(v['sharePerHeld'] for n, v in r16.items() if n.startswith('indpen')):.2f}"
 M['SixteenPenShareMax'] = f"{max(v['sharePerHeld'] for n, v in r16.items() if n.startswith('indpen')):.2f}"
+from explRL.rl16_report import runValues
+gv = runValues(rows('rl/eval/runs.csv'), rows('rl/colab/eval_p13/runs.csv'), rows('rl/colab/eval_p16/runs.csv'), 'guesses')
+for arm, name in (('individual', 'Ind'), ('indpen', 'Pen')):                              # guesses per board, every run of each arm
+    v = [x for n, x in gv.items() if n.startswith(arm + '_')]
+    M['Guesses' + name + 'Min'], M['Guesses' + name + 'Max'] = f"{min(v):.1f}", f"{max(v):.1f}"
+wc, wm = json.loads((R / 'rl/colab/warm/config.json').read_text()), [json.loads(x) for x in open(R / 'rl/colab/warm/metrics.jsonl')]
+M['WarmTurns'] = f"{wm[-1]['step'] * wc['batch']:,}".replace(',', '{,}')                    # one epoch of imitation: steps x batch
 
 # Phase 15: tracing why larger teams lose more to liars (results/multiagent/liar/full)
 TL = json.loads((R / 'liar/full/trace_summary.json').read_text())
@@ -263,6 +274,11 @@ M['GuardsTrendSixtyFour'], M['GuardsTrendSixtyFourP'] = f"{S64['trend']['estimat
 M['GuardsAdvEight'], M['GuardsAdvSixtyFour'] = (f"{S64['advantage'][str(N)] if str(N) in S64['advantage'] else S64['advantage'][N]:.2f}" for N in (8, 64))
 for N, name in ((8, 'Eight'), (16, 'Sixteen'), (32, 'ThirtyTwo'), (64, 'SixtyFour')):      # the guard advantage at each size, as in the figure
     M['GuardsBy' + name] = f"{S64['advantage'][str(N)] if str(N) in S64['advantage'] else S64['advantage'][N]:+.3f}"
+gb = sum((rows(f'colony/{d}/runs.csv') for d in ('stage1', 'stage32', 'stage64')), [])
+gp = [list(cpairs(gb, 'colonyGuards', 'honestPooled', sizes=[N]).values()) for N in (8, 16, 32, 64)]
+pos, ps = {sum(x > 0 for x in d) for d in gp}, {signFlipExact(d, 'greater') for d in gp}
+assert len(pos) == 1 and len(ps) == 1, 'the text gives one seed count and one p for every size'
+M['GuardsByPositive'], M['GuardsBySeeds'], M['GuardsByP'] = str(pos.pop()), str(len(gp[0])), f"{ps.pop():.3f}"
 c64 = S64['cells']
 M['GuardsSixtyFourPlainLiar'] = f"{c64['plain|independent']['honestPooled']:.2f}"
 M['GuardsSixtyFourGuardLiar'] = f"{c64['colonyGuards|independent']['honestPooled']:.2f}"
@@ -318,6 +334,11 @@ M['FourBCost'], M['FourBPlanHash'] = f"{m4b['cost']:.2f}", m4b['planHash']
 for a4, name in (('colonyGuards', 'Guards'), ('squads', 'Squads'), ('guardDeal', 'Copies'), ('failFlag', 'Flags')):
     M['FourAdv' + name + 'ThirtyTwo'] = f"{S4b['advantage'][a4]:.2f}"
 rows4c = rows4all + readCSV(R / 'colony/stage4b/runs.csv') + readCSV(R / 'colony/stage4b/reused.csv')
+pos4 = {N: {sum(x > 0 for x in diffs4(rows4c, a, 'colonyGuards', 'honestPooled', 'independent', N).values()) for a in arms}
+        for N, arms in ((64, ('squads', 'failFlag', 'guardDeal')), (32, ('squads', 'failFlag')))}      # the designs that won
+assert all(len(v) == 1 for v in pos4.values()), 'the text gives one seed count per size'
+M['FourPositive'], M['FourBPositive'] = str(pos4[64].pop()), str(pos4[32].pop())
+M['FourSeeds'] = str(len(diffs4(rows4c, 'squads', 'colonyGuards', 'honestPooled', 'independent', 64)))
 for N, name in ((16, 'Sixteen'), (32, 'ThirtyTwo'), (64, 'SixtyFour')):     # squads minus guards on one board, at each size
     M['SquadsGap' + name] = f"{np.mean(list(diffs4(rows4c, 'squads', 'colonyGuards', 'honestPooled', 'independent', N).values())):+.2f}"
 two = lambda v: min(1.0, 2 * min(signFlipExact(v, 'greater'), signFlipExact(v, 'less')))
@@ -359,6 +380,13 @@ for N, name in ((4, 'Four'), (32, 'ThirtyTwo')):
 M['SeventeenPositive'] = str(sum(S17['runs'][m]['gain4'] > 0 for m in r17))
 M['SeventeenHaikuThirtyTwo'] = f"{S17['refs']['32']['welfare']:.2f}" if S17.get('refs') else '0.44'
 M['SeventeenPlanHash'] = S17['planHash']
+halts = []                                                                                  # (on the KL rule?, update rejected at the halt?)
+for d in sorted((R / 'rl/colab/runs_p17').glob('r17mix_s*')):
+    if (d / 'halted.json').exists():
+        h, recs = json.loads((d / 'halted.json').read_text()), [json.loads(x) for x in open(d / 'metrics.jsonl')]
+        halts.append((h['reason'].startswith('mean KL'), [r for r in recs if r.get('step') == h['step']][-1]['rejected']))
+M['SeventeenHalted'], M['SeventeenKLHalts'] = str(len(halts)), str(sum(k for k, _ in halts))
+M['SeventeenFlatHalts'], M['SeventeenBadHalts'] = str(sum(k and not j for k, j in halts)), str(sum(k and j for k, j in halts))
 
 # Phase 18, Part B lite: clones trained with team reward on the colony board (results/multiagent/rl/eval_p18)
 SPB = json.loads((R / 'rl/eval_p18/summary.json').read_text())
@@ -387,11 +415,12 @@ from explRL.colony32 import stage32Grid
 from explRL.colony_trace import replay, falseValues
 from explRL.colony_mech import lieTiming
 from explRL.llm_runs import LLMConfig
-held, cont, ung = {}, {}, {}
+held, cont, ung, lag = {}, {}, {}, {}
 for c in [x for x in stage1Grid() + stage32Grid() + stage64Grid() if x['level'] == 'colonyGuards|independent']:
     cfg = LLMConfig.fromDict(c['cfg'])
     rp = replay(cfg, c['seed'], cacheOnlyClient(cfg, R / 'llm/cache'))
     t, n = lieTiming(rp.board, rp.answers, rp.nLiar, cfg.world['guards']), len(falseValues(rp.board))
+    lag.setdefault(cfg.N, []).append(t['contestLagGuarded'])
     nh = t['guardHeldLies'] * n
     held.setdefault(cfg.N, []).append((nh, n))
     cont.setdefault(cfg.N, []).append((t['contestRateGuarded'] * nh, nh))
@@ -406,6 +435,8 @@ gu = [sum(b for _, b in ung[N]) / sum(nh for nh, _ in held[N]) for N in sorted(u
 M['DiagUsesGuardedMin'], M['DiagUsesGuardedMax'] = f"{min(gu):.2f}", f"{max(gu):.2f}"
 uu = [sum(a for a, _ in ung[N]) / sum(n - nh for nh, n in held[N]) for N in sorted(ung)]     # wrong answers per unguarded lie
 M['DiagUsesUnguardedEight'] = f"{uu[0]:.2f}"
+lg = [np.nanmedian(lag[N]) for N in sorted(lag)]                                          # per size: the median over boards of each board's median delay
+M['DiagLagMin'], M['DiagLagMax'] = f"{min(lg):.1f}", f"{max(lg):.1f}"
 pu = {}                                                                                   # the plain board: every lie unguarded
 for c in [x for x in stage1Grid() + stage32Grid() + stage64Grid() if x['level'] == 'plain|independent']:
     cfg = LLMConfig.fromDict(c['cfg'])
