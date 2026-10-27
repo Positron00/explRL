@@ -160,41 +160,41 @@ def guards(d, paper):
 # %% ../nbs/figs_team.ipynb #cf50ce3f
 @drawn
 def trustScale(d, paper):
-    """Left: the track record's damage recovered and the request board's gap closed against team size (rows [N, gap, se, p]).
-    Right: honest answers built on a false clue per runner and team size (per-seed values; permutation test against the smallest team)."""
+    """Left: honest answers built on a false clue per runner and team size (per-seed values; permutation test against the smallest team).
+    Right: the track record's damage recovered and the request board's gap closed against team size (rows [N, gap, se, p])."""
     fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.4) if paper else (11, 4.0))
     sz = 9 if paper else 12
-    for key, col, short, lab in (('record', '#1f6391', 'public track record', 'track record (each sender\'s past accuracy shown): damage won back'),
-                                 ('request', '#c0392b', 'request board', 'request board (agents can ask for clues): sharing gap closed')):
-        pts = d[key]
-        x, y, e = [r[0] for r in pts], np.array([r[1] for r in pts]), np.array([r[2] for r in pts])
-        a.errorbar(x, y, yerr=e, fmt='o-', capsize=2 if paper else 3, color=col, label=short if paper else lab)
-        for xi, yi, ei, r in zip(x, y, e, pts):
-            star(a, xi, yi + ei if yi >= 0 else yi - ei - 0.05, r[3], color=col, size=sz)
-    a.axhline(0, color='k', lw=0.6)
-    a.set(xscale='log', xticks=[4, 8, 16, 32], xlabel='team size (Claude Haiku 5.5 agents)', ylim=(-0.32, 0.55 if paper else 0.7),
-          ylabel='damage recovered or gap closed' if paper else 'share of the gap closed (1 = all of it)',
-          title='' if paper else 'Two fixes keep their effect from 4 to 32 agents')
-    a.set_xticklabels(['4', '8', '16', '32']), a.legend(fontsize=None if paper else 8, loc='center left' if paper else 'upper right')
     for who, mk, col, lab in (('haiku', 'o-', '#1f6391', 'Claude Haiku 5.5'), ('numpy', 's--', '#999999', 'rule agents')):
         per = {int(N): v for N, v in d['contaminated'][who].items() if v}
         Ns = sorted(per)
         y, e = np.array([np.mean(per[N]) for N in Ns]), np.array([sem(per[N]) for N in Ns])
-        b.errorbar(Ns, y, yerr=e, fmt=mk, capsize=2 if paper else 3, color=col, label=lab)
+        a.errorbar(Ns, y, yerr=e, fmt=mk, capsize=2 if paper else 3, color=col, label=lab)
         for N, yi, ei in zip(Ns[1:], y[1:], e[1:]):
-            star(b, N, yi + ei, permP(per[N], per[Ns[0]]), color=col, size=sz)
-    b.set(xscale='log', xticks=[8, 16, 32], xlabel='team size (a quarter of the agents liars)', ylim=(0.6, 1.04),
+            star(a, N, yi + ei, permP(per[N], per[Ns[0]]), color=col, size=sz)
+    a.set(xscale='log', xticks=[8, 16, 32], xlabel='team size (a quarter of the agents liars)', ylim=(0.6, 1.04),
           ylabel='answers built on a false clue' if paper else 'honest answers built on a false clue',
           title='' if paper else 'Larger teams build on lies more often')
-    b.set_xticklabels(['8', '16', '32'])
-    b.legend(fontsize=None if paper else 8, loc='lower right')
+    a.set_xticklabels(['8', '16', '32'])
+    a.legend(fontsize=None if paper else 8, loc='lower right')
+    for key, col, short, lab in (('record', '#1f6391', 'public track record', 'track record (each sender\'s past accuracy shown): damage won back'),
+                                 ('request', '#c0392b', 'request board', 'request board (agents can ask for clues): sharing gap closed')):
+        pts = d[key]
+        x, y, e = [r[0] for r in pts], np.array([r[1] for r in pts]), np.array([r[2] for r in pts])
+        b.errorbar(x, y, yerr=e, fmt='o-', capsize=2 if paper else 3, color=col, label=short if paper else lab)
+        for xi, yi, ei, r in zip(x, y, e, pts):
+            star(b, xi, yi + ei if yi >= 0 else yi - ei - 0.05, r[3], color=col, size=sz)
+    b.axhline(0, color='k', lw=0.6)
+    b.set(xscale='log', xticks=[4, 8, 16, 32], xlabel='team size (Claude Haiku 5.5 agents)', ylim=(-0.32, 0.55 if paper else 0.7),
+          ylabel='damage recovered or gap closed' if paper else 'share of the gap closed (1 = all of it)',
+          title='' if paper else 'Two fixes keep their effect from 4 to 32 agents')
+    b.set_xticklabels(['4', '8', '16', '32']), b.legend(fontsize=None if paper else 8, loc='center left' if paper else 'upper right')
     for ax in (a, b):
         ax.minorticks_off()
     if paper:
         fig.tight_layout()
     else:
-        fig.text(0.5, 0.005, 'Left: 10 seeds at 4 agents, 5 per larger size; mean ± bootstrap SE; * p < 0.05, two-sided exact sign-flip test '
-                 'against 0\n(with 5 seeds the exact two-sided p cannot fall below 0.0625). Right: mean ± SEM over seeds (5 for Claude '
-                 'Haiku, 20 for rule agents); * p < 0.05, exact permutation test against 8 agents.', ha='center', fontsize=7, color='#566372')
+        fig.text(0.5, 0.005, 'Left: mean ± SEM over seeds (5 for Claude Haiku, 20 for rule agents); * p < 0.05, exact permutation test against '
+                 '8 agents.\nRight: 10 seeds at 4 agents, 5 per larger size; mean ± bootstrap SE; * p < 0.05, two-sided exact sign-flip test '
+                 'against 0 (with 5 seeds the exact two-sided p cannot fall below 0.0625).', ha='center', fontsize=7, color='#566372')
         fig.tight_layout(rect=(0, 0.07, 1, 1))
     return fig
