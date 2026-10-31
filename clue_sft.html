@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 12, the warm start: the rule agent’s moves (sharing every clue nobody has shared, so each move depends only on what the prompt shows) as chat examples with the note first (for a submit, the candidates its known clues leave), LoRA fine-tuning on them, merging into the warm-start model, and the warm-start check (solve rate with every clue held, invalid replies). Training needs the [train] extra; the offline tests do not.">
+
+<title>clue_sft – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-66a38d7287321bc50e069add96f8c30e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="clue_sft – explRL">
+<meta property="og:description" content="Phase 12, the warm start: the rule agent’s moves (sharing every clue nobody has shared, so each move depends only on what the prompt shows) as chat examples with the note first (for a submit, the candidates its known clues leave), LoRA fine-tuning on them, merging into the warm-start model, and the warm-start check (solve rate with every clue held, invalid replies). Training needs the [train] extra; the offline tests do not.">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="clue_sft – explRL">
+<meta name="twitter:description" content="Phase 12, the warm start: the rule agent’s moves (sharing every clue nobody has shared, so each move depends only on what the prompt shows) as chat examples with the note first (for a submit, the candidates its known clues leave), LoRA fine-tuning on them, merging into the warm-start model, and the warm-start check (solve rate with every clue held, invalid replies). Training needs the [train] extra; the offline tests do not.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./clue_sft.html">clue_sft</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#tests" id="toc-tests" class="nav-link active" data-scroll-target="#tests">Tests</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./clue_sft.html">clue_sft</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">clue_sft</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 12, the warm start: the rule agent’s moves (sharing every clue nobody has shared, so each move depends only on what the prompt shows) as chat examples with the note first (for a submit, the candidates its known clues leave), LoRA fine-tuning on them, merging into the warm-start model, and the warm-start check (solve rate with every clue held, invalid replies). Training needs the <code>[train]</code> extra; the offline tests do not.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<div id="a9aa2af0" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.464910+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.476706+00:00&quot;,&quot;total&quot;:0.0118004859999985}}" data-execution_count="3">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L172" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="warmcheck" class="level3">
+<h3 class="anchored" data-anchor-id="warmcheck">warmCheck</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> warmCheck(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    policy, seeds:<span class="bu">range</span><span class="op">=</span><span class="bu">range</span>(<span class="dv">1200</span>, <span class="dv">1220</span>), turns:<span class="bu">int</span><span class="op">=</span><span class="dv">30</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    settings:<span class="bu">dict</span><span class="op">=</span>{<span class="st">'m'</span>: <span class="dv">2</span>, <span class="st">'r'</span>: <span class="dv">1</span>, <span class="st">'R'</span>: <span class="dv">30</span>, <span class="st">'guess'</span>: <span class="fl">0.0</span>, <span class="st">'value'</span>: (<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="st">'life'</span>: <span class="dv">30</span>, <span class="st">'penalty'</span>: <span class="fl">0.5</span>, <span class="st">'effort'</span>: <span class="st">'low'</span>, <span class="st">'maxTokens'</span>: <span class="dv">8000</span>}</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>N = 1 boards (every clue held): solve rate (solved / opened) and invalid-reply rate; passes at &gt;= 0.8 and &lt; 0.05.</em></p>
+</section>
+</div>
+<div id="c69ee2bc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.476872+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.481654+00:00&quot;,&quot;total&quot;:0.004786331999994786}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L162" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="mergeadapter" class="level3">
+<h3 class="anchored" data-anchor-id="mergeadapter">mergeAdapter</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mergeAdapter(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    model, adapter, out</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The warm-start model: the adapter merged into the base weights (bf16, on cpu), saved with the tokenizer to out.</em></p>
+</section>
+</div>
+<div id="13595754" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.481815+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.491030+00:00&quot;,&quot;total&quot;:0.009220713999994246}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L127" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="trainsft" class="level3">
+<h3 class="anchored" data-anchor-id="trainsft">trainSFT</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> trainSFT(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    cfg, examples</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Fine-tune a LoRA adapter on the examples (loss on the replies only); -&gt; the adapter’s path. Logs metrics.jsonl.</em></p>
+</section>
+</div>
+<div id="f56b2116" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.491188+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.495980+00:00&quot;,&quot;total&quot;:0.00479581999999823}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L118" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="loadmodel" class="level3">
+<h3 class="anchored" data-anchor-id="loadmodel">loadModel</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loadModel(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    model, device, dtype:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>(tokenizer, model on device); pad token set.</em></p>
+</section>
+</div>
+<div id="187cc9be" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.496133+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.500522+00:00&quot;,&quot;total&quot;:0.004394196999996325}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L113" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="loraconfig" class="level3">
+<h3 class="anchored" data-anchor-id="loraconfig">loraConfig</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loraConfig(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    r, alpha, dropout:<span class="bu">float</span><span class="op">=</span><span class="fl">0.0</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</div>
+<div id="c60f6563" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.500673+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.505139+00:00&quot;,&quot;total&quot;:0.0044697189999993725}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L101" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="libversions" class="level3">
+<h3 class="anchored" data-anchor-id="libversions">libVersions</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> libVersions():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Versions of the libraries a training run used (recorded with its configuration).</em></p>
+</section>
+</div>
+<div id="4d317927" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.505321+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.509772+00:00&quot;,&quot;total&quot;:0.0044545100000021876}}" data-execution_count="9">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L84" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sftconfig" class="level3">
+<h3 class="anchored" data-anchor-id="sftconfig">SFTConfig</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> SFTConfig(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    model:<span class="bu">str</span>, out:<span class="bu">str</span>, loraR:<span class="bu">int</span><span class="op">=</span><span class="dv">16</span>, loraAlpha:<span class="bu">int</span><span class="op">=</span><span class="dv">32</span>, dropout:<span class="bu">float</span><span class="op">=</span><span class="fl">0.05</span>, lr:<span class="bu">float</span><span class="op">=</span><span class="fl">0.0001</span>, epochs:<span class="bu">int</span><span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    batch:<span class="bu">int</span><span class="op">=</span><span class="dv">16</span>, microBatch:<span class="bu">int</span><span class="op">=</span><span class="dv">4</span>, maxLen:<span class="bu">int</span><span class="op">=</span><span class="dv">1536</span>, maxSteps:<span class="bu">int</span><span class="op">=</span><span class="dv">0</span>, device:<span class="bu">str</span><span class="op">=</span><span class="st">'auto'</span>, seed:<span class="bu">int</span><span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    gradCkpt:<span class="bu">bool</span><span class="op">=</span><span class="va">True</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">-&gt;</span><span class="va">None</span>:</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>SFTConfig(model: str, out: str, loraR: int = 16, loraAlpha: int = 32, dropout: float = 0.05, lr: float = 0.0001, epochs: int = 1, batch: int = 16, microBatch: int = 4, maxLen: int = 1536, maxSteps: int = 0, device: str = ‘auto’, seed: int = 0, gradCkpt: bool = True)</em></p>
+</section>
+</div>
+<div id="d9e599bf" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.509919+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.517536+00:00&quot;,&quot;total&quot;:0.007622564999991255}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L59" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="sftexamples" class="level3">
+<h3 class="anchored" data-anchor-id="sftexamples">sftExamples</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sftExamples(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    seeds, sizes:<span class="bu">tuple</span><span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>), turns:<span class="bu">int</span><span class="op">=</span><span class="dv">20</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    settings:<span class="bu">dict</span><span class="op">=</span>{<span class="st">'m'</span>: <span class="dv">2</span>, <span class="st">'r'</span>: <span class="dv">1</span>, <span class="st">'R'</span>: <span class="dv">30</span>, <span class="st">'guess'</span>: <span class="fl">0.0</span>, <span class="st">'value'</span>: (<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), <span class="st">'life'</span>: <span class="dv">30</span>, <span class="st">'penalty'</span>: <span class="fl">0.5</span>, <span class="st">'effort'</span>: <span class="st">'low'</span>, <span class="st">'maxTokens'</span>: <span class="dv">8000</span>},</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    boards:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Warm-start chat examples (system, user, assistant, key): the teacher in every slot, blackboard boards (no channel</em> at N = 1), prompts with notes memory as rollout renders them. boards=True also returns the played boards.</p>
+</section>
+</div>
+<div id="38fcba06" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.517694+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.522425+00:00&quot;,&quot;total&quot;:0.004734906000010142}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L53" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="teacherreply" class="level3">
+<h3 class="anchored" data-anchor-id="teacherreply">teacherReply</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> teacherReply(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    board, i, channel, rng</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The teacher’s move (share ‘always’) as reply text: its note first, then action, target, answer and clue.</em></p>
+</section>
+</div>
+<div id="0accddfd" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.522575+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.529241+00:00&quot;,&quot;total&quot;:0.00666986799998881}}" data-execution_count="12">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_sft.py#L34" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="teachernote" class="level3">
+<h3 class="anchored" data-anchor-id="teachernote">teacherNote</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> teacherNote(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    board, i, channel, reply</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The teacher’s note: for a submit, the candidates its known clues leave (the rules’ method); else a short reason.</em></p>
+</section>
+</div>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<div id="28695758" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.531718+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.611331+00:00&quot;,&quot;total&quot;:0.07961990399999763}}" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json, re</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_policy <span class="im">import</span> parseReply, scriptedPolicy</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_roll <span class="im">import</span> coopRows, rollout</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_runs <span class="im">import</span> LLMConfig</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> <span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">30</span>, value<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), life<span class="op">=</span><span class="dv">30</span>, penalty<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>ex, boards <span class="op">=</span> sftExamples([<span class="dv">20000</span>, <span class="dv">20001</span>], sizes<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>), turns<span class="op">=</span><span class="dv">12</span>, boards<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(ex) <span class="op">==</span> <span class="dv">2</span> <span class="op">*</span> <span class="dv">12</span> <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> <span class="dv">2</span>) <span class="kw">and</span> <span class="bu">len</span>(boards) <span class="op">==</span> <span class="dv">4</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># AC-4: every reply parses, its note comes first, and submit notes list exactly the candidates</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>acts <span class="op">=</span> <span class="bu">set</span>()</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> e <span class="kw">in</span> ex:</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> parseReply(e[<span class="st">'assistant'</span>])</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="bu">list</span>(r) <span class="op">==</span> [<span class="st">'notes'</span>, <span class="st">'action'</span>, <span class="st">'target'</span>, <span class="st">'answer'</span>, <span class="st">'clue'</span>] <span class="kw">and</span> r[<span class="st">'action'</span>] <span class="kw">in</span> (<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>, <span class="st">'wait'</span>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    acts.add(r[<span class="st">'action'</span>])</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> r[<span class="st">'action'</span>] <span class="op">==</span> <span class="st">'submit'</span>:</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        parts <span class="op">=</span> re.findall(<span class="vs">r'x mod </span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs"> = </span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="pp">[^:]</span><span class="op">*</span><span class="vs">: </span><span class="kw">(</span><span class="pp">[</span><span class="dv">\d</span><span class="pp">, ]</span><span class="op">+</span><span class="kw">)</span><span class="vs">'</span>, r[<span class="st">'notes'</span>])</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        (p, a, first), last <span class="op">=</span> parts[<span class="dv">0</span>], parts[<span class="op">-</span><span class="dv">1</span>][<span class="dv">2</span>]</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> [<span class="bu">int</span>(x) <span class="cf">for</span> x <span class="kw">in</span> first.split(<span class="st">', '</span>)] <span class="op">==</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="bu">int</span>(a), <span class="dv">30</span>, <span class="bu">int</span>(p)))</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> [<span class="bu">int</span>(x) <span class="cf">for</span> x <span class="kw">in</span> last.split(<span class="st">', '</span>)] <span class="op">==</span> [r[<span class="st">'answer'</span>]]</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> {<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>} <span class="op">&lt;=</span> acts</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co"># replaying the examples' replies through rollout (notes memory) reproduces the teacher's boards</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>lookup <span class="op">=</span> {(e[<span class="st">'system'</span>], e[<span class="st">'user'</span>]): e[<span class="st">'assistant'</span>] <span class="cf">for</span> e <span class="kw">in</span> ex}</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>replay <span class="op">=</span> scriptedPolicy(<span class="kw">lambda</span> s, b: lookup[(s, <span class="st">'</span><span class="ch">\n\n</span><span class="st">'</span>.join(x[<span class="st">'text'</span>] <span class="cf">for</span> x <span class="kw">in</span> b))])</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> N, bs <span class="kw">in</span> ((<span class="dv">1</span>, boards[:<span class="dv">2</span>]), (<span class="dv">2</span>, boards[<span class="dv">2</span>:])):</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    cfg <span class="op">=</span> LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span><span class="st">'blackboard'</span> <span class="cf">if</span> N <span class="op">&gt;</span> <span class="dv">1</span> <span class="cf">else</span> <span class="st">'none'</span>, N<span class="op">=</span>N, turns<span class="op">=</span><span class="dv">12</span>, world<span class="op">=</span>W)</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> coopRows(cfg, rollout(cfg, [<span class="dv">20000</span>, <span class="dv">20001</span>], replay))</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> [r[<span class="st">'solved'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows] <span class="op">==</span> [b.counts[<span class="st">'solved'</span>] <span class="cf">for</span> b <span class="kw">in</span> bs] <span class="kw">and</span> <span class="bu">all</span>(r[<span class="st">'invalid'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">for</span> r <span class="kw">in</span> rows)</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> N <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">all</span>(b.counts[<span class="st">'solved'</span>] <span class="op">&gt;=</span> b.counts[<span class="st">'opens'</span>] <span class="op">-</span> <span class="dv">1</span> <span class="kw">and</span> b.counts[<span class="st">'wrong'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">for</span> b <span class="kw">in</span> bs)</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a><span class="co"># the warm-start check: a solver that reads only the text passes, a policy that only waits fails</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> solver(system, blocks):</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    o <span class="op">=</span> blocks[<span class="op">-</span><span class="dv">1</span>][<span class="st">'text'</span>]</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> re.search(<span class="vs">r'Your open subtask: T</span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs">, open</span><span class="ch">\.</span><span class="vs"> Find x with 0 &lt;= x &lt; </span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="ch">\.</span><span class="vs"> Clues you know: </span><span class="kw">(</span><span class="dv">.</span><span class="op">*</span><span class="kw">)</span><span class="ch">\.</span><span class="vs">'</span>, o)</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> m:</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> json.dumps(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'open'</span>, target<span class="op">=</span>re.search(<span class="vs">r'</span><span class="ch">\)</span><span class="vs">: </span><span class="kw">(</span><span class="vs">T</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs">'</span>, o).group(<span class="dv">1</span>), answer<span class="op">=</span><span class="dv">0</span>, clue<span class="op">=</span><span class="st">''</span>, notes<span class="op">=</span><span class="st">''</span>))</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>    cl <span class="op">=</span> [<span class="bu">tuple</span>(<span class="bu">map</span>(<span class="bu">int</span>, c)) <span class="cf">for</span> c <span class="kw">in</span> re.findall(<span class="vs">r'x mod </span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs"> = </span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs">'</span>, m.group(<span class="dv">3</span>))]</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>    xs <span class="op">=</span> [y <span class="cf">for</span> y <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">int</span>(m.group(<span class="dv">2</span>))) <span class="cf">if</span> <span class="bu">all</span>(y <span class="op">%</span> p <span class="op">==</span> r <span class="cf">for</span> p, r <span class="kw">in</span> cl)]</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> json.dumps(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'submit'</span>, answer<span class="op">=</span>xs[<span class="dv">0</span>], target<span class="op">=</span><span class="st">''</span>, clue<span class="op">=</span><span class="st">''</span>, notes<span class="op">=</span><span class="st">''</span>) <span class="cf">if</span> <span class="bu">len</span>(xs) <span class="op">==</span> <span class="dv">1</span> <span class="cf">else</span> <span class="bu">dict</span>(action<span class="op">=</span><span class="st">'wait'</span>))</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>ok <span class="op">=</span> warmCheck(scriptedPolicy(solver), seeds<span class="op">=</span><span class="bu">range</span>(<span class="dv">1200</span>, <span class="dv">1203</span>), turns<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> ok[<span class="st">'passed'</span>] <span class="kw">and</span> ok[<span class="st">'solveRate'</span>] <span class="op">&gt;=</span> <span class="fl">0.8</span> <span class="kw">and</span> ok[<span class="st">'invalid'</span>] <span class="op">==</span> <span class="dv">0</span>, ok</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>bad <span class="op">=</span> warmCheck(scriptedPolicy(<span class="kw">lambda</span> s, b: <span class="st">'{"action": "wait"}'</span>), seeds<span class="op">=</span><span class="bu">range</span>(<span class="dv">1200</span>, <span class="dv">1202</span>), turns<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> bad[<span class="st">'passed'</span>] <span class="kw">and</span> bad[<span class="st">'opens'</span>] <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(libVersions()) <span class="op">==</span> {<span class="st">'torch'</span>, <span class="st">'transformers'</span>, <span class="st">'peft'</span>, <span class="st">'vllm'</span>}</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> SFTConfig(<span class="st">'m'</span>, <span class="st">'o'</span>).batch <span class="op">==</span> <span class="dv">16</span> <span class="kw">and</span> asdict(SFTConfig(<span class="st">'m'</span>, <span class="st">'o'</span>))[<span class="st">'loraR'</span>] <span class="op">==</span> <span class="dv">16</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="a59490ef" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:07.612067+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:07.614826+00:00&quot;,&quot;total&quot;:0.00276221400000054}}" data-train="true" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># With the [train] extra, no download: the warm start, merge and check on the tiny random model (the loss falls)</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> importlib.util</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">all</span>(importlib.util.find_spec(m) <span class="cf">for</span> m <span class="kw">in</span> (<span class="st">'transformers'</span>, <span class="st">'peft'</span>, <span class="st">'tokenizers'</span>)):   <span class="co"># the [train] extra; the docs build runs cells with imports and lacks it</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> tempfile</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> explRL.local_policy <span class="im">import</span> LocalPolicy</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> explRL.tiny_model <span class="im">import</span> tinyModel</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> tempfile.TemporaryDirectory() <span class="im">as</span> d:</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        tiny <span class="op">=</span> tinyModel(d <span class="op">+</span> <span class="st">'/tiny'</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>        a <span class="op">=</span> trainSFT(SFTConfig(tiny, d <span class="op">+</span> <span class="st">'/sft'</span>, maxSteps<span class="op">=</span><span class="dv">6</span>, batch<span class="op">=</span><span class="dv">8</span>, microBatch<span class="op">=</span><span class="dv">4</span>, lr<span class="op">=</span><span class="fl">1e-3</span>), sftExamples(<span class="bu">range</span>(<span class="dv">20000</span>, <span class="dv">20003</span>), sizes<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>), turns<span class="op">=</span><span class="dv">10</span>))</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        losses <span class="op">=</span> [json.loads(x)[<span class="st">'loss'</span>] <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">open</span>(d <span class="op">+</span> <span class="st">'/sft/metrics.jsonl'</span>)]</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">len</span>(losses) <span class="op">==</span> <span class="dv">6</span> <span class="kw">and</span> losses[<span class="op">-</span><span class="dv">1</span>] <span class="op">&lt;</span> losses[<span class="dv">0</span>], losses</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        res <span class="op">=</span> warmCheck(LocalPolicy(mergeAdapter(tiny, a, d <span class="op">+</span> <span class="st">'/merged'</span>), maxNew<span class="op">=</span><span class="dv">24</span>), seeds<span class="op">=</span><span class="bu">range</span>(<span class="dv">1200</span>, <span class="dv">1202</span>), turns<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">set</span>(res) <span class="op">==</span> {<span class="st">'solveRate'</span>, <span class="st">'invalid'</span>, <span class="st">'opens'</span>, <span class="st">'solved'</span>, <span class="st">'passed'</span>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

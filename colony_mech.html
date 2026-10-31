@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 18, Stage 4 (specs/multiagent/phase18/stage4.md, FR-A23): the measures behind the guard advantage’s decline with team size, from a replayed board. lieTiming: the share of lies on a guard-held clue, contest rate and median lag and lie-built answers per lie (by guard-held or not), lie-built answers per affected agent, honest openers per lied subtask; flagMeasures: failures per lie, the share of failures on true values, lie-built answers after a failure was visible; guardLoad: guard posts per turn and guard-held clues never posted by a guard. stage4Columns adds them to Phase 18’s columns; runStage4Cell runs a Stage 4 cell; reusedRows4 replays reference cells from the cache ($0) with the new columns; replayCheck is the regression gate (every earlier live cell through the cache-only client).">
+
+<title>colony_mech – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-66a38d7287321bc50e069add96f8c30e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="colony_mech – explRL">
+<meta property="og:description" content="Phase 18, Stage 4 (specs/multiagent/phase18/stage4.md, FR-A23): the measures behind the guard advantage’s decline with team size, from a replayed board. lieTiming: the share of lies on a guard-held clue, contest rate and median lag and lie-built answers per lie (by guard-held or not), lie-built answers per affected agent, honest openers per lied subtask; flagMeasures: failures per lie, the share of failures on true values, lie-built answers after a failure was visible; guardLoad: guard posts per turn and guard-held clues never posted by a guard. stage4Columns adds them to Phase 18’s columns; runStage4Cell runs a Stage 4 cell; reusedRows4 replays reference cells from the cache ($0) with the new columns; replayCheck is the regression gate (every earlier live cell through the cache-only client).">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="colony_mech – explRL">
+<meta name="twitter:description" content="Phase 18, Stage 4 (specs/multiagent/phase18/stage4.md, FR-A23): the measures behind the guard advantage’s decline with team size, from a replayed board. lieTiming: the share of lies on a guard-held clue, contest rate and median lag and lie-built answers per lie (by guard-held or not), lie-built answers per affected agent, honest openers per lied subtask; flagMeasures: failures per lie, the share of failures on true values, lie-built answers after a failure was visible; guardLoad: guard posts per turn and guard-held clues never posted by a guard. stage4Columns adds them to Phase 18’s columns; runStage4Cell runs a Stage 4 cell; reusedRows4 replays reference cells from the cache ($0) with the new columns; replayCheck is the regression gate (every earlier live cell through the cache-only client).">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./colony_mech.html">colony_mech</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#measures" id="toc-measures" class="nav-link active" data-scroll-target="#measures">Measures</a></li>
+  <li><a href="#rows-cells-and-replays" id="toc-rows-cells-and-replays" class="nav-link" data-scroll-target="#rows-cells-and-replays">Rows, cells and replays</a></li>
+  <li><a href="#tests" id="toc-tests" class="nav-link" data-scroll-target="#tests">Tests</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./colony_mech.html">colony_mech</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">colony_mech</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 18, Stage 4 (<code>specs/multiagent/phase18/stage4.md</code>, FR-A23): the measures behind the guard advantage’s decline with team size, from a replayed board. <code>lieTiming</code>: the share of lies on a guard-held clue, contest rate and median lag and lie-built answers per lie (by guard-held or not), lie-built answers per affected agent, honest openers per lied subtask; <code>flagMeasures</code>: failures per lie, the share of failures on true values, lie-built answers after a failure was visible; <code>guardLoad</code>: guard posts per turn and guard-held clues never posted by a guard. <code>stage4Columns</code> adds them to Phase 18’s columns; <code>runStage4Cell</code> runs a Stage 4 cell; <code>reusedRows4</code> replays reference cells from the cache ($0) with the new columns; <code>replayCheck</code> is the regression gate (every earlier live cell through the cache-only client).
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="measures" class="level2">
+<h2 class="anchored" data-anchor-id="measures">Measures</h2>
+<div id="31718bf9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.514400+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.526021+00:00&quot;,&quot;total&quot;:0.011626669999998285}}" data-execution_count="3">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L79" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="guardload" class="level3">
+<h3 class="anchored" data-anchor-id="guardload">guardLoad</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> guardLoad(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    board, nLiar, guards</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Guard posts per guard turn, and the share of guard-held clues of opened subtasks that no guard holding them posted.</em></p>
+</section>
+</div>
+<div id="5176db14" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.526194+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.533192+00:00&quot;,&quot;total&quot;:0.007004625999996961}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L61" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="flagmeasures" class="level3">
+<h3 class="anchored" data-anchor-id="flagmeasures">flagMeasures</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flagMeasures(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    board, answers, nLiar</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Failures per false value, the share of failures on true values, and lie-built answers made after a failure on that value.</em></p>
+</section>
+</div>
+<div id="d139e088" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.533390+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.542330+00:00&quot;,&quot;total&quot;:0.008946360000010145}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L31" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="lietiming" class="level3">
+<h3 class="anchored" data-anchor-id="lietiming">lieTiming</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lieTiming(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    board, answers, nLiar, guards</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Per false value: guard-held (a guard slot holds the clue), the first honest contest after it (an honest post of</em> another value of that clue), lie-built honest wrong answers, honest openers of its subtask; summarised by guard holding.</p>
+</section>
+</div>
+</section>
+<section id="rows-cells-and-replays" class="level2">
+<h2 class="anchored" data-anchor-id="rows-cells-and-replays">Rows, cells and replays</h2>
+<div id="0100ebca" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.549511+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.555047+00:00&quot;,&quot;total&quot;:0.005540848999999071}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L135" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="replaycheck" class="level3">
+<h3 class="anchored" data-anchor-id="replaycheck">replayCheck</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> replayCheck(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    cells, rows, cache</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The regression gate: every cell with a saved row replayed through the cache-only client (a miss raises CacheMiss,</em> nothing is spent) -&gt; dict(checked, mismatches [(key, columns)]).</p>
+</section>
+</div>
+<div id="97c9ba16" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.555200+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.560495+00:00&quot;,&quot;total&quot;:0.005300077000001124}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L122" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="reusedrows4" class="level3">
+<h3 class="anchored" data-anchor-id="reusedrows4">reusedRows4</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reusedRows4(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    client, prior, cells</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The reference cells replayed through client(cfg) (the cache-only client: $0) with Stage 4’s columns; every column</em> of the matching prior row (same study, level, N and seed) must be unchanged.</p>
+</section>
+</div>
+<div id="6d80e88a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.560646+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.565163+00:00&quot;,&quot;total&quot;:0.004521455999991986}}" data-execution_count="9">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L106" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="runstage4cell" class="level3">
+<h3 class="anchored" data-anchor-id="runstage4cell">runStage4Cell</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runStage4Cell(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    cell</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>For runWorkload (picklable): a Stage 4 cell (numpy cells through <a href="https://Positron00.github.io/explRL/colony_trace.html#replay"><code>replay</code></a>) with Stage 4’s columns.</em></p>
+</section>
+</div>
+<div id="b57e7c06" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.565339+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.569667+00:00&quot;,&quot;total&quot;:0.004333493000004296}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L100" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="runstage4" class="level3">
+<h3 class="anchored" data-anchor-id="runstage4">runStage4</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runStage4(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    cfg, seed, client</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>runClue’s signature for runLLMCell: the replay’s row with Stage 4’s columns, and its turn log.</em></p>
+</section>
+</div>
+<div id="11fa9557" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.569817+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.574828+00:00&quot;,&quot;total&quot;:0.0050174769999955515}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/colony_mech.py#L92" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="stage4columns" class="level3">
+<h3 class="anchored" data-anchor-id="stage4columns">stage4Columns</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> stage4Columns(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    cfg, rp</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Phase 18’s columns of a replay plus FR-A23’s measures and input tokens per call.</em></p>
+</section>
+</div>
+</section>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<div id="f320216f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.575941+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:10.580806+00:00&quot;,&quot;total&quot;:0.004870560000000523}}" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> types <span class="im">import</span> SimpleNamespace</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clueboard <span class="im">import</span> ClueBoardEnv</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_board <span class="im">import</span> ColonyBoardEnv</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># a hand-made board: liar 0 lies on clue 1 of subtask 7 (guard 2 holds it) and on clue 0 (nobody honest guards it)</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Task:</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    primes <span class="op">=</span> (<span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> clue(<span class="va">self</span>, j):</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.primes[j], (<span class="dv">1</span>, <span class="dv">2</span>)[j]                              <span class="co"># x = 5</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> SimpleNamespace(nAgents<span class="op">=</span><span class="dv">5</span>, failFlag<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>                    tasks<span class="op">=</span>{<span class="dv">7</span>: SimpleNamespace(task<span class="op">=</span>Task(), holders<span class="op">=</span>[<span class="bu">frozenset</span>({<span class="dv">3</span>, <span class="dv">4</span>}), <span class="bu">frozenset</span>({<span class="dv">2</span>, <span class="dv">4</span>})])},</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>                    shareLog<span class="op">=</span>[(<span class="fl">1.0</span>, <span class="dv">0</span>, <span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="va">False</span>, <span class="va">True</span>),         <span class="co"># lie on clue 1</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>                              (<span class="fl">1.0</span>, <span class="dv">0</span>, <span class="dv">7</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="va">False</span>, <span class="va">True</span>),         <span class="co"># lie on clue 0</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>                              (<span class="fl">2.0</span>, <span class="dv">2</span>, <span class="dv">7</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="va">True</span>, <span class="va">False</span>)],        <span class="co"># guard 2 contests clue 1, one turn later</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>                    submits<span class="op">=</span>[(<span class="fl">1.0</span>, <span class="dv">3</span>, <span class="dv">7</span>, <span class="va">None</span>, <span class="st">'wrong'</span>), (<span class="fl">3.0</span>, <span class="dv">3</span>, <span class="dv">7</span>, <span class="va">None</span>, <span class="st">'wrong'</span>), (<span class="fl">3.0</span>, <span class="dv">4</span>, <span class="dv">7</span>, <span class="va">None</span>, <span class="st">'wrong'</span>)],</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>                    ledger<span class="op">=</span>[(<span class="dv">3</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="st">'travel'</span>, <span class="dv">7</span>), (<span class="dv">4</span>, <span class="fl">0.0</span>, <span class="fl">1.0</span>, <span class="st">'travel'</span>, <span class="dv">7</span>), (<span class="dv">2</span>, <span class="fl">1.0</span>, <span class="fl">1.0</span>, <span class="st">'stay'</span>, <span class="dv">7</span>)])</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>ans <span class="op">=</span> {(<span class="fl">1.0</span>, <span class="dv">3</span>): <span class="dv">3</span>, (<span class="fl">3.0</span>, <span class="dv">3</span>): <span class="dv">0</span>, (<span class="fl">3.0</span>, <span class="dv">4</span>): <span class="dv">0</span>}                         <span class="co"># 3 = x mod 3 = 0 (lie 1); 0 = both lies</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> lieTiming(b, ans, <span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> t[<span class="st">'guardHeldLies'</span>] <span class="op">==</span> <span class="fl">0.5</span> <span class="kw">and</span> t[<span class="st">'contestRateGuarded'</span>] <span class="op">==</span> <span class="fl">1.0</span> <span class="kw">and</span> t[<span class="st">'contestLagGuarded'</span>] <span class="op">==</span> <span class="fl">1.0</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> t[<span class="st">'contestRateUnguarded'</span>] <span class="op">==</span> <span class="fl">0.0</span> <span class="kw">and</span> t[<span class="st">'usesPerLieUnguarded'</span>] <span class="op">==</span> <span class="fl">2.0</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> t[<span class="st">'openersPerLie'</span>] <span class="op">==</span> <span class="fl">2.0</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> guardLoad(b, <span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> g[<span class="st">'guardPostsPerTurn'</span>] <span class="op">==</span> <span class="fl">1.0</span> <span class="kw">and</span> g[<span class="st">'guardUnposted'</span>] <span class="op">==</span> <span class="fl">0.0</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(v <span class="op">!=</span> v <span class="cf">for</span> v <span class="kw">in</span> flagMeasures(b, ans, <span class="dv">1</span>).values())          <span class="co"># no failFlag: NaN</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(v <span class="op">!=</span> v <span class="cf">for</span> v <span class="kw">in</span> guardLoad(b, <span class="dv">1</span>, <span class="dv">0</span>).values())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="e62b7728" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># failure measures on a live ColonyBoardEnv: a lie, a wrong answer built on it, then a second answer after the flag</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>kw <span class="op">=</span> <span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, r<span class="op">=</span><span class="dv">2</span>, R<span class="op">=</span><span class="dv">30</span>, value<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), life<span class="op">=</span><span class="dv">30</span>, penalty<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> ColonyBoardEnv(<span class="dv">11</span>, <span class="dv">8</span>, failFlag<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kw)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> f.<span class="bu">open</span>[<span class="dv">0</span>]</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>s <span class="op">=</span> f.tasks[k]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>p0, p1 <span class="op">=</span> s.task.primes</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>i <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(s.holders[<span class="dv">0</span>] <span class="op">-</span> s.holders[<span class="dv">1</span>]))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>liar <span class="op">=</span> <span class="bu">next</span>(a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>) <span class="cf">if</span> a <span class="kw">not</span> <span class="kw">in</span> s.holders[<span class="dv">0</span>] <span class="op">|</span> s.holders[<span class="dv">1</span>])</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>own0 <span class="op">=</span> s.task.clue(<span class="dv">0</span>)[<span class="dv">1</span>]</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>lie1 <span class="op">=</span> <span class="bu">next</span>(r <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(p1) <span class="cf">if</span> r <span class="op">!=</span> s.task.clue(<span class="dv">1</span>)[<span class="dv">1</span>] <span class="kw">and</span> <span class="bu">any</span>(x <span class="op">%</span> p0 <span class="op">==</span> own0 <span class="kw">and</span> x <span class="op">%</span> p1 <span class="op">==</span> r <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>)))</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> <span class="bu">next</span>(x <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>) <span class="cf">if</span> x <span class="op">%</span> p0 <span class="op">==</span> own0 <span class="kw">and</span> x <span class="op">%</span> p1 <span class="op">==</span> lie1)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>f.<span class="bu">apply</span>(liar, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, lie1)), <span class="fl">0.0</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>f.<span class="bu">apply</span>(i, (<span class="st">'open'</span>, k), <span class="fl">1.0</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>f.<span class="bu">apply</span>(i, (<span class="st">'submit'</span>, x), <span class="fl">2.0</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>f.<span class="bu">apply</span>(i, (<span class="st">'submit'</span>, x), <span class="fl">3.0</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> flagMeasures(f, {(<span class="fl">2.0</span>, i): x, (<span class="fl">3.0</span>, i): x}, <span class="dv">0</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> m[<span class="st">'flagsOnTrue'</span>] <span class="op">==</span> <span class="fl">0.0</span> <span class="kw">and</span> m[<span class="st">'flagsPerLie'</span>] <span class="op">==</span> <span class="fl">2.0</span> <span class="kw">and</span> m[<span class="st">'usesAfterFlag'</span>] <span class="op">==</span> <span class="fl">0.5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="99d3796d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:10.584510+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:11.981990+00:00&quot;,&quot;total&quot;:1.3974855439999914}}" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Stage 4 options end to end (AC-13): replay equals the runners (numpy, and Claude with the fake client); the rules carry</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co"># FAIL_RULE and SQUAD_RULE only when set; the board line shows failures; squads see only their squad; rollout refuses</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_colony <span class="im">import</span> FAIL_RULE</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_runs <span class="im">import</span> clueSetup, runClue, runClueNumpy</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_text <span class="im">import</span> TextClueEnv</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_fix <span class="im">import</span> fixOptions</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_client <span class="im">import</span> LLMClient</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_fake <span class="im">import</span> FakeClient, fakeReply</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>W <span class="op">=</span> <span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, r<span class="op">=</span><span class="dv">2</span>, R<span class="op">=</span><span class="dv">30</span>, colony<span class="op">=</span><span class="va">True</span>, guards<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> opt <span class="kw">in</span> (<span class="bu">dict</span>(guardDeal<span class="op">=</span><span class="va">True</span>), <span class="bu">dict</span>(failFlag<span class="op">=</span><span class="va">True</span>), <span class="bu">dict</span>(squads<span class="op">=</span><span class="dv">8</span>), <span class="bu">dict</span>(guardDeal<span class="op">=</span><span class="va">True</span>, failFlag<span class="op">=</span><span class="va">True</span>, squads<span class="op">=</span><span class="dv">8</span>)):</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    cfg <span class="op">=</span> LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span><span class="st">'blackboard'</span>, N<span class="op">=</span><span class="dv">16</span>, turns<span class="op">=</span><span class="dv">10</span>, nLiar<span class="op">=</span><span class="dv">4</span>, world<span class="op">=</span>{<span class="op">**</span>W, <span class="op">**</span>opt})</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> replay(cfg, <span class="dv">905</span>).rows <span class="op">==</span> runClueNumpy(cfg, <span class="dv">905</span>), opt</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    fake <span class="op">=</span> <span class="kw">lambda</span>: LLMClient(<span class="st">'claude-haiku-5-5'</span>, client<span class="op">=</span>FakeClient(fakeReply))</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    rp <span class="op">=</span> replay(cfg, <span class="dv">905</span>, fake())</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    ref, log <span class="op">=</span> runClue(cfg, <span class="dv">905</span>, fake())</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> rp.rows <span class="op">==</span> ref <span class="kw">and</span> rp.log <span class="op">==</span> log, opt</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    row <span class="op">=</span> stage4Columns(cfg, rp)</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> {<span class="st">'guardHeldLies'</span>, <span class="st">'flagsOnTrue'</span>, <span class="st">'guardPostsPerTurn'</span>, <span class="st">'inTokPerCall'</span>} <span class="op">&lt;=</span> <span class="bu">set</span>(row)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> opt.get(<span class="st">'guardDeal'</span>) <span class="kw">and</span> row[<span class="st">'falseValues'</span>]:</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> row[<span class="st">'guardHeldLies'</span>] <span class="op">==</span> <span class="fl">1.0</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    b, ch <span class="op">=</span> clueSetup(cfg, <span class="dv">905</span>)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    env <span class="op">=</span> TextClueEnv(b, <span class="op">**</span>fixOptions(cfg.world), nLiar<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> (FAIL_RULE <span class="kw">in</span> env.rules(<span class="dv">9</span>)) <span class="op">==</span> <span class="bu">bool</span>(opt.get(<span class="st">'failFlag'</span>))</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> (<span class="st">'squads of 8'</span> <span class="kw">in</span> env.rules(<span class="dv">9</span>)) <span class="op">==</span> <span class="bu">bool</span>(opt.get(<span class="st">'squads'</span>))</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> opt.get(<span class="st">'squads'</span>):</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        obs <span class="op">=</span> env.observe(<span class="dv">9</span>, <span class="fl">0.0</span>, ch)</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>        mine <span class="op">=</span> {k <span class="cf">for</span> k <span class="kw">in</span> b.<span class="bu">open</span> <span class="cf">if</span> b.squadOfTask[k] <span class="op">==</span> <span class="dv">9</span> <span class="op">%</span> <span class="dv">2</span>}</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>        line <span class="op">=</span> obs.split(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)[<span class="dv">1</span>]</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">all</span>(<span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> '</span> <span class="kw">in</span> line <span class="cf">for</span> k <span class="kw">in</span> mine) <span class="kw">and</span> <span class="kw">not</span> <span class="bu">any</span>(<span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> '</span> <span class="kw">in</span> line <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">set</span>(b.<span class="bu">open</span>) <span class="op">-</span> mine)</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>        other <span class="op">=</span> <span class="bu">min</span>(<span class="bu">set</span>(b.<span class="bu">open</span>) <span class="op">-</span> mine)</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> env.parse(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'open'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>other<span class="sc">}</span><span class="ss">'</span>), <span class="dv">9</span>)[<span class="dv">2</span>] <span class="kw">is</span> <span class="va">False</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> env.parse(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'open'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span><span class="bu">min</span>(mine)<span class="sc">}</span><span class="ss">'</span>), <span class="dv">9</span>)[<span class="dv">2</span>] <span class="kw">is</span> <span class="va">True</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        j0, r0 <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(b.held(other_h <span class="op">:=</span> <span class="bu">next</span>(<span class="bu">iter</span>(b.tasks[other].holders[<span class="dv">0</span>])), other).items()))   <span class="co"># a clue of the other squad</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>        ch.post(other_h, other, (j0, b.tasks[other].task.primes[j0], r0), <span class="fl">0.0</span>)</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="ss">f'T</span><span class="sc">{</span>other<span class="sc">}</span><span class="ss">:'</span> <span class="kw">not</span> <span class="kw">in</span> env.observe(<span class="dv">9</span>, <span class="fl">0.0</span>, ch).split(<span class="st">'Clues shared on the board: '</span>)[<span class="dv">1</span>].split(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)[<span class="dv">0</span>]</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="ss">f'T</span><span class="sc">{</span>other<span class="sc">}</span><span class="ss">:'</span> <span class="kw">in</span> env.observe(other_h, <span class="fl">0.0</span>, ch)</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>        clue <span class="op">=</span> <span class="ss">f'x mod </span><span class="sc">{</span>b<span class="sc">.</span>tasks[other]<span class="sc">.</span>task<span class="sc">.</span>primes[j0]<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r0<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> env.parse(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'share'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>other<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span>clue), <span class="dv">9</span>)[<span class="dv">2</span>] <span class="kw">is</span> <span class="va">False</span></span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a><span class="co"># no Stage 4 key: the plain board class and no new sentence</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>cfg0 <span class="op">=</span> LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span><span class="st">'blackboard'</span>, N<span class="op">=</span><span class="dv">16</span>, turns<span class="op">=</span><span class="dv">10</span>, nLiar<span class="op">=</span><span class="dv">4</span>, world<span class="op">=</span>W)</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>b0, _ <span class="op">=</span> clueSetup(cfg0, <span class="dv">905</span>)</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">type</span>(b0) <span class="kw">is</span> ClueBoardEnv <span class="kw">and</span> FAIL_RULE <span class="kw">not</span> <span class="kw">in</span> TextClueEnv(b0, <span class="op">**</span>fixOptions(W), nLiar<span class="op">=</span><span class="dv">4</span>).rules(<span class="dv">9</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="38adcf41" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:11.983228+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:11.992348+00:00&quot;,&quot;total&quot;:0.009127258999996002}}" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the failure label on the colony line, and knownColony skipping a failed value</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_agents <span class="im">import</span> ClueBoard</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_colony <span class="im">import</span> colonyLine, knownColony, tally</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>kw <span class="op">=</span> <span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, r<span class="op">=</span><span class="dv">2</span>, R<span class="op">=</span><span class="dv">30</span>, value<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>), life<span class="op">=</span><span class="dv">30</span>, penalty<span class="op">=</span><span class="fl">0.5</span>)    <span class="co"># self-contained: the docs build runs cells with imports alone</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>f2 <span class="op">=</span> ColonyBoardEnv(<span class="dv">11</span>, <span class="dv">8</span>, failFlag<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kw)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>ch <span class="op">=</span> ClueBoard()</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> f2.<span class="bu">open</span>[<span class="dv">0</span>]</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>s2 <span class="op">=</span> f2.tasks[k]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>p0, p1 <span class="op">=</span> s2.task.primes</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>i2 <span class="op">=</span> <span class="bu">next</span>(<span class="bu">iter</span>(s2.holders[<span class="dv">0</span>] <span class="op">-</span> s2.holders[<span class="dv">1</span>]))</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>liar <span class="op">=</span> <span class="bu">next</span>(a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>) <span class="cf">if</span> a <span class="kw">not</span> <span class="kw">in</span> s2.holders[<span class="dv">0</span>] <span class="op">|</span> s2.holders[<span class="dv">1</span>] <span class="kw">and</span> a <span class="op">!=</span> i2)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>own0, true1 <span class="op">=</span> s2.task.clue(<span class="dv">0</span>)[<span class="dv">1</span>], s2.task.clue(<span class="dv">1</span>)[<span class="dv">1</span>]</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>lie1 <span class="op">=</span> <span class="bu">next</span>(r <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(p1) <span class="cf">if</span> r <span class="op">!=</span> true1 <span class="kw">and</span> <span class="bu">any</span>(x <span class="op">%</span> p0 <span class="op">==</span> own0 <span class="kw">and</span> x <span class="op">%</span> p1 <span class="op">==</span> r <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>)))</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a, r <span class="kw">in</span> ((liar, lie1),):</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    f2.<span class="bu">apply</span>(a, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, r)), <span class="fl">0.0</span>)</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    ch.post(a, k, (<span class="dv">1</span>, p1, r), <span class="fl">0.0</span>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>viewer <span class="op">=</span> <span class="bu">next</span>(a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">8</span>) <span class="cf">if</span> a <span class="kw">not</span> <span class="kw">in</span> s2.holders[<span class="dv">1</span>] <span class="kw">and</span> a <span class="kw">not</span> <span class="kw">in</span> (liar, i2))</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> knownColony(viewer, f2, ch)[k].get(<span class="dv">1</span>) <span class="op">==</span> lie1</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>f2.<span class="bu">apply</span>(i2, (<span class="st">'open'</span>, k), <span class="fl">1.0</span>)</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>f2.<span class="bu">apply</span>(i2, (<span class="st">'submit'</span>, <span class="bu">next</span>(x <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">30</span>) <span class="cf">if</span> x <span class="op">%</span> p0 <span class="op">==</span> own0 <span class="kw">and</span> x <span class="op">%</span> p1 <span class="op">==</span> lie1)), <span class="fl">2.0</span>)</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'in 1 failed answer)'</span> <span class="kw">in</span> colonyLine(f2, tally(ch, f2), <span class="dv">2</span>, failures(f2))</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="dv">1</span> <span class="kw">not</span> <span class="kw">in</span> knownColony(viewer, f2, ch)[k]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="57d2631d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:11.992691+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:11.994338+00:00&quot;,&quot;total&quot;:0.0016520799999995006}}" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rollout refuses the Stage 4 keys</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_roll <span class="im">import</span> rollout</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    rollout(LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span><span class="st">'blackboard'</span>, N<span class="op">=</span><span class="dv">16</span>, turns<span class="op">=</span><span class="dv">4</span>, nLiar<span class="op">=</span><span class="dv">4</span>, world<span class="op">=</span>{<span class="op">**</span>W, <span class="st">'squads'</span>: <span class="dv">8</span>}), [<span class="dv">1</span>], {})</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">AssertionError</span>(<span class="st">'rollout should refuse'</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ValueError</span> <span class="im">as</span> e:</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="st">'Stage 4'</span> <span class="kw">in</span> <span class="bu">str</span>(e)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="95150060" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:15:11.995071+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:15:11.998344+00:00&quot;,&quot;total&quot;:0.0032770589999984168}}" data-llm="true" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the measures reproduce the README's replay diagnosis on the 64-agent run's cached guard boards (pooled over 8 boards)</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bench_grid <span class="im">import</span> readCSV</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony64 <span class="im">import</span> stage64Grid</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>root <span class="op">=</span> Path(<span class="st">'..'</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>cache, runs <span class="op">=</span> root <span class="op">/</span> <span class="st">'results/multiagent/llm/cache'</span>, root <span class="op">/</span> <span class="st">'results/multiagent/colony/stage64/runs.csv'</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> runs.exists() <span class="kw">and</span> cache.exists():</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    cells <span class="op">=</span> [c <span class="cf">for</span> c <span class="kw">in</span> stage64Grid() <span class="cf">if</span> c[<span class="st">'level'</span>] <span class="op">==</span> <span class="st">'colonyGuards|independent'</span>]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> reusedRows4(<span class="kw">lambda</span> cfg: cacheOnlyClient(cfg, cache), readCSV(runs), cells)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    nf <span class="op">=</span> [r[<span class="st">'falseValues'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows]</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    held <span class="op">=</span> <span class="bu">sum</span>(r[<span class="st">'guardHeldLies'</span>] <span class="op">*</span> n <span class="cf">for</span> r, n <span class="kw">in</span> <span class="bu">zip</span>(rows, nf)) <span class="op">/</span> <span class="bu">sum</span>(nf)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    ung <span class="op">=</span> <span class="bu">sum</span>(r[<span class="st">'usesPerLieUnguarded'</span>] <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> r[<span class="st">'guardHeldLies'</span>]) <span class="op">*</span> n <span class="cf">for</span> r, n <span class="kw">in</span> <span class="bu">zip</span>(rows, nf)) <span class="op">/</span> <span class="bu">sum</span>((<span class="dv">1</span> <span class="op">-</span> r[<span class="st">'guardHeldLies'</span>]) <span class="op">*</span> n <span class="cf">for</span> r, n <span class="kw">in</span> <span class="bu">zip</span>(rows, nf))</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="bu">abs</span>(held <span class="op">-</span> <span class="fl">0.375</span>) <span class="op">&lt;</span> <span class="fl">0.01</span> <span class="kw">and</span> <span class="bu">abs</span>(ung <span class="op">-</span> <span class="fl">1.49</span>) <span class="op">&lt;</span> <span class="fl">0.01</span>, (held, ung)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'guard-held lies </span><span class="sc">{</span>held<span class="sc">:.3f}</span><span class="ss">, unguarded uses per lie </span><span class="sc">{</span>ung<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: no 64-agent run or cache'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>skipped: no 64-agent run or cache</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

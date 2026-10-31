@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 13 options on the clue board, called from TextClueEnv: requests (ask), the fact table (table), senders’ track records (record) and costly verification (check): their rule sentences, observation lines, parsing and the schema; all off, the Phase 11 interface is unchanged.">
+
+<title>clue_fix – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-66a38d7287321bc50e069add96f8c30e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="clue_fix – explRL">
+<meta property="og:description" content="Phase 13 options on the clue board, called from TextClueEnv: requests (ask), the fact table (table), senders’ track records (record) and costly verification (check): their rule sentences, observation lines, parsing and the schema; all off, the Phase 11 interface is unchanged.">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="clue_fix – explRL">
+<meta name="twitter:description" content="Phase 13 options on the clue board, called from TextClueEnv: requests (ask), the fact table (table), senders’ track records (record) and costly verification (check): their rule sentences, observation lines, parsing and the schema; all off, the Phase 11 interface is unchanged.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./clue_fix.html">clue_fix</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#tests" id="toc-tests" class="nav-link active" data-scroll-target="#tests">Tests</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./clue_fix.html">clue_fix</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">clue_fix</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 13 options on the clue board, called from <code>TextClueEnv</code>: requests (<code>ask</code>), the fact table (<code>table</code>), senders’ track records (<code>record</code>) and costly verification (<code>check</code>): their rule sentences, observation lines, parsing and the schema; all off, the Phase 11 interface is unchanged.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<div id="d7a22d43" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.570597+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.600927+00:00&quot;,&quot;total&quot;:0.030338059999991174}}" data-execution_count="3">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L117" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixparse" class="level3">
+<h3 class="anchored" data-anchor-id="fixparse">fixParse</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixParse(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    env, parsed, i, a, k</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>‘ask’ (target = the agent’s open subtask, still open) and ‘check’ (target open, clue = a clue posted for it on</em> the board) -&gt; a wait on the board, with report (‘ask’, k) for an ask; anything else invalid. A public check’s result goes to the shared checks and to every teammate’s next observation.</p>
+</section>
+</div>
+<div id="2457e214" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.601145+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.614123+00:00&quot;,&quot;total&quot;:0.012985629999988646}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L102" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixlines" class="level3">
+<h3 class="anchored" data-anchor-id="fixlines">fixLines</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixLines(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    env, i, t, channel</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Observation lines of the options: the live requests (<code>ask</code>), the result of the agent’s last check (<code>check</code>) and,</em> with check ‘public’, the teammates’ checks since its last turn.</p>
+</section>
+</div>
+<div id="a9f034c8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.614354+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.630850+00:00&quot;,&quot;total&quot;:0.01650287100000014}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L89" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixboard" class="level3">
+<h3 class="anchored" data-anchor-id="fixboard">fixBoard</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixBoard(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    env, t, view, i:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The board line with <code>table</code> (each distinct clue once per subtask, no sender) or <code>record</code> (senders’ track records;</em> with record ‘private’, counted over the subtasks the viewing agent i solved).</p>
+</section>
+</div>
+<div id="2b8cf7b5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.631059+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.644236+00:00&quot;,&quot;total&quot;:0.013185313999997561}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L74" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixrules" class="level3">
+<h3 class="anchored" data-anchor-id="fixrules">fixRules</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixRules(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    env, text</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The rules with the options’ sentences after the channel paragraph and the new actions in the reply format.</em></p>
+</section>
+</div>
+<div id="e2aa62b5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.644487+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.653446+00:00&quot;,&quot;total&quot;:0.008967130000002044}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L61" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="trackrecord" class="level3">
+<h3 class="anchored" data-anchor-id="trackrecord">trackRecord</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> trackRecord(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    a, board, viewer:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>(true, checked) over agent a’s shares of the subtasks solved so far (a solved subtask’s clues are known); with</em> <code>viewer</code>, only those of the subtasks the viewer solved itself (the private record).</p>
+</section>
+</div>
+<div id="9c4126f2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.653638+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.658897+00:00&quot;,&quot;total&quot;:0.0052661940000007235}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L52" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixschema" class="level3">
+<h3 class="anchored" data-anchor-id="fixschema">fixSchema</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixSchema(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    schema, ask:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span>, check:<span class="bu">bool</span><span class="op">=</span><span class="va">False</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The schema itself with both actions off (Phase 11 requests unchanged); else a copy whose action enum adds them.</em></p>
+</section>
+</div>
+<div id="c338373a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.659077+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.663870+00:00&quot;,&quot;total&quot;:0.0047984999999926}}" data-execution_count="9">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L47" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixchecked" class="level3">
+<h3 class="anchored" data-anchor-id="fixchecked">fixChecked</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixChecked(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    env, i</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The checks agent i’s known clues apply: none (check off), its own (Phase 13) or every agent’s (check ‘public’).</em></p>
+</section>
+</div>
+<div id="5dc8c257" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.664037+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.669547+00:00&quot;,&quot;total&quot;:0.0055161119999951325}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L39" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixsettings" class="level3">
+<h3 class="anchored" data-anchor-id="fixsettings">fixSettings</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixSettings(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    record, check</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>record (False, True: public, ‘private’) and check (False, True: private, ‘public’) as stored; anything else fails.</em></p>
+</section>
+</div>
+<div id="97029701" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.669717+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.674322+00:00&quot;,&quot;total&quot;:0.004609775999995236}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/clue_fix.py#L34" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fixoptions" class="level3">
+<h3 class="anchored" data-anchor-id="fixoptions">fixOptions</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fixOptions(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    world</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The options set in a cfg.world, as TextClueEnv keywords (absent: off; Phase 18’s colony options and q included).</em></p>
+</section>
+</div>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<div id="5ea061c8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.683077+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:55.876656+00:00&quot;,&quot;total&quot;:0.1935829290000015}}" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> hashlib</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_fix <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_agents <span class="im">import</span> ClueBoard, known</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_runs <span class="im">import</span> runClue</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_text <span class="im">import</span> CLUE_SCHEMA, HINTS, TextClueEnv</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clueboard <span class="im">import</span> ClueBoardEnv</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_client <span class="im">import</span> LLMClient</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_fake <span class="im">import</span> FakeClient, fakeReply</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_runs <span class="im">import</span> LLMConfig</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># defaults unchanged (AC-2, NFR-1): rules, schema, observations, rows and turn logs hash as before Phase 13</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>H <span class="op">=</span> <span class="kw">lambda</span> s: hashlib.sha256(s.encode()).hexdigest()[:<span class="dv">16</span>]</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>fake <span class="op">=</span> <span class="kw">lambda</span>: LLMClient(<span class="st">'claude-haiku-5-5'</span>, client<span class="op">=</span>FakeClient(fakeReply))</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>got <span class="op">=</span> [H(TextClueEnv(ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>)).rules()), H(TextClueEnv(ClueBoardEnv(<span class="dv">1</span>, <span class="dv">8</span>, m<span class="op">=</span><span class="dv">2</span>, R<span class="op">=</span><span class="dv">30</span>), hint<span class="op">=</span><span class="st">'follow'</span>).rules()),</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>       H(json.dumps(CLUE_SCHEMA, sort_keys<span class="op">=</span><span class="va">True</span>))]</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ch, nLiar <span class="kw">in</span> ((<span class="st">'blackboard'</span>, <span class="dv">1</span>), (<span class="st">'messages'</span>, <span class="dv">0</span>), (<span class="st">'hierarchical'</span>, <span class="dv">0</span>)):</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    cfg <span class="op">=</span> LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span>ch, N<span class="op">=</span><span class="dv">4</span>, turns<span class="op">=</span><span class="dv">10</span>, nLiar<span class="op">=</span>nLiar, memory<span class="op">=</span><span class="st">'full'</span>, world<span class="op">=</span><span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">30</span>))</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    got.append(H(json.dumps(runClue(cfg, <span class="dv">900</span>, fake()), sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>)))</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> got <span class="op">==</span> [<span class="st">'0d71b754be52dbba'</span>, <span class="st">'78a7b077e3f81a06'</span>, <span class="st">'ce192d3fc3c7e717'</span>, <span class="st">'f35507dc0199d7e3'</span>, <span class="st">'a0e448242d25f405'</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>               <span class="st">'b131cbde560b9608'</span>], got</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>off <span class="op">=</span> <span class="bu">dict</span>(ask<span class="op">=</span><span class="va">False</span>, table<span class="op">=</span><span class="va">False</span>, record<span class="op">=</span><span class="va">False</span>, check<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>b0 <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b0).SCHEMA <span class="kw">is</span> CLUE_SCHEMA <span class="kw">and</span> TextClueEnv(b0, <span class="op">**</span>off).SCHEMA <span class="kw">is</span> CLUE_SCHEMA</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b0, table<span class="op">=</span><span class="va">True</span>, record<span class="op">=</span><span class="va">True</span>).SCHEMA <span class="kw">is</span> CLUE_SCHEMA <span class="kw">and</span> TextClueEnv(b0, <span class="op">**</span>off).rules() <span class="op">==</span> TextClueEnv(b0).rules()</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> fixOptions(<span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, hint<span class="op">=</span><span class="st">'follow'</span>)) <span class="op">==</span> {} <span class="kw">and</span> fixOptions(<span class="bu">dict</span>(ask<span class="op">=</span><span class="va">True</span>, R<span class="op">=</span><span class="dv">30</span>)) <span class="op">==</span> <span class="bu">dict</span>(ask<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="co"># the schema gains 'ask' and 'check' only with their options; CLUE_SCHEMA itself never changes</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>enum <span class="op">=</span> <span class="kw">lambda</span> e: e.SCHEMA[<span class="st">'properties'</span>][<span class="st">'action'</span>][<span class="st">'enum'</span>]</span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> enum(TextClueEnv(b0, ask<span class="op">=</span><span class="va">True</span>)) <span class="op">==</span> [<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>, <span class="st">'wait'</span>, <span class="st">'ask'</span>]</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> enum(TextClueEnv(b0, check<span class="op">=</span><span class="va">True</span>)) <span class="op">==</span> [<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>, <span class="st">'wait'</span>, <span class="st">'check'</span>]</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> enum(TextClueEnv(b0, ask<span class="op">=</span><span class="va">True</span>, check<span class="op">=</span><span class="va">True</span>)) <span class="op">==</span> [<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>, <span class="st">'wait'</span>, <span class="st">'ask'</span>, <span class="st">'check'</span>]</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> CLUE_SCHEMA[<span class="st">'properties'</span>][<span class="st">'action'</span>][<span class="st">'enum'</span>] <span class="op">==</span> [<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>, <span class="st">'wait'</span>]</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="co"># rules: each option adds its sentence after the channel paragraph; ask and check join the reply format; the hints</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>base <span class="op">=</span> TextClueEnv(b0).rules()</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> FIX:</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> TextClueEnv(b0, <span class="op">**</span>{k: <span class="va">True</span>}).rules()</span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> FIX_RULES[k] <span class="kw">in</span> r <span class="kw">and</span> r.index(FIX_RULES[k]) <span class="op">&gt;</span> r.index(<span class="st">'did not see it.'</span>) <span class="kw">and</span> r.replace(FIX_RULES[k] <span class="op">+</span> <span class="st">'</span><span class="ch">\n\n</span><span class="st">'</span>, <span class="st">''</span>).split(</span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>        <span class="st">'Reply with JSON'</span>)[<span class="dv">0</span>] <span class="op">==</span> base.split(<span class="st">'Reply with JSON'</span>)[<span class="dv">0</span>], k</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>r <span class="op">=</span> TextClueEnv(b0, ask<span class="op">=</span><span class="va">True</span>, check<span class="op">=</span><span class="va">True</span>).rules()</span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">"action is 'open', 'submit', 'share', 'wait', 'ask' or 'check'; target is the subtask name for 'open', 'share', 'ask' "</span> <span class="op">\</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>       <span class="st">"and 'check' (empty otherwise)"</span> <span class="kw">in</span> r <span class="kw">and</span> <span class="st">"clue is the clue text for 'share' and 'check' (empty"</span> <span class="kw">in</span> r</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">"action is 'open', 'submit', 'share', 'wait' or 'ask';"</span> <span class="kw">in</span> TextClueEnv(b0, ask<span class="op">=</span><span class="va">True</span>).rules()</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b0, table<span class="op">=</span><span class="va">True</span>).rules().split(<span class="st">'Reply with JSON'</span>)[<span class="dv">1</span>] <span class="op">==</span> base.split(<span class="st">'Reply with JSON'</span>)[<span class="dv">1</span>]</span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> h <span class="kw">in</span> (<span class="st">'evidence'</span>, <span class="st">'warn'</span>):</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> HINTS[h] <span class="kw">in</span> TextClueEnv(b0, hint<span class="op">=</span>h).rules() <span class="kw">and</span> TextClueEnv(b0, hint<span class="op">=</span>h).rules().replace(HINTS[h] <span class="op">+</span> <span class="st">'</span><span class="ch">\n\n</span><span class="st">'</span>, <span class="st">''</span>) <span class="op">==</span> base</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> HINTS[<span class="st">'evidence'</span>].startswith(<span class="st">'Before working on your own subtask, post every clue'</span>) <span class="kw">and</span> <span class="st">'Cross-check'</span> <span class="kw">in</span> HINTS[<span class="st">'warn'</span>]</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> <span class="kw">lambda</span> <span class="op">**</span>kw: <span class="bu">dict</span>(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'wait'</span>, target<span class="op">=</span><span class="st">''</span>, answer<span class="op">=</span><span class="dv">0</span>, clue<span class="op">=</span><span class="st">''</span>, notes<span class="op">=</span><span class="st">''</span>), <span class="op">**</span>kw)</span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> clue(b, k, j):</span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>    p, r <span class="op">=</span> b.tasks[k].task.clue(j)</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> j, p, r</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> share(b, cb, i, k, j, r, t):</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Agent i posts clue j of k with residue r (true or false) on the board and the board logs the share."</span></span>
+<span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a>    b.<span class="bu">apply</span>(i, (<span class="st">'share'</span>, (k, j, r)), t)<span class="op">;</span> cb.post(i, k, (j, b.tasks[k].task.primes[j], r), t)</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> solve(b, i, k, t):</span>
+<span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a>    b.<span class="bu">apply</span>(i, (<span class="st">'open'</span>, k), t)<span class="op">;</span> <span class="cf">assert</span> b.<span class="bu">apply</span>(i, (<span class="st">'submit'</span>, b.tasks[k].task.x), t <span class="op">+</span> <span class="dv">1</span>)[<span class="dv">3</span>][<span class="st">'result'</span>] <span class="op">==</span> <span class="st">'solved'</span></span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a><span class="co"># ask: valid only for the asker's open subtask (still open); a wait on the board; posted, shown with holder counts; lapses</span></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>b, cb <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>, m<span class="op">=</span><span class="dv">3</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">105</span>, life<span class="op">=</span><span class="dv">100</span>), ClueBoard()</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a>env, plain <span class="op">=</span> TextClueEnv(b, ask<span class="op">=</span><span class="va">True</span>), TextClueEnv(b)</span>
+<span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a>k, k2 <span class="op">=</span> b.<span class="bu">open</span>[<span class="dv">0</span>], b.<span class="bu">open</span>[<span class="dv">1</span>]</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>A <span class="op">=</span> <span class="bu">next</span>(a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> <span class="bu">len</span>(b.held(a, k)) <span class="op">&lt;</span> <span class="dv">3</span>)          <span class="co"># the asker lacks a clue of k</span></span>
+<span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a>V <span class="op">=</span> <span class="bu">next</span>(a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> a <span class="op">!=</span> A <span class="kw">and</span> <span class="bu">any</span>(j <span class="kw">not</span> <span class="kw">in</span> b.held(A, k) <span class="cf">for</span> j <span class="kw">in</span> b.held(a, k)))   <span class="co"># a viewer holding one</span></span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>b.<span class="bu">apply</span>(A, (<span class="st">'open'</span>, k), <span class="fl">0.0</span>)</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Requests: none'</span> <span class="kw">in</span> env.observe(A, <span class="fl">1.0</span>, cb) <span class="kw">and</span> <span class="st">'Requests'</span> <span class="kw">not</span> <span class="kw">in</span> plain.observe(A, <span class="fl">1.0</span>, cb)</span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.parse(P(action<span class="op">=</span><span class="st">'ask'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k2<span class="sc">}</span><span class="ss">'</span>), A) <span class="op">==</span> ((<span class="st">'wait'</span>, <span class="va">None</span>), <span class="va">None</span>, <span class="va">False</span>)          <span class="co"># not its open subtask</span></span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.parse(P(action<span class="op">=</span><span class="st">'ask'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>), V)[<span class="dv">2</span>] <span class="kw">is</span> <span class="va">False</span>                                <span class="co"># V has nothing open</span></span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> plain.parse(P(action<span class="op">=</span><span class="st">'ask'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>), A) <span class="op">==</span> ((<span class="st">'wait'</span>, <span class="va">None</span>), <span class="va">None</span>, <span class="va">False</span>)          <span class="co"># option off: invalid</span></span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a>act, rep, ok <span class="op">=</span> env.parse(P(action<span class="op">=</span><span class="st">'ask'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>), A)</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> (act, rep, ok) <span class="op">==</span> ((<span class="st">'wait'</span>, <span class="va">None</span>), (<span class="st">'ask'</span>, k), <span class="va">True</span>)</span>
+<span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a>_, _, _, info <span class="op">=</span> b.<span class="bu">apply</span>(A, act, <span class="fl">1.0</span>)</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> info[<span class="st">'result'</span>] <span class="op">==</span> <span class="st">'wait'</span> <span class="kw">and</span> b.ledger[<span class="op">-</span><span class="dv">1</span>][<span class="dv">3</span>] <span class="op">==</span> <span class="st">'stay'</span> <span class="kw">and</span> b.counts <span class="op">==</span> <span class="bu">dict</span>(solved<span class="op">=</span><span class="dv">0</span>, wrong<span class="op">=</span><span class="dv">0</span>, late<span class="op">=</span><span class="dv">0</span>, opens<span class="op">=</span><span class="dv">1</span>, shares<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.post(A, rep, <span class="fl">1.0</span>, cb, info) <span class="kw">and</span> cb.requests(b) <span class="op">==</span> [(k, A, <span class="fl">1.0</span>)]</span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.summary(A, <span class="fl">1.0</span>, act, <span class="fl">0.0</span>, rep, info) <span class="op">==</span> <span class="ss">f'turn 1: asked for clues for T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">, earned 0.00.'</span></span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="bu">sum</span>(j <span class="kw">not</span> <span class="kw">in</span> b.held(A, k) <span class="cf">for</span> j <span class="kw">in</span> b.held(V, k))</span>
+<span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'Requests: agent </span><span class="sc">{</span>A<span class="sc">}</span><span class="ss"> needs clues for T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> (you hold </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">)'</span> <span class="kw">in</span> env.observe(V, <span class="fl">2.0</span>, cb)</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a>jv <span class="op">=</span> <span class="bu">next</span>(j <span class="cf">for</span> j <span class="kw">in</span> b.held(V, k) <span class="cf">if</span> j <span class="kw">not</span> <span class="kw">in</span> b.held(A, k))</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a>share(b, cb, V, k, <span class="op">*</span>clue(b, k, jv)[::<span class="dv">2</span>], <span class="fl">2.0</span>)                      <span class="co"># once posted, the asker knows it: one fewer</span></span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'agent </span><span class="sc">{</span>A<span class="sc">}</span><span class="ss"> needs clues for T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> (you hold </span><span class="sc">{</span>n <span class="op">-</span> <span class="dv">1</span><span class="sc">}</span><span class="ss">)'</span> <span class="kw">in</span> env.observe(V, <span class="fl">3.0</span>, cb)</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>env.observe(A, <span class="fl">3.0</span>, cb)<span class="op">;</span> cb.ask(A, k, <span class="fl">3.0</span>)                         <span class="co"># a new ask replaces the earlier one</span></span>
+<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> cb.requests(b) <span class="op">==</span> [(k, A, <span class="fl">3.0</span>)]</span>
+<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>B <span class="op">=</span> <span class="bu">next</span>(a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> a <span class="kw">not</span> <span class="kw">in</span> (A, V))</span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>b.<span class="bu">apply</span>(B, (<span class="st">'open'</span>, k2), <span class="fl">3.0</span>)<span class="op">;</span> env.observe(B, <span class="fl">4.0</span>, cb)<span class="op">;</span> <span class="cf">assert</span> env.parse(P(action<span class="op">=</span><span class="st">'ask'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k2<span class="sc">}</span><span class="ss">'</span>), B)[<span class="dv">2</span>]</span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>cb.ask(B, k2, <span class="fl">4.0</span>)</span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> [x[<span class="dv">1</span>] <span class="cf">for</span> x <span class="kw">in</span> cb.requests(b)] <span class="op">==</span> <span class="bu">sorted</span>([A, B])</span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'agent </span><span class="sc">{</span>A<span class="sc">}</span><span class="ss"> needs clues for T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> (you hold '</span> <span class="kw">in</span> env.observe(V, <span class="fl">4.0</span>, cb) <span class="kw">and</span> <span class="ss">f'agent </span><span class="sc">{</span>B<span class="sc">}</span><span class="ss"> needs clues for T</span><span class="sc">{</span>k2<span class="sc">}</span><span class="ss">'</span> <span class="kw">in</span> env.observe(V, <span class="fl">4.0</span>, cb)</span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>b.<span class="bu">apply</span>(A, (<span class="st">'open'</span>, b.<span class="bu">open</span>[<span class="dv">2</span>]), <span class="fl">4.0</span>)<span class="op">;</span> b.<span class="bu">apply</span>(A, (<span class="st">'open'</span>, k), <span class="fl">5.0</span>)  <span class="co"># A opened another subtask: lapsed (even back on k)</span></span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> cb.requests(b) <span class="op">==</span> [(k2, B, <span class="fl">4.0</span>)]</span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>solve(b, V, k2, <span class="fl">6.0</span>)                                                <span class="co"># k2 closed: lapsed</span></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> cb.requests(b) <span class="op">==</span> [] <span class="kw">and</span> <span class="st">'Requests: none'</span> <span class="kw">in</span> env.observe(V, <span class="fl">8.0</span>, cb)</span>
+<span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a><span class="co"># table: each distinct clue once per open subtask, without sender or age, instead of one entry per post</span></span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a>b, cb <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>, m<span class="op">=</span><span class="dv">3</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">105</span>, life<span class="op">=</span><span class="dv">100</span>), ClueBoard()</span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>k, k2 <span class="op">=</span> b.<span class="bu">open</span>[<span class="dv">0</span>], b.<span class="bu">open</span>[<span class="dv">1</span>]</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a>(j0, p0, r0), (j1, p1, r1), (j2, p2, r2) <span class="op">=</span> clue(b, k, <span class="dv">0</span>), clue(b, k, <span class="dv">1</span>), clue(b, k2, <span class="dv">2</span>)</span>
+<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">0</span>, k, j0, r0, <span class="fl">0.0</span>)<span class="op">;</span> share(b, cb, <span class="dv">1</span>, k, j0, r0, <span class="fl">1.0</span>)<span class="op">;</span> share(b, cb, <span class="dv">2</span>, k, j1, r1, <span class="fl">1.0</span>)<span class="op">;</span> share(b, cb, <span class="dv">3</span>, k2, j2, r2, <span class="fl">2.0</span>)</span>
+<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a>o <span class="op">=</span> TextClueEnv(b, table<span class="op">=</span><span class="va">True</span>).observe(<span class="dv">0</span>, <span class="fl">3.0</span>, cb)</span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Clues shared on the board'</span> <span class="kw">not</span> <span class="kw">in</span> o <span class="kw">and</span> <span class="st">'Known to the team: '</span> <span class="kw">in</span> o</span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>line <span class="op">=</span> <span class="bu">next</span>(x <span class="cf">for</span> x <span class="kw">in</span> o.split(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>) <span class="cf">if</span> x.startswith(<span class="st">'Known to the team'</span>))</span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">: x mod </span><span class="sc">{</span>p0<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r0<span class="sc">}</span><span class="ss">, x mod </span><span class="sc">{</span>p1<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r1<span class="sc">}</span><span class="ss">'</span> <span class="kw">in</span> line <span class="kw">and</span> <span class="ss">f'T</span><span class="sc">{</span>k2<span class="sc">}</span><span class="ss">: x mod </span><span class="sc">{</span>p2<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r2<span class="sc">}</span><span class="ss">'</span> <span class="kw">in</span> line <span class="kw">and</span> <span class="st">'agent'</span> <span class="kw">not</span> <span class="kw">in</span> line</span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> line.count(<span class="ss">f'x mod </span><span class="sc">{</span>p0<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r0<span class="sc">}</span><span class="ss">'</span>) <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b, table<span class="op">=</span><span class="va">True</span>).observe(<span class="dv">0</span>, <span class="fl">3.0</span>, ClueBoard()).count(<span class="st">'Known to the team: none'</span>) <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a><span class="co"># record: true and false shares of solved subtasks only; 'record none' without any</span></span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a>b, cb <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>, m<span class="op">=</span><span class="dv">3</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">105</span>, life<span class="op">=</span><span class="dv">100</span>), ClueBoard()</span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a>k, k2, k3, k4 <span class="op">=</span> b.<span class="bu">open</span>[:<span class="dv">4</span>]</span>
+<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a>_, pf, rf <span class="op">=</span> clue(b, k2, <span class="dv">0</span>)</span>
+<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">1</span>, k, <span class="op">*</span>clue(b, k, <span class="dv">0</span>)[::<span class="dv">2</span>], <span class="fl">0.0</span>)                        <span class="co"># agent 1: a true share of k (solved below)</span></span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">2</span>, k2, <span class="dv">0</span>, (rf <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> pf, <span class="fl">0.0</span>)                          <span class="co"># agent 2: a false share of k2 (solved below)</span></span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">2</span>, k4, <span class="dv">0</span>, (clue(b, k4, <span class="dv">0</span>)[<span class="dv">2</span>] <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> clue(b, k4, <span class="dv">0</span>)[<span class="dv">1</span>], <span class="fl">0.0</span>)   <span class="co"># and a false one of k4 (stays open)</span></span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">1</span>, k3, <span class="op">*</span>clue(b, k3, <span class="dv">1</span>)[::<span class="dv">2</span>], <span class="fl">1.0</span>)                      <span class="co"># shares still on the board</span></span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">2</span>, k3, <span class="op">*</span>clue(b, k3, <span class="dv">2</span>)[::<span class="dv">2</span>], <span class="fl">1.0</span>)</span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> TextClueEnv(b, record<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> trackRecord(<span class="dv">1</span>, b) <span class="op">==</span> trackRecord(<span class="dv">2</span>, b) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">0</span>) <span class="kw">and</span> trackRecord(<span class="dv">0</span>, b) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'(agent 1, 2 turns ago, record none)'</span> <span class="kw">in</span> env.observe(<span class="dv">0</span>, <span class="fl">3.0</span>, cb)</span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>solve(b, <span class="dv">3</span>, k, <span class="fl">3.0</span>)<span class="op">;</span> solve(b, <span class="dv">3</span>, k2, <span class="fl">5.0</span>)</span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> trackRecord(<span class="dv">1</span>, b) <span class="op">==</span> (<span class="dv">1</span>, <span class="dv">1</span>) <span class="kw">and</span> trackRecord(<span class="dv">2</span>, b) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">1</span>)      <span class="co"># k4's false share is not counted yet</span></span>
+<span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a>o <span class="op">=</span> env.observe(<span class="dv">0</span>, <span class="fl">7.0</span>, cb)</span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'x mod </span><span class="sc">{</span>clue(b, k3, <span class="dv">1</span>)[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>clue(b, k3, <span class="dv">1</span>)[<span class="dv">2</span>]<span class="sc">}</span><span class="ss"> (agent 1, 6 turns ago, record 1/1 true)'</span> <span class="kw">in</span> o</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'(agent 2, 6 turns ago, record 0/1 true)'</span> <span class="kw">in</span> o <span class="kw">and</span> <span class="st">'Clues shared on the board: '</span> <span class="kw">in</span> o</span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b).observe(<span class="dv">0</span>, <span class="fl">7.0</span>, cb).replace(<span class="st">', record 1/1 true'</span>, <span class="st">''</span>).replace(<span class="st">', record 0/1 true'</span>, <span class="st">''</span>) <span class="op">==</span> o.replace(</span>
+<span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a>    <span class="st">', record 1/1 true'</span>, <span class="st">''</span>).replace(<span class="st">', record 0/1 true'</span>, <span class="st">''</span>)</span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a><span class="co"># check: the truth next turn; a false clue leaves the checker's known clues (falling back), a true one is kept; others unchanged</span></span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a>b, cb <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>, m<span class="op">=</span><span class="dv">3</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">105</span>, life<span class="op">=</span><span class="dv">100</span>), ClueBoard()</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> b.<span class="bu">open</span>[<span class="dv">0</span>]</span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a>j <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> H0 <span class="op">=</span> <span class="bu">min</span>(b.tasks[k].holders[j])<span class="op">;</span> _, p, r <span class="op">=</span> clue(b, k, j)</span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>C, D, L <span class="op">=</span> [a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> a <span class="op">!=</span> H0][:<span class="dv">3</span>]                       <span class="co"># C checks, D does not; L lies</span></span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> TextClueEnv(b, check<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>share(b, cb, H0, k, j, r, <span class="fl">0.0</span>)                                       <span class="co"># the true clue first</span></span>
+<span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a>share(b, cb, L, k, j, (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p, <span class="fl">1.0</span>)                              <span class="co"># then a false one, later (overwrites in known)</span></span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>b.<span class="bu">apply</span>(C, (<span class="st">'open'</span>, k), <span class="fl">1.0</span>)</span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a>o <span class="op">=</span> env.observe(C, <span class="fl">2.0</span>, cb)</span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> known(C, b, cb)[k][j] <span class="op">==</span> (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p <span class="kw">and</span> <span class="st">'Your check'</span> <span class="kw">not</span> <span class="kw">in</span> o</span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss">'</span>), C)[<span class="dv">2</span>] <span class="kw">is</span> <span class="va">False</span>   <span class="co"># never posted</span></span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b).parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss">'</span>), C)[<span class="dv">2</span>] <span class="kw">is</span> <span class="va">False</span></span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a>act <span class="op">=</span> env.parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss">'</span>), C)</span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> act <span class="op">==</span> ((<span class="st">'wait'</span>, <span class="va">None</span>), <span class="va">None</span>, <span class="va">True</span>) <span class="kw">and</span> env.checked[C] <span class="op">==</span> {(k, j, (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p): <span class="va">False</span>}</span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>b.<span class="bu">apply</span>(C, act[<span class="dv">0</span>], <span class="fl">2.0</span>)</span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>o <span class="op">=</span> env.observe(C, <span class="fl">3.0</span>, cb)</span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'Your check: T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss"> (from agent </span><span class="sc">{</span>L<span class="sc">}</span><span class="ss">) is false.'</span> <span class="kw">in</span> o</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env._known[C][k][j] <span class="op">==</span> r <span class="kw">and</span> <span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss">'</span> <span class="kw">in</span> o.split(<span class="st">'Clues you know: '</span>)[<span class="dv">1</span>]   <span class="co"># falls back to the true one</span></span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Your check'</span> <span class="kw">not</span> <span class="kw">in</span> env.observe(C, <span class="fl">4.0</span>, cb)                   <span class="co"># shown once, the turn after the check</span></span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.observe(D, <span class="fl">4.0</span>, cb) <span class="kw">and</span> env._known[D][k][j] <span class="op">==</span> (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p  <span class="co"># D's view is unchanged</span></span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> known(C, b, cb, {(k, j, r): <span class="va">False</span>, (k, j, (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p): <span class="va">False</span>})[k].get(j) <span class="kw">is</span> <span class="va">None</span>   <span class="co"># both found false: unknown</span></span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a>env.parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss">'</span>), C)</span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'Your check: T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss"> (from agent </span><span class="sc">{</span>H0<span class="sc">}</span><span class="ss">) is true.'</span> <span class="kw">in</span> env.observe(C, <span class="fl">5.0</span>, cb)</span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a>share(b, cb, D, k, j, (r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p, <span class="fl">5.0</span>)                              <span class="co"># a later post: C keeps the clue it found true</span></span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.observe(C, <span class="fl">6.0</span>, cb) <span class="kw">and</span> env._known[C][k][j] <span class="op">==</span> r <span class="kw">and</span> known(D, b, cb)[k][j] <span class="op">==</span> (r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p</span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> env.summary(C, <span class="fl">4.0</span>, (<span class="st">'wait'</span>, <span class="va">None</span>), <span class="fl">0.0</span>, <span class="va">None</span>, <span class="bu">dict</span>(result<span class="op">=</span><span class="st">'wait'</span>, task<span class="op">=-</span><span class="dv">1</span>)) <span class="op">==</span> <span class="ss">f'turn 4: checked T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">: x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss">, earned 0.00.'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="3aff0be2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-10-31T06:14:55.889741+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-10-31T06:14:57.298409+00:00&quot;,&quot;total&quot;:1.4086716369999976}}" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Phase 14 (AC-2): Phase 13's option values keep their rules, schemas, rows and turn logs (hashed before Phase 14)</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> asker(req):</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"fakeReply, but some turns ask for the open subtask's clues or check the first clue on the board."</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    o <span class="op">=</span> req[<span class="st">'messages'</span>][<span class="dv">0</span>][<span class="st">'content'</span>][<span class="op">-</span><span class="dv">1</span>][<span class="st">'text'</span>]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    h, op <span class="op">=</span> <span class="bu">int</span>(hashlib.sha256(o.encode()).hexdigest()[:<span class="dv">8</span>], <span class="dv">16</span>) <span class="op">%</span> <span class="dv">4</span>, re.search(<span class="vs">r'Your open subtask: T</span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs">, open'</span>, o)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    seen <span class="op">=</span> re.search(<span class="vs">r'</span>(?:<span class="vs">the board</span><span class="cf">|</span><span class="vs">the team</span>)<span class="vs">: T</span><span class="kw">(</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs">: </span><span class="kw">(</span><span class="vs">x mod </span><span class="dv">\d</span><span class="op">+</span><span class="vs"> = -</span><span class="op">?</span><span class="dv">\d</span><span class="op">+</span><span class="kw">)</span><span class="vs">'</span>, o)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> h <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> op:</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> json.dumps(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'ask'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>op<span class="sc">.</span>group(<span class="dv">1</span>)<span class="sc">}</span><span class="ss">'</span>, answer<span class="op">=</span><span class="dv">0</span>, clue<span class="op">=</span><span class="st">''</span>, notes<span class="op">=</span><span class="st">'a'</span>))</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> h <span class="op">==</span> <span class="dv">2</span> <span class="kw">and</span> seen:</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> json.dumps(<span class="bu">dict</span>(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>seen<span class="sc">.</span>group(<span class="dv">1</span>)<span class="sc">}</span><span class="ss">'</span>, answer<span class="op">=</span><span class="dv">0</span>, clue<span class="op">=</span>seen.group(<span class="dv">2</span>), notes<span class="op">=</span><span class="st">'c'</span>))</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fakeReply(req)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>W, out <span class="op">=</span> <span class="bu">dict</span>(m<span class="op">=</span><span class="dv">2</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">30</span>), []</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> opt <span class="kw">in</span> (<span class="bu">dict</span>(ask<span class="op">=</span><span class="va">True</span>), <span class="bu">dict</span>(table<span class="op">=</span><span class="va">True</span>), <span class="bu">dict</span>(record<span class="op">=</span><span class="va">True</span>), <span class="bu">dict</span>(check<span class="op">=</span><span class="va">True</span>),</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>            <span class="bu">dict</span>(ask<span class="op">=</span><span class="va">True</span>, table<span class="op">=</span><span class="va">True</span>, record<span class="op">=</span><span class="va">True</span>, check<span class="op">=</span><span class="va">True</span>), <span class="bu">dict</span>(record<span class="op">=</span><span class="va">True</span>, check<span class="op">=</span><span class="va">True</span>, ask<span class="op">=</span><span class="va">True</span>)):</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    e <span class="op">=</span> TextClueEnv(ClueBoardEnv(<span class="dv">900</span>, <span class="dv">4</span>, <span class="op">**</span>W), <span class="op">**</span>opt)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    out.append(H(e.rules()) <span class="op">+</span> H(json.dumps(e.SCHEMA)))</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> N, nLiar <span class="kw">in</span> ((<span class="dv">4</span>, <span class="dv">0</span>), (<span class="dv">4</span>, <span class="dv">1</span>), (<span class="dv">8</span>, <span class="dv">0</span>)):</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        cfg <span class="op">=</span> LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span><span class="st">'blackboard'</span>, N<span class="op">=</span>N, turns<span class="op">=</span><span class="dv">12</span>, nLiar<span class="op">=</span>nLiar, memory<span class="op">=</span><span class="st">'full'</span>, world<span class="op">=</span>{<span class="op">**</span>W, <span class="op">**</span>opt})</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        out.append(H(json.dumps(runClue(cfg, <span class="dv">900</span>, LLMClient(<span class="st">'claude-haiku-5-5'</span>, client<span class="op">=</span>FakeClient(asker))), sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>)))</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> H(<span class="st">' '</span>.join(out)) <span class="op">==</span> <span class="st">'bd460bb72d41b02f'</span>, H(<span class="st">' '</span>.join(out))</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="co"># the settings: stored as given, no aliases; booleans as Phase 13</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> fixSettings(<span class="va">True</span>, <span class="va">True</span>) <span class="op">==</span> (<span class="va">True</span>, <span class="va">True</span>) <span class="kw">and</span> fixSettings(<span class="st">'private'</span>, <span class="st">'public'</span>) <span class="op">==</span> (<span class="st">'private'</span>, <span class="st">'public'</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> fixSettings(<span class="dv">0</span>, <span class="dv">1</span>) <span class="op">==</span> (<span class="va">False</span>, <span class="va">True</span>)</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bad <span class="kw">in</span> ((<span class="st">'public'</span>, <span class="va">False</span>), (<span class="va">False</span>, <span class="st">'private'</span>), (<span class="st">'yes'</span>, <span class="va">True</span>)):</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>        TextClueEnv(b0, record<span class="op">=</span>bad[<span class="dv">0</span>], check<span class="op">=</span>bad[<span class="dv">1</span>])<span class="op">;</span> <span class="cf">assert</span> <span class="va">False</span>, bad</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">ValueError</span>:</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a><span class="co"># rules and schema: each new setting swaps its option's sentence and nothing else; 'check' joins the actions either way</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k, v, key <span class="kw">in</span> ((<span class="st">'record'</span>, <span class="st">'private'</span>, <span class="st">'recordPrivate'</span>), (<span class="st">'check'</span>, <span class="st">'public'</span>, <span class="st">'checkPublic'</span>)):</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    new, old <span class="op">=</span> TextClueEnv(b0, <span class="op">**</span>{k: v}).rules(), TextClueEnv(b0, <span class="op">**</span>{k: <span class="va">True</span>}).rules()</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> FIX_RULES[key] <span class="kw">in</span> new <span class="kw">and</span> FIX_RULES[k] <span class="kw">not</span> <span class="kw">in</span> new <span class="kw">and</span> new.replace(FIX_RULES[key], FIX_RULES[k]) <span class="op">==</span> old</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> FIX_RULES[<span class="st">'recordPrivate'</span>] <span class="op">==</span> (<span class="st">"Each shared clue shows how many of its sender's earlier shares were true, counted "</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>                                      <span class="st">"over subtasks you solved yourself."</span>)</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> FIX_RULES[<span class="st">'checkPublic'</span>] <span class="op">==</span> (<span class="st">"'check' a clue on the board (target = its subtask, clue = its text): next turn every "</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>                                    <span class="st">"teammate and you learn whether it is true; checking takes your turn."</span>)</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> enum(TextClueEnv(b0, check<span class="op">=</span><span class="st">'public'</span>)) <span class="op">==</span> enum(TextClueEnv(b0, check<span class="op">=</span><span class="va">True</span>)) <span class="op">==</span> [<span class="st">'open'</span>, <span class="st">'submit'</span>, <span class="st">'share'</span>, <span class="st">'wait'</span>, <span class="st">'check'</span>]</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> TextClueEnv(b0, record<span class="op">=</span><span class="st">'private'</span>).SCHEMA <span class="kw">is</span> CLUE_SCHEMA</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a><span class="co"># private record: only the shares of subtasks the viewer solved itself count</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>b, cb <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>, m<span class="op">=</span><span class="dv">3</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">105</span>, life<span class="op">=</span><span class="dv">100</span>), ClueBoard()</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>k, k2, k3 <span class="op">=</span> b.<span class="bu">open</span>[:<span class="dv">3</span>]</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>_, pf, rf <span class="op">=</span> clue(b, k2, <span class="dv">0</span>)</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">1</span>, k, <span class="op">*</span>clue(b, k, <span class="dv">0</span>)[::<span class="dv">2</span>], <span class="fl">0.0</span>)                        <span class="co"># agent 1: a true share of k (agent 3 solves it)</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">2</span>, k2, <span class="dv">0</span>, (rf <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> pf, <span class="fl">0.0</span>)                          <span class="co"># agent 2: a false share of k2 (agent 0 solves it)</span></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">1</span>, k3, <span class="op">*</span>clue(b, k3, <span class="dv">1</span>)[::<span class="dv">2</span>], <span class="fl">1.0</span>)                      <span class="co"># shares still on the board</span></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>share(b, cb, <span class="dv">2</span>, k3, <span class="op">*</span>clue(b, k3, <span class="dv">2</span>)[::<span class="dv">2</span>], <span class="fl">1.0</span>)</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>solve(b, <span class="dv">3</span>, k, <span class="fl">2.0</span>)<span class="op">;</span> solve(b, <span class="dv">0</span>, k2, <span class="fl">4.0</span>)</span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> trackRecord(<span class="dv">1</span>, b) <span class="op">==</span> (<span class="dv">1</span>, <span class="dv">1</span>) <span class="kw">and</span> trackRecord(<span class="dv">2</span>, b) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">1</span>)                 <span class="co"># public: both solves count</span></span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> trackRecord(<span class="dv">1</span>, b, <span class="dv">3</span>) <span class="op">==</span> (<span class="dv">1</span>, <span class="dv">1</span>) <span class="kw">and</span> trackRecord(<span class="dv">1</span>, b, <span class="dv">0</span>) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">0</span>) <span class="kw">and</span> trackRecord(<span class="dv">1</span>, b, <span class="dv">2</span>) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> trackRecord(<span class="dv">2</span>, b, <span class="dv">0</span>) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">1</span>) <span class="kw">and</span> trackRecord(<span class="dv">2</span>, b, <span class="dv">3</span>) <span class="op">==</span> (<span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>env, pub <span class="op">=</span> TextClueEnv(b, record<span class="op">=</span><span class="st">'private'</span>), TextClueEnv(b, record<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>o3, o0, o1 <span class="op">=</span> env.observe(<span class="dv">3</span>, <span class="fl">6.0</span>, cb), env.observe(<span class="dv">0</span>, <span class="fl">6.0</span>, cb), env.observe(<span class="dv">1</span>, <span class="fl">6.0</span>, cb)</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'(agent 1, 5 turns ago, record 1/1 true)'</span> <span class="kw">in</span> o3 <span class="kw">and</span> <span class="st">'(agent 2, 5 turns ago, record none)'</span> <span class="kw">in</span> o3</span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'(agent 1, 5 turns ago, record none)'</span> <span class="kw">in</span> o0 <span class="kw">and</span> <span class="st">'(agent 2, 5 turns ago, record 0/1 true)'</span> <span class="kw">in</span> o0</span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">', record none)'</span> <span class="kw">in</span> o1 <span class="kw">and</span> <span class="st">'true)'</span> <span class="kw">not</span> <span class="kw">in</span> o1</span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>p3 <span class="op">=</span> pub.observe(<span class="dv">3</span>, <span class="fl">6.0</span>, cb)</span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'(agent 1, 5 turns ago, record 1/1 true)'</span> <span class="kw">in</span> p3 <span class="kw">and</span> <span class="st">'(agent 2, 5 turns ago, record 0/1 true)'</span> <span class="kw">in</span> p3</span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> re.sub(<span class="vs">r', record </span><span class="pp">[^)]</span><span class="op">*</span><span class="ch">\)</span><span class="vs">'</span>, <span class="st">')'</span>, p3) <span class="op">==</span> re.sub(<span class="vs">r', record </span><span class="pp">[^)]</span><span class="op">*</span><span class="ch">\)</span><span class="vs">'</span>, <span class="st">')'</span>, o3)    <span class="co"># otherwise the same observation</span></span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a><span class="co"># public check: the result reaches every teammate's next observation once; every agent's known clues apply it</span></span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a>b, cb <span class="op">=</span> ClueBoardEnv(<span class="dv">0</span>, <span class="dv">4</span>, m<span class="op">=</span><span class="dv">3</span>, r<span class="op">=</span><span class="dv">1</span>, R<span class="op">=</span><span class="dv">105</span>, life<span class="op">=</span><span class="dv">100</span>), ClueBoard()</span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> b.<span class="bu">open</span>[<span class="dv">0</span>]</span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a>j <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> H0 <span class="op">=</span> <span class="bu">min</span>(b.tasks[k].holders[j])<span class="op">;</span> _, p, r <span class="op">=</span> clue(b, k, j)</span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>C, D, L <span class="op">=</span> [a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> a <span class="op">!=</span> H0][:<span class="dv">3</span>]</span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> TextClueEnv(b, check<span class="op">=</span><span class="st">'public'</span>)</span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>share(b, cb, H0, k, j, r, <span class="fl">0.0</span>)<span class="op">;</span> share(b, cb, L, k, j, (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p, <span class="fl">1.0</span>)</span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a>    env.observe(a, <span class="fl">2.0</span>, cb)</span>
+<span id="cb11-71"><a href="#cb11-71" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(env._known[a][k][j] <span class="op">==</span> (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> j <span class="kw">not</span> <span class="kw">in</span> b.held(a, k))</span>
+<span id="cb11-72"><a href="#cb11-72" aria-hidden="true" tabindex="-1"></a>act <span class="op">=</span> env.parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss">'</span>), C)</span>
+<span id="cb11-73"><a href="#cb11-73" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> act <span class="op">==</span> ((<span class="st">'wait'</span>, <span class="va">None</span>), <span class="va">None</span>, <span class="va">True</span>) <span class="kw">and</span> env.checkedAll <span class="op">==</span> {(k, j, (r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p): <span class="va">False</span>} <span class="kw">and</span> env.checked <span class="op">==</span> {}</span>
+<span id="cb11-74"><a href="#cb11-74" aria-hidden="true" tabindex="-1"></a>b.<span class="bu">apply</span>(C, act[<span class="dv">0</span>], <span class="fl">2.0</span>)</span>
+<span id="cb11-75"><a href="#cb11-75" aria-hidden="true" tabindex="-1"></a>line <span class="op">=</span> <span class="ss">f'Checked by agent </span><span class="sc">{</span>C<span class="sc">}</span><span class="ss">: T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss"> (from agent </span><span class="sc">{</span>L<span class="sc">}</span><span class="ss">) is false.'</span></span>
+<span id="cb11-76"><a href="#cb11-76" aria-hidden="true" tabindex="-1"></a>obs <span class="op">=</span> {a: env.observe(a, <span class="fl">3.0</span>, cb) <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>)}</span>
+<span id="cb11-77"><a href="#cb11-77" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="ss">f'Your check: T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss"> (from agent </span><span class="sc">{</span>L<span class="sc">}</span><span class="ss">) is false.'</span> <span class="kw">in</span> obs[C] <span class="kw">and</span> <span class="st">'Checked by'</span> <span class="kw">not</span> <span class="kw">in</span> obs[C]</span>
+<span id="cb11-78"><a href="#cb11-78" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(line <span class="kw">in</span> obs[a] <span class="kw">and</span> <span class="st">'Your check'</span> <span class="kw">not</span> <span class="kw">in</span> obs[a] <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> a <span class="op">!=</span> C)</span>
+<span id="cb11-79"><a href="#cb11-79" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(env._known[a][k][j] <span class="op">==</span> r <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>))                              <span class="co"># everyone drops the false clue</span></span>
+<span id="cb11-80"><a href="#cb11-80" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(known(a, b, cb, env.checkedAll)[k][j] <span class="op">==</span> r <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>))</span>
+<span id="cb11-81"><a href="#cb11-81" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> <span class="bu">any</span>(<span class="st">'Checked by'</span> <span class="kw">in</span> env.observe(a, <span class="fl">4.0</span>, cb) <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>))           <span class="co"># shown once</span></span>
+<span id="cb11-82"><a href="#cb11-82" aria-hidden="true" tabindex="-1"></a>env.parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss">'</span>), C)</span>
+<span id="cb11-83"><a href="#cb11-83" aria-hidden="true" tabindex="-1"></a>share(b, cb, L, k, j, (r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p, <span class="fl">4.0</span>)                                              <span class="co"># a later false post</span></span>
+<span id="cb11-84"><a href="#cb11-84" aria-hidden="true" tabindex="-1"></a>obs <span class="op">=</span> {a: env.observe(a, <span class="fl">5.0</span>, cb) <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>)}</span>
+<span id="cb11-85"><a href="#cb11-85" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(<span class="ss">f'Checked by agent </span><span class="sc">{</span>C<span class="sc">}</span><span class="ss">: T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss"> x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>r<span class="sc">}</span><span class="ss"> (from agent </span><span class="sc">{</span>H0<span class="sc">}</span><span class="ss">) is true.'</span> <span class="kw">in</span> obs[a] <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>) <span class="cf">if</span> a <span class="op">!=</span> C)</span>
+<span id="cb11-86"><a href="#cb11-86" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(env._known[a][k][j] <span class="op">==</span> r <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>))                              <span class="co"># everyone keeps the true clue</span></span>
+<span id="cb11-87"><a href="#cb11-87" aria-hidden="true" tabindex="-1"></a>priv <span class="op">=</span> TextClueEnv(b, check<span class="op">=</span><span class="va">True</span>)                                                    <span class="co"># Phase 13: only the checker</span></span>
+<span id="cb11-88"><a href="#cb11-88" aria-hidden="true" tabindex="-1"></a>priv.observe(C, <span class="fl">5.0</span>, cb)<span class="op">;</span> priv.parse(P(action<span class="op">=</span><span class="st">'check'</span>, target<span class="op">=</span><span class="ss">f'T</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span>, clue<span class="op">=</span><span class="ss">f'x mod </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss"> = </span><span class="sc">{</span>(r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p<span class="sc">}</span><span class="ss">'</span>), C)</span>
+<span id="cb11-89"><a href="#cb11-89" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Checked by'</span> <span class="kw">not</span> <span class="kw">in</span> priv.observe(D, <span class="fl">6.0</span>, cb) <span class="kw">and</span> priv._known[D][k][j] <span class="op">==</span> (r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p</span>
+<span id="cb11-90"><a href="#cb11-90" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'Your check'</span> <span class="kw">in</span> priv.observe(C, <span class="fl">6.0</span>, cb) <span class="kw">and</span> priv._known[C][k][j] <span class="op">!=</span> (r <span class="op">+</span> <span class="dv">2</span>) <span class="op">%</span> p</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

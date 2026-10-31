@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 18 (specs/multiagent/phase18/): colony rules for large Claude teams with faulty members. Part 0’s numpy forecast (committed first), the tracing check against Phase 15, the pilot, Stage 1 (N = 8 and 16), the go/no-go verdict, Stage 2 (N = 32 and 64, only on go and a raised cap) and cached reruns (COLONY_PLAN, COLONY2_PLAN).">
+
+<title>demo_colony – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-66a38d7287321bc50e069add96f8c30e.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="demo_colony – explRL">
+<meta property="og:description" content="Phase 18 (specs/multiagent/phase18/): colony rules for large Claude teams with faulty members. Part 0’s numpy forecast (committed first), the tracing check against Phase 15, the pilot, Stage 1 (N = 8 and 16), the go/no-go verdict, Stage 2 (N = 32 and 64, only on go and a raised cap) and cached reruns (COLONY_PLAN, COLONY2_PLAN).">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="demo_colony – explRL">
+<meta name="twitter:description" content="Phase 18 (specs/multiagent/phase18/): colony rules for large Claude teams with faulty members. Part 0’s numpy forecast (committed first), the tracing check against Phase 15, the pilot, Stage 1 (N = 8 and 16), the go/no-go verdict, Stage 2 (N = 32 and 64, only on go and a raised cap) and cached reruns (COLONY_PLAN, COLONY2_PLAN).">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./colab_clue_rl.html">Demos and runs</a></li><li class="breadcrumb-item"><a href="./demo_colony.html">demo_colony</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#quick-stage-1s-cells-with-the-fake-client-pipeline-check" id="toc-quick-stage-1s-cells-with-the-fake-client-pipeline-check" class="nav-link active" data-scroll-target="#quick-stage-1s-cells-with-the-fake-client-pipeline-check">Quick: Stage 1’s cells with the fake client (pipeline check)</a></li>
+  <li><a href="#part-0-numpy-the-committed-forecast" id="toc-part-0-numpy-the-committed-forecast" class="nav-link" data-scroll-target="#part-0-numpy-the-committed-forecast">Part 0 (numpy): the committed forecast</a></li>
+  <li><a href="#tracing-check---flags-llm-0-phase-18s-contamination-against-phase-15s-ac-6" id="toc-tracing-check---flags-llm-0-phase-18s-contamination-against-phase-15s-ac-6" class="nav-link" data-scroll-target="#tracing-check---flags-llm-0-phase-18s-contamination-against-phase-15s-ac-6">Tracing check (<code>--flags llm</code>, $0): Phase 18’s contamination against Phase 15’s (AC-6)</a></li>
+  <li><a href="#pilot---flags-llm-live-about-2-200-calls-about-1" id="toc-pilot---flags-llm-live-about-2-200-calls-about-1" class="nav-link" data-scroll-target="#pilot---flags-llm-live-about-2-200-calls-about-1">Pilot (<code>--flags llm</code>, live, about 2 200 calls, about $1)</a></li>
+  <li><a href="#stage-1---cell-timeout-0---flags-llm-live-176-cells-about-25" id="toc-stage-1---cell-timeout-0---flags-llm-live-176-cells-about-25" class="nav-link" data-scroll-target="#stage-1---cell-timeout-0---flags-llm-live-176-cells-about-25">Stage 1 (<code>--cell-timeout 0 --flags llm</code>, live, 176 cells, about $25)</a></li>
+  <li><a href="#stage-2---cell-timeout-0---flags-llm-live-about-77-108-only-on-go-and-a-raised-cap" id="toc-stage-2---cell-timeout-0---flags-llm-live-about-77-108-only-on-go-and-a-raised-cap" class="nav-link" data-scroll-target="#stage-2---cell-timeout-0---flags-llm-live-about-77-108-only-on-go-and-a-raised-cap">Stage 2 (<code>--cell-timeout 0 --flags llm</code>, live, about $77-108; only on <code>go</code> and a raised cap)</a></li>
+  <li><a href="#guards-at-32-agents---cell-timeout-0---flags-llm-live-explrl_colony_stagestage32-a-user-approved-deviation" id="toc-guards-at-32-agents---cell-timeout-0---flags-llm-live-explrl_colony_stagestage32-a-user-approved-deviation" class="nav-link" data-scroll-target="#guards-at-32-agents---cell-timeout-0---flags-llm-live-explrl_colony_stagestage32-a-user-approved-deviation">Guards at 32 agents (<code>--cell-timeout 0 --flags llm</code>, live, <code>EXPLRL_COLONY_STAGE=stage32</code>; a user-approved deviation)</a></li>
+  <li><a href="#stage-3-adaptive-liars-and-unassigned-guards---flags-llm-live-explrl_colony_stagestage3pilot-then-stage3" id="toc-stage-3-adaptive-liars-and-unassigned-guards---flags-llm-live-explrl_colony_stagestage3pilot-then-stage3" class="nav-link" data-scroll-target="#stage-3-adaptive-liars-and-unassigned-guards---flags-llm-live-explrl_colony_stagestage3pilot-then-stage3">Stage 3: adaptive liars and unassigned guards (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage3pilot</code>, then <code>stage3</code>)</a></li>
+  <li><a href="#guards-at-64-agents---flags-llm-live-explrl_colony_stagestage64pilot-then-stage64-a-second-user-approved-deviation" id="toc-guards-at-64-agents---flags-llm-live-explrl_colony_stagestage64pilot-then-stage64-a-second-user-approved-deviation" class="nav-link" data-scroll-target="#guards-at-64-agents---flags-llm-live-explrl_colony_stagestage64pilot-then-stage64-a-second-user-approved-deviation">Guards at 64 agents (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage64pilot</code>, then <code>stage64</code>; a second user-approved deviation)</a></li>
+  <li><a href="#stage-4-regression-gate---flags-llm-without-explrl_llm_live-0" id="toc-stage-4-regression-gate---flags-llm-without-explrl_llm_live-0" class="nav-link" data-scroll-target="#stage-4-regression-gate---flags-llm-without-explrl_llm_live-0">Stage 4 regression gate (<code>--flags llm</code>, without <code>EXPLRL_LLM_LIVE</code>; $0)</a></li>
+  <li><a href="#stage-4-guards-that-scale---flags-llm-live-explrl_colony_stagestage4pilot-then-stage4" id="toc-stage-4-guards-that-scale---flags-llm-live-explrl_colony_stagestage4pilot-then-stage4" class="nav-link" data-scroll-target="#stage-4-guards-that-scale---flags-llm-live-explrl_colony_stagestage4pilot-then-stage4">Stage 4: guards that scale (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage4pilot</code>, then <code>stage4</code>)</a></li>
+  <li><a href="#stage-4b-the-stage-4-designs-at-32-agents---flags-llm-live-explrl_colony_stagestage4bpilot-then-stage4b-then-stage4brerun-a-user-approved-deviation" id="toc-stage-4b-the-stage-4-designs-at-32-agents---flags-llm-live-explrl_colony_stagestage4bpilot-then-stage4b-then-stage4brerun-a-user-approved-deviation" class="nav-link" data-scroll-target="#stage-4b-the-stage-4-designs-at-32-agents---flags-llm-live-explrl_colony_stagestage4bpilot-then-stage4b-then-stage4brerun-a-user-approved-deviation">Stage 4b: the Stage 4 designs at 32 agents (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage4bpilot</code>, then <code>stage4b</code>, then <code>stage4brerun</code>; a user-approved deviation)</a></li>
+  <li><a href="#cached-reruns---flags-llm-after-the-live-runs" id="toc-cached-reruns---flags-llm-after-the-live-runs" class="nav-link" data-scroll-target="#cached-reruns---flags-llm-after-the-live-runs">Cached reruns (<code>--flags llm</code>, after the live runs)</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./colab_clue_rl.html">Demos and runs</a></li><li class="breadcrumb-item"><a href="./demo_colony.html">demo_colony</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">demo_colony</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 18 (<code>specs/multiagent/phase18/</code>): colony rules for large Claude teams with faulty members. Part 0’s numpy forecast (committed first), the tracing check against Phase 15, the pilot, Stage 1 (N = 8 and 16), the go/no-go verdict, Stage 2 (N = 32 and 64, only on <code>go</code> and a raised cap) and cached reruns (<code>COLONY_PLAN</code>, <code>COLONY2_PLAN</code>).
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>Artifacts (gitignored): <code>results/multiagent/colony/{quick,pilot,stage1,stage2}/</code> (<code>runs.csv</code>, <code>turns.jsonl</code>, <code>timing.jsonl</code>, <code>metrics.json</code>, <code>report.md</code>, <code>colony.png</code>) and <code>results/multiagent/colony/forecast/</code> (Part 0). The response cache and spend ledger are Phase 10’s (<code>results/multiagent/llm/</code>), so one API cap covers all live spend. Rows carry Phase 18’s columns (<code>pooledBound</code>, <code>honestPooled</code>, the trace and goal drift) from <code>colony_trace.runColonyCell</code>.</p>
+<ul>
+<li><strong>Quick</strong> (normal tests): Stage 1’s 22 cells at one seed (N 8 and 16), 3 turns, with the fake client; identical at 1 and 8 processes.</li>
+<li><strong>Tracing check</strong> (<code>--flags llm</code>, $0: Phase 14’s cached replies): the outcome-based contamination against Phase 15’s on Phase 14’s N = 8 cells (AC-6).</li>
+<li><strong>Pilot</strong>, <strong>Stage 1</strong>, <strong>Stage 2</strong> (<code>--cell-timeout 0 --flags llm</code>, with <code>EXPLRL_LLM_LIVE=1</code>): live, each behind its gate; <code>EXPLRL_COLONY_STAGE</code> (<code>pilot</code>, the default; <code>stage1</code>; <code>stage2</code>) sets how far a live run goes, so the pilot never runs straight into Stage 1.</li>
+</ul>
+<div id="bc5119e7" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> shutil</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bench_grid <span class="im">import</span> readCSV, writeCSV</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_grid <span class="im">import</span> (COLONY2_PLAN, COLONY_PLAN, colonyPilotGrid, costRule1, costRule2, goNoGo, stage1Quick)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_report <span class="im">import</span> colonySummaries, figColony, writeColony</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_trace <span class="im">import</span> runColonyCell</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony32 <span class="im">import</span> COLONY32_PLAN, stage32Grid, stage32Summaries, writeStage32</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony3 <span class="im">import</span> (COLONY3_PLAN, complianceGate, costRule3, reusedRows, runStage3Cell, stage3Grid, stage3PilotGrid,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>                            stage3Summaries, writeStage3)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.liar_trace <span class="im">import</span> cacheOnlyClient</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony64 <span class="im">import</span> COLONY64_PLAN, pilotCheck64, stage64Grid, stage64PilotGrid, stage64Summaries, writeStage64</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony4 <span class="im">import</span> STAGE4_PLAN, pilotCheck4, ref8Tokens, reusedCells4, stage4Grid, stage4PilotGrid</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony4_report <span class="im">import</span> stage4Summaries, writeStage4</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony4b <span class="im">import</span> STAGE4B_PLAN, pilotCheck4b, reusedCells4b, stage4bGrid, stage4bPilotGrid, stage4bSummaries, writeStage4b</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_mech <span class="im">import</span> replayCheck, reusedRows4, runStage4Cell</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_grid <span class="im">import</span> COLONY_SEEDS, stage1Grid</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.coop_grid <span class="im">import</span> coopHash</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_budget <span class="im">import</span> PRICES, Budget</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_grid <span class="im">import</span> HAIKU</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_sched <span class="im">import</span> mergeTiming, runWorkload, timingSummary</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.train <span class="im">import</span> demo_artifact_dir</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>COLONY <span class="op">=</span> <span class="st">'multiagent/colony'</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>WORKERS <span class="op">=</span> <span class="bu">min</span>(<span class="dv">8</span>, os.cpu_count() <span class="kw">or</span> <span class="dv">1</span>)</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>LLM_WORKERS <span class="op">=</span> <span class="dv">32</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>CAP <span class="op">=</span> <span class="bu">float</span>(COLONY2_PLAN[<span class="st">'cap'</span>] <span class="kw">or</span> <span class="fl">150.0</span>)            <span class="co"># the user raises it in COLONY2_PLAN before Stage 2</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>LLM <span class="op">=</span> demo_artifact_dir(<span class="va">None</span>, <span class="st">'multiagent/llm'</span>)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>LIVE <span class="op">=</span> os.environ.get(<span class="st">'EXPLRL_LLM_LIVE'</span>) <span class="op">==</span> <span class="st">'1'</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>STAGE <span class="op">=</span> os.environ.get(<span class="st">'EXPLRL_COLONY_STAGE'</span>, <span class="st">'pilot'</span>)    <span class="co"># what a live run may do: pilot, stage1, stage2, stage32, stage3pilot, stage3, stage64pilot, stage64, stage4pilot, stage4b1, stage4b2, stage4, stage4bpilot, stage4b, stage4brerun</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>LIVE_SPEC <span class="op">=</span> <span class="bu">dict</span>(kind<span class="op">=</span><span class="st">'live'</span>, cache<span class="op">=</span><span class="bu">str</span>(LLM <span class="op">/</span> <span class="st">'cache'</span>), cap<span class="op">=</span>CAP, ledger<span class="op">=</span><span class="bu">str</span>(LLM <span class="op">/</span> <span class="st">'spend.jsonl'</span>))</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>FORECAST <span class="op">=</span> LLM.parents[<span class="dv">2</span>] <span class="op">/</span> <span class="st">'specs/multiagent/phase18/colony_predictions.json'</span>     <span class="co"># Part 0 (gate for the pilot)</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>FORECAST4 <span class="op">=</span> LLM.parents[<span class="dv">2</span>] <span class="op">/</span> STAGE4_PLAN[<span class="st">'forecast'</span>][<span class="st">'file'</span>]                        <span class="co"># Stage 4 (gate for its pilot)</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gitCommit():</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> subprocess.run([<span class="st">'git'</span>, <span class="st">'rev-parse'</span>, <span class="st">'--short'</span>, <span class="st">'HEAD'</span>], capture_output<span class="op">=</span><span class="va">True</span>, text<span class="op">=</span><span class="va">True</span>).stdout.strip() <span class="kw">or</span> <span class="st">'unknown'</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">OSError</span>:</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">'unknown'</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> readLog(p):</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [json.loads(x) <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">open</span>(p)] <span class="cf">if</span> p.exists() <span class="cf">else</span> []</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runColony(mode, grids, spec, plan<span class="op">=</span>COLONY_PLAN, workers<span class="op">=</span><span class="va">None</span>, prior<span class="op">=</span>(), analyse<span class="op">=</span><span class="va">None</span>, run<span class="op">=</span>runColonyCell):</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Cells through runWorkload (runColonyCell): runs.csv, turns.jsonl, timing.jsonl, report.md, colony.png, metrics.json;</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a><span class="co">    the analysis reads `prior` rows too (Stage 2: Stage 1's, for the tests and the trend over 8-64); `analyse(rows, prior)` -&gt;</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co">    (summary, write(path, S, meta)) replaces the Stage 1 analysis (the 32-agent deviation)."""</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    live <span class="op">=</span> spec.get(<span class="st">'kind'</span>) <span class="op">==</span> <span class="st">'live'</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> demo_artifact_dir(mode, COLONY)</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>    logs <span class="op">=</span> out <span class="op">/</span> <span class="st">'turns'</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>    shutil.rmtree(logs, ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>    t0 <span class="op">=</span> time.time()</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> runWorkload(grids, spec, workers <span class="kw">or</span> (LLM_WORKERS <span class="cf">if</span> live <span class="cf">else</span> WORKERS), <span class="bu">str</span>(logs), run<span class="op">=</span>run)</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a>    wall <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> res[<span class="st">'rows'</span>]</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>    writeCSV(rows, out <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(out <span class="op">/</span> <span class="st">'turns.jsonl'</span>, <span class="st">'w'</span>) <span class="im">as</span> f:</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> p <span class="kw">in</span> <span class="bu">sorted</span>(logs.glob(<span class="st">'*.jsonl'</span>)) <span class="cf">if</span> logs.exists() <span class="cf">else</span> []:</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>            f.write(p.read_text())</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>    res[<span class="st">'timing'</span>] <span class="op">=</span> timingSummary(mergeTiming(logs, out <span class="op">/</span> <span class="st">'timing.jsonl'</span>), wall)</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>    shutil.rmtree(logs, ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> analyse <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>        S, write <span class="op">=</span> colonySummaries(<span class="bu">list</span>(prior) <span class="op">+</span> rows, plan, nboot<span class="op">=</span>plan[<span class="st">'nboot'</span>] <span class="cf">if</span> live <span class="cf">else</span> <span class="dv">200</span>), writeColony</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a>        S, write <span class="op">=</span> analyse(rows, prior)</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>    meta <span class="op">=</span> <span class="bu">dict</span>(mode<span class="op">=</span>mode, planHash<span class="op">=</span>coopHash(plan), commit<span class="op">=</span>gitCommit(), model<span class="op">=</span>HAIKU, cap<span class="op">=</span><span class="bu">float</span>(spec.get(<span class="st">'cap'</span>, CAP)), wall<span class="op">=</span>wall,</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>                pricesChecked<span class="op">=</span>PRICES[HAIKU][<span class="st">'checked'</span>], cost<span class="op">=</span><span class="bu">float</span>(<span class="bu">sum</span>(r[<span class="st">'cost'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows)),</span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>                calls<span class="op">=</span><span class="bu">int</span>(<span class="bu">sum</span>(r[<span class="st">'calls'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows)), spent<span class="op">=</span>Budget(spec.get(<span class="st">'cap'</span>, CAP), spec[<span class="st">'ledger'</span>]).spent() <span class="cf">if</span> spec.get(<span class="st">'ledger'</span>) <span class="cf">else</span> <span class="fl">0.0</span>)</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>    write(out <span class="op">/</span> <span class="st">'report.md'</span>, S, meta)</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> analyse <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>        figColony(out, S)</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>    (out <span class="op">/</span> <span class="st">'metrics.json'</span>).write_text(json.dumps(<span class="bu">dict</span>(meta, done<span class="op">=</span>res[<span class="st">'done'</span>], refused<span class="op">=</span>res[<span class="st">'refused'</span>], stopped<span class="op">=</span>res[<span class="st">'stopped'</span>],</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>                                                      timing<span class="op">=</span>res[<span class="st">'timing'</span>], summary<span class="op">=</span>S), indent<span class="op">=</span><span class="dv">2</span>, sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>) <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> live:</span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'metrics.json'</span>, <span class="st">'timing.jsonl'</span>):</span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="kw">not</span> (out <span class="op">/</span> f.replace(<span class="st">'.'</span>, <span class="st">'_live.'</span>)).exists():</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>                shutil.copy(out <span class="op">/</span> f, out <span class="op">/</span> f.replace(<span class="st">'.'</span>, <span class="st">'_live.'</span>))</span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">len</span>(rows)<span class="sc">}</span><span class="ss"> rows, </span><span class="sc">{</span>meta[<span class="st">'calls'</span>]<span class="sc">}</span><span class="ss"> calls, $</span><span class="sc">{</span>meta[<span class="st">'cost'</span>]<span class="sc">:.2f}</span><span class="ss"> for these runs, $</span><span class="sc">{</span>meta[<span class="st">'spent'</span>]<span class="sc">:.2f}</span><span class="ss"> spent in all, "</span></span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"</span><span class="sc">{</span>wall<span class="sc">:.0f}</span><span class="ss"> s; stopped: </span><span class="sc">{</span>res[<span class="st">'stopped'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rows, S, meta</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pilotCheck(rows):</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Invalid rate, tokens and cost per call, and the plain board's honest loss (clean - liars) at the pilot seed."</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>    calls <span class="op">=</span> <span class="bu">sum</span>(r[<span class="st">'calls'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="kw">or</span> <span class="dv">1</span></span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> {r[<span class="st">'level'</span>]: r <span class="cf">for</span> r <span class="kw">in</span> rows}</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(invalid<span class="op">=</span><span class="bu">sum</span>(r[<span class="st">'invalid'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">/</span> calls, costPerCall<span class="op">=</span><span class="bu">sum</span>(r[<span class="st">'cost'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">/</span> calls,</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>                inputPerCall<span class="op">=</span><span class="bu">sum</span>(r[<span class="st">'inputTokens'</span>] <span class="op">+</span> r[<span class="st">'cacheReadTokens'</span>] <span class="op">+</span> r[<span class="st">'cacheWriteTokens'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">/</span> calls,</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>                outputPerCall<span class="op">=</span><span class="bu">sum</span>(r[<span class="st">'outputTokens'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">/</span> calls,</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>                plainLoss<span class="op">=</span>v[<span class="st">'plain|clean'</span>][<span class="st">'welfareHonest'</span>] <span class="op">-</span> v[<span class="st">'plain|independent'</span>][<span class="st">'welfareHonest'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="quick-stage-1s-cells-with-the-fake-client-pipeline-check" class="level2">
+<h2 class="anchored" data-anchor-id="quick-stage-1s-cells-with-the-fake-client-pipeline-check">Quick: Stage 1’s cells with the fake client (pipeline check)</h2>
+<div id="5e651260" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>qcells <span class="op">=</span> stage1Quick()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>rows, S, _ <span class="op">=</span> runColony(<span class="st">'quick'</span>, [(<span class="st">'colony1'</span>, qcells)], <span class="bu">dict</span>(kind<span class="op">=</span><span class="st">'fake'</span>))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> time.time() <span class="op">-</span> t0 <span class="op">&lt;</span> <span class="dv">300</span> <span class="kw">and</span> <span class="bu">len</span>(rows) <span class="op">==</span> <span class="bu">len</span>(qcells) <span class="op">==</span> <span class="dv">22</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>q <span class="op">=</span> demo_artifact_dir(<span class="st">'quick'</span>, COLONY)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>, <span class="st">'timing.jsonl'</span>, <span class="st">'metrics.json'</span>, <span class="st">'report.md'</span>, <span class="st">'colony.png'</span>):</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> (q <span class="op">/</span> f).stat().st_size <span class="op">&gt;</span> <span class="dv">0</span>, f</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>read <span class="op">=</span> <span class="kw">lambda</span>: <span class="bu">tuple</span>((q <span class="op">/</span> f).read_bytes() <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>ref <span class="op">=</span> read()</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>runColony(<span class="st">'quick'</span>, [(<span class="st">'colony1'</span>, qcells)], <span class="bu">dict</span>(kind<span class="op">=</span><span class="st">'fake'</span>, pooled<span class="op">=</span><span class="va">False</span>), workers<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> read() <span class="op">==</span> ref</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(np.isfinite(r[<span class="st">'honestPooled'</span>]) <span class="kw">and</span> <span class="st">'freeRiding'</span> <span class="kw">in</span> r <span class="kw">and</span> <span class="st">'contamination'</span> <span class="kw">in</span> r <span class="cf">for</span> r <span class="kw">in</span> rows)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>recs <span class="op">=</span> readLog(q <span class="op">/</span> <span class="st">'turns.jsonl'</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>arm <span class="op">=</span> <span class="kw">lambda</span> x: x[<span class="st">'key'</span>].split(<span class="st">'|'</span>)[<span class="dv">2</span>]</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(<span class="st">'(agent '</span> <span class="kw">not</span> <span class="kw">in</span> x[<span class="st">'obs'</span>] <span class="cf">for</span> x <span class="kw">in</span> recs <span class="cf">if</span> arm(x) <span class="kw">in</span> (<span class="st">'colony'</span>, <span class="st">'colonyGuards'</span>))       <span class="co"># the tally, not the plain list</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> {(r[<span class="st">'level'</span>], r[<span class="st">'N'</span>], r[<span class="st">'nLiar'</span>]) <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">if</span> r[<span class="st">'level'</span>] <span class="op">==</span> <span class="st">'colonyGuards|independent'</span>} <span class="op">==</span> {(<span class="st">'colonyGuards|independent'</span>, <span class="dv">8</span>, <span class="dv">2</span>), (<span class="st">'colonyGuards|independent'</span>, <span class="dv">16</span>, <span class="dv">4</span>)}</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> p <span class="kw">in</span> q.iterdir():</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> p.suffix <span class="kw">in</span> (<span class="st">'.csv'</span>, <span class="st">'.jsonl'</span>, <span class="st">'.json'</span>, <span class="st">'.md'</span>):</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="kw">not</span> re.search(<span class="vs">r'sk-ant-</span><span class="cf">|</span><span class="vs">x-api-key</span><span class="cf">|</span><span class="vs">authorization</span><span class="cf">|</span><span class="vs">api</span><span class="pp">[_-]</span><span class="op">?</span><span class="vs">key'</span>, p.read_text(), re.I), p</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">open</span>(q <span class="op">/</span> <span class="st">'report.md'</span>).read()[:<span class="dv">1200</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="part-0-numpy-the-committed-forecast" class="level2">
+<h2 class="anchored" data-anchor-id="part-0-numpy-the-committed-forecast">Part 0 (numpy): the committed forecast</h2>
+<p><code>tools/colony_forecast.py run</code> (10,080 numpy cells); its predictions must be committed before the pilot.</p>
+<div id="d7b0bc5a" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> FORECAST.exists():</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    P <span class="op">=</span> json.loads(FORECAST.read_text())</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> P[<span class="st">'predictions'</span>].items():</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>v[<span class="st">'sign'</span>]<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>v[<span class="st">'estimate'</span>]<span class="sc">:.3f}</span><span class="ss"> [</span><span class="sc">{</span>v[<span class="st">'ci'</span>][<span class="dv">0</span>]<span class="sc">:.3f}</span><span class="ss">, </span><span class="sc">{</span>v[<span class="st">'ci'</span>][<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">])"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'no forecast yet: python tools/colony_forecast.py run $PWD'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="tracing-check---flags-llm-0-phase-18s-contamination-against-phase-15s-ac-6" class="level2">
+<h2 class="anchored" data-anchor-id="tracing-check---flags-llm-0-phase-18s-contamination-against-phase-15s-ac-6">Tracing check (<code>--flags llm</code>, $0): Phase 18’s contamination against Phase 15’s (AC-6)</h2>
+<p>Phase 14’s baseline cells with liars at N 8, 16 and 32, replayed from the cache: the outcome-based contamination (<code>colony_trace</code>: answers built on a lie) against Phase 15’s exposure-based one (<code>liar_report.mechanics</code>). AC-6 (revised after measuring): never above Phase 15’s in any cell, and rising with N as Phase 15’s does; the gap is exposure without uptake.</p>
+<div id="d2985fba" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.liar_report <span class="im">import</span> mechanics</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.liar_trace <span class="im">import</span> cacheOnlyClient, traceRun</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_trace <span class="im">import</span> replay, traceBoard</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_runs <span class="im">import</span> LLMConfig</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.scale_grid <span class="im">import</span> scaleGrid</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> (LLM <span class="op">/</span> <span class="st">'cache'</span>).exists():</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: no response cache'</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    means <span class="op">=</span> {}</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> N <span class="kw">in</span> (<span class="dv">8</span>, <span class="dv">16</span>, <span class="dv">32</span>):</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        pairs15 <span class="op">=</span> []</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> c <span class="kw">in</span> [c <span class="cf">for</span> c <span class="kw">in</span> scaleGrid() <span class="cf">if</span> c[<span class="st">'N'</span>] <span class="op">==</span> N <span class="kw">and</span> c[<span class="st">'level'</span>] <span class="op">==</span> <span class="st">'baseline|liar'</span>]:</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>            cfg <span class="op">=</span> LLMConfig.fromDict(c[<span class="st">'cfg'</span>])</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>            tr <span class="op">=</span> traceRun(cfg, c[<span class="st">'seed'</span>], cacheOnlyClient(cfg, LLM <span class="op">/</span> <span class="st">'cache'</span>))</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>            rp <span class="op">=</span> replay(cfg, c[<span class="st">'seed'</span>], cacheOnlyClient(cfg, LLM <span class="op">/</span> <span class="st">'cache'</span>))</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>            <span class="cf">assert</span> rp.rows <span class="op">==</span> tr.rows                                   <span class="co"># the replay is the run</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>            pairs15.append((mechanics(tr.trace, tr.board, tr.nLiar)[<span class="st">'contaminated'</span>], traceBoard(rp.board, rp.answers, rp.nLiar)[<span class="st">'contamination'</span>]))</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        a, b <span class="op">=</span> np.array(pairs15).T</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> (b <span class="op">&lt;=</span> a <span class="op">+</span> <span class="fl">1e-12</span>).<span class="bu">all</span>(), N</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>        means[N] <span class="op">=</span> (a.mean(), b.mean())</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f'N </span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">: Phase 15 </span><span class="sc">{</span>a<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">, Phase 18 </span><span class="sc">{</span>b<span class="sc">.</span>mean()<span class="sc">:.3f}</span><span class="ss">, gap per cell </span><span class="sc">{</span>np<span class="sc">.</span><span class="bu">round</span>(a <span class="op">-</span> b, <span class="dv">3</span>)<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> means[<span class="dv">32</span>][<span class="dv">1</span>] <span class="op">&gt;</span> means[<span class="dv">8</span>][<span class="dv">1</span>] <span class="kw">and</span> means[<span class="dv">32</span>][<span class="dv">0</span>] <span class="op">&gt;</span> means[<span class="dv">8</span>][<span class="dv">0</span>]   <span class="co"># the same trend</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="pilot---flags-llm-live-about-2-200-calls-about-1" class="level2">
+<h2 class="anchored" data-anchor-id="pilot---flags-llm-live-about-2-200-calls-about-1">Pilot (<code>--flags llm</code>, live, about 2 200 calls, about $1)</h2>
+<p>N = 16, <code>plain</code> and <code>colony</code>, clean and with independent liars, seed 1890 (not analysed). Gates: the forecast committed and <code>COLONY_PLAN</code> frozen. AC-8: invalid replies under 5%, cost per call, the plain board’s honest loss (stop and ask if none), the cost rule.</p>
+<div id="57aa90c1" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: set EXPLRL_LLM_LIVE=1 to make live API calls'</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> FORECAST.exists(), <span class="st">'commit the Part 0 forecast before the pilot'</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> COLONY_PLAN[<span class="st">'frozen'</span>], <span class="st">'freeze and commit COLONY_PLAN before the pilot'</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    prows, _, _ <span class="op">=</span> runColony(<span class="st">'pilot'</span>, [(<span class="st">'colonyPilot'</span>, colonyPilotGrid())], LIVE_SPEC)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    pc <span class="op">=</span> pilotCheck(prows)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    rule <span class="op">=</span> costRule1(pc[<span class="st">'costPerCall'</span>])</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"invalid </span><span class="sc">{</span>pc[<span class="st">'invalid'</span>]<span class="sc">:.3f}</span><span class="ss"> (band &lt; </span><span class="sc">{</span>COLONY_PLAN[<span class="st">'pilot'</span>][<span class="st">'bands'</span>][<span class="st">'invalid'</span>]<span class="sc">}</span><span class="ss">); tokens per call </span><span class="sc">{</span>pc[<span class="st">'inputPerCall'</span>]<span class="sc">:.0f}</span><span class="ss"> in, "</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"</span><span class="sc">{</span>pc[<span class="st">'outputPerCall'</span>]<span class="sc">:.0f}</span><span class="ss"> out; cost per call $</span><span class="sc">{</span>pc[<span class="st">'costPerCall'</span>]<span class="sc">:.5f}</span><span class="ss">; plain board's honest loss </span><span class="sc">{</span>pc[<span class="st">'plainLoss'</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"projected Stage 1: $</span><span class="sc">{</span>rule[<span class="st">'projected'</span>]<span class="sc">:.2f}</span><span class="ss">; cost rule: </span><span class="sc">{</span>rule[<span class="st">'verdict'</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="stage-1---cell-timeout-0---flags-llm-live-176-cells-about-25" class="level2">
+<h2 class="anchored" data-anchor-id="stage-1---cell-timeout-0---flags-llm-live-176-cells-about-25">Stage 1 (<code>--cell-timeout 0 --flags llm</code>, live, 176 cells, about $25)</h2>
+<p>The cells the pilot’s cost rule allows; then the summaries, the go/no-go verdict, and the forecast’s score (<code>tools/colony_forecast.py score</code>).</p>
+<div id="9c8ef284" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> stage1Cells():</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"The cells the cost rule allows from the pilot (None: stop and ask)."</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    pr <span class="op">=</span> demo_artifact_dir(<span class="st">'pilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> pr.exists():</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    pc <span class="op">=</span> pilotCheck(readCSV(pr))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> pc[<span class="st">'invalid'</span>] <span class="op">&lt;</span> COLONY_PLAN[<span class="st">'pilot'</span>][<span class="st">'bands'</span>][<span class="st">'invalid'</span>] <span class="kw">or</span> <span class="kw">not</span> pc[<span class="st">'plainLoss'</span>] <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"pilot: invalid </span><span class="sc">{</span>pc[<span class="st">'invalid'</span>]<span class="sc">:.3f}</span><span class="ss">, plain board's honest loss </span><span class="sc">{</span>pc[<span class="st">'plainLoss'</span>]<span class="sc">:.3f}</span><span class="ss">: stop and ask"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    rule <span class="op">=</span> costRule1(pc[<span class="st">'costPerCall'</span>])</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"cost rule: </span><span class="sc">{</span>rule[<span class="st">'verdict'</span>]<span class="sc">}</span><span class="ss"> (projected $</span><span class="sc">{</span>rule[<span class="st">'projected'</span>]<span class="sc">:.2f}</span><span class="ss">)"</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rule[<span class="st">'cells'</span>]</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'stage1'</span>, <span class="st">'stage2'</span>):</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage1 (after the pilot</span><span class="ch">\'</span><span class="st">s verdict is recorded)'</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> COLONY_PLAN[<span class="st">'frozen'</span>], <span class="st">'COLONY_PLAN must be frozen'</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    cells <span class="op">=</span> stage1Cells()</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cells <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'Stage 1 not run: stop and ask'</span>)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        rows1, S1, _ <span class="op">=</span> runColony(<span class="st">'stage1'</span>, [(<span class="st">'colony1'</span>, cells)], LIVE_SPEC)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read()[:<span class="dv">4000</span>])</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'go/no-go:'</span>, goNoGo(rows1))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="stage-2---cell-timeout-0---flags-llm-live-about-77-108-only-on-go-and-a-raised-cap" class="level2">
+<h2 class="anchored" data-anchor-id="stage-2---cell-timeout-0---flags-llm-live-about-77-108-only-on-go-and-a-raised-cap">Stage 2 (<code>--cell-timeout 0 --flags llm</code>, live, about $77-108; only on <code>go</code> and a raised cap)</h2>
+<div id="40b322b9" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="op">!=</span> <span class="st">'stage2'</span>:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage2'</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">elif</span> <span class="kw">not</span> (COLONY2_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> COLONY2_PLAN[<span class="st">'capRaised'</span>] <span class="kw">and</span> COLONY2_PLAN[<span class="st">'arm'</span>]):</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: Stage 2 needs a go verdict, the user-raised cap and COLONY2_PLAN frozen with the chosen arm'</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    pr <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'pilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    rule <span class="op">=</span> costRule2(pilotCheck(pr)[<span class="st">'costPerCall'</span>] <span class="op">*</span> COLONY2_PLAN[<span class="st">'priceRatio'</span>], COLONY2_PLAN[<span class="st">'arm'</span>])</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Stage 2 cost rule: </span><span class="sc">{</span>rule[<span class="st">'verdict'</span>]<span class="sc">}</span><span class="ss"> (projected $</span><span class="sc">{</span>rule[<span class="st">'projected'</span>]<span class="sc">:.2f}</span><span class="ss">)"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    rows1 <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    plan2 <span class="op">=</span> <span class="bu">dict</span>(COLONY_PLAN, sizes<span class="op">=</span>COLONY_PLAN[<span class="st">'sizes'</span>] <span class="op">+</span> COLONY2_PLAN[<span class="st">'sizes'</span>], stage2<span class="op">=</span><span class="bu">dict</span>(arm<span class="op">=</span>COLONY2_PLAN[<span class="st">'arm'</span>], sizes<span class="op">=</span>COLONY2_PLAN[<span class="st">'sizes'</span>]))</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    rows2, S2, _ <span class="op">=</span> runColony(<span class="st">'stage2'</span>, [(<span class="st">'colony2'</span>, rule[<span class="st">'cells'</span>])], LIVE_SPEC, plan<span class="op">=</span>plan2, prior<span class="op">=</span>rows1)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'trend (H18-5, confirmatory):'</span>, S2.get(<span class="st">'trend'</span>))</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage2'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read()[:<span class="dv">4000</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="guards-at-32-agents---cell-timeout-0---flags-llm-live-explrl_colony_stagestage32-a-user-approved-deviation" class="level2">
+<h2 class="anchored" data-anchor-id="guards-at-32-agents---cell-timeout-0---flags-llm-live-explrl_colony_stagestage32-a-user-approved-deviation">Guards at 32 agents (<code>--cell-timeout 0 --flags llm</code>, live, <code>EXPLRL_COLONY_STAGE=stage32</code>; a user-approved deviation)</h2>
+<p>The plain board and guards at N = 32, clean and with independent liars, mistaken members and colluding liars (64 cells, about 67,000 calls); <code>COLONY32_PLAN</code> frozen first; the cap raised to $200 for this run. Stage 1’s rows give the 8 and 16 agent points of the trend.</p>
+<div id="e0a62a0d" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run32():</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    spec <span class="op">=</span> <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>COLONY32_PLAN[<span class="st">'cap'</span>])</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    rows1 <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage32'</span>, [(<span class="st">'colony32'</span>, stage32Grid())], spec, plan<span class="op">=</span>COLONY32_PLAN, prior<span class="op">=</span>rows1,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                     analyse<span class="op">=</span><span class="kw">lambda</span> rows, prior: (stage32Summaries(rows, prior, nboot<span class="op">=</span>COLONY32_PLAN[<span class="st">'nboot'</span>]), writeStage32))</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="op">!=</span> <span class="st">'stage32'</span>:</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage32'</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> COLONY32_PLAN[<span class="st">'frozen'</span>], <span class="st">'freeze and commit COLONY32_PLAN before the run'</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    rows32, S32, _ <span class="op">=</span> run32()</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage32'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="stage-3-adaptive-liars-and-unassigned-guards---flags-llm-live-explrl_colony_stagestage3pilot-then-stage3" class="level2">
+<h2 class="anchored" data-anchor-id="stage-3-adaptive-liars-and-unassigned-guards---flags-llm-live-explrl_colony_stagestage3pilot-then-stage3">Stage 3: adaptive liars and unassigned guards (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage3pilot</code>, then <code>stage3</code>)</h2>
+<p>The pilot (seed 1890: <code>plain|adaptive</code>, <code>colonyVolunteer|independent</code>) checks that Claude liars actually lie (at least 10% of their turns, at most 20% refusals), invalid replies under 5%, and the cost rule (Stage 3 at most $30). Stage 3 (40 cells at N = 16) runs only if both pass; the six reused Stage 1 cells are replayed from the cache with Stage 3’s columns ($0, their Stage 1 columns checked unchanged). <code>COLONY3_PLAN</code> must be frozen first.</p>
+<div id="5937f2c1" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> writePilot3(path, S, meta):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">open</span>(path, <span class="st">'w'</span>).write(<span class="ss">f"# Stage 3 pilot</span><span class="ch">\n\n</span><span class="ss">compliance: </span><span class="sc">{</span>S[<span class="st">'gate'</span>]<span class="sc">}</span><span class="ch">\n\n</span><span class="ss">cost rule: </span><span class="sc">{</span>S[<span class="st">'cost'</span>]<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pilot3(rows, prior<span class="op">=</span>()):</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    calls <span class="op">=</span> <span class="bu">sum</span>(r[<span class="st">'calls'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="kw">or</span> <span class="dv">1</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">dict</span>(gate<span class="op">=</span>complianceGate(rows), cost<span class="op">=</span>costRule3(<span class="bu">sum</span>(r[<span class="st">'cost'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">/</span> calls)), writePilot3</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> stage3Ready():</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">"The pilot's verdicts from its saved rows (None if it has not run)."</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    pr <span class="op">=</span> demo_artifact_dir(<span class="st">'stage3pilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pilot3(readCSV(pr))[<span class="dv">0</span>] <span class="cf">if</span> pr.exists() <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run3():</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    rows1 <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    reused <span class="op">=</span> reusedRows(<span class="kw">lambda</span> cfg: cacheOnlyClient(cfg, LLM <span class="op">/</span> <span class="st">'cache'</span>), rows1)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    writeCSV(reused, demo_artifact_dir(<span class="st">'stage3'</span>, COLONY) <span class="op">/</span> <span class="st">'reused.csv'</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage3'</span>, [(<span class="st">'colony3'</span>, stage3Grid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>COLONY3_PLAN[<span class="st">'cap'</span>]), plan<span class="op">=</span>COLONY3_PLAN, prior<span class="op">=</span>reused,</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>                     run<span class="op">=</span>runStage3Cell, analyse<span class="op">=</span><span class="kw">lambda</span> rows, prior: (stage3Summaries(rows, prior, nboot<span class="op">=</span>COLONY3_PLAN[<span class="st">'nboot'</span>]), writeStage3))</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'stage3pilot'</span>, <span class="st">'stage3'</span>):</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage3pilot or stage3'</span>)</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> COLONY3_PLAN[<span class="st">'frozen'</span>], <span class="st">'freeze and commit COLONY3_PLAN before the pilot'</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> STAGE <span class="op">==</span> <span class="st">'stage3pilot'</span>:</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>        _, P3, _ <span class="op">=</span> runColony(<span class="st">'stage3pilot'</span>, [(<span class="st">'colony3Pilot'</span>, stage3PilotGrid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>COLONY3_PLAN[<span class="st">'cap'</span>]),</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>                             plan<span class="op">=</span>COLONY3_PLAN, run<span class="op">=</span>runStage3Cell, analyse<span class="op">=</span>pilot3)</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'compliance gate:'</span>, P3[<span class="st">'gate'</span>], <span class="st">'</span><span class="ch">\n</span><span class="st">cost rule:'</span>, P3[<span class="st">'cost'</span>])</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> stage3Ready()</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> v <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> <span class="kw">not</span> v[<span class="st">'gate'</span>][<span class="st">'ok'</span>] <span class="kw">or</span> v[<span class="st">'cost'</span>][<span class="st">'verdict'</span>] <span class="op">!=</span> <span class="st">'run'</span>:</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">'Stage 3 not run: the pilot has not passed both gates (stop and ask):'</span>, v)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>            rows3, S3, _ <span class="op">=</span> run3()</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage3'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="guards-at-64-agents---flags-llm-live-explrl_colony_stagestage64pilot-then-stage64-a-second-user-approved-deviation" class="level2">
+<h2 class="anchored" data-anchor-id="guards-at-64-agents---flags-llm-live-explrl_colony_stagestage64pilot-then-stage64-a-second-user-approved-deviation">Guards at 64 agents (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage64pilot</code>, then <code>stage64</code>; a second user-approved deviation)</h2>
+<p>Lean: the plain board and guards with independent liars at N = 64 (16 boards, about 30,700 calls), no clean boards. The pilot (one guard board, seed 1890) measures the cost per call at 64 agents and checks invalid replies (under 5%); Stage 64 runs only if the pilot passes and the cost rule projects at most $35. Stage 1’s and the 32-agent run’s rows give the 8-32 points of the trend. <code>COLONY64_PLAN</code> must be frozen first.</p>
+<div id="797e58e5" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pilot64(rows, prior<span class="op">=</span>()):</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pilotCheck64(rows), <span class="kw">lambda</span> path, S, meta: <span class="bu">open</span>(path, <span class="st">'w'</span>).write(<span class="ss">f"# Stage 64 pilot</span><span class="ch">\n\n</span><span class="sc">{</span>S<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prior64():</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>) <span class="op">+</span> readCSV(demo_artifact_dir(<span class="st">'stage32'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run64():</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage64'</span>, [(<span class="st">'colony64'</span>, stage64Grid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>COLONY64_PLAN[<span class="st">'cap'</span>]), plan<span class="op">=</span>COLONY64_PLAN,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>                     prior<span class="op">=</span>prior64(), analyse<span class="op">=</span><span class="kw">lambda</span> rows, prior: (stage64Summaries(rows, prior, nboot<span class="op">=</span>COLONY64_PLAN[<span class="st">'nboot'</span>]), writeStage64))</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runPilot64():</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage64pilot'</span>, [(<span class="st">'colony64Pilot'</span>, stage64PilotGrid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>COLONY64_PLAN[<span class="st">'cap'</span>]),</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>                     plan<span class="op">=</span>COLONY64_PLAN, analyse<span class="op">=</span>pilot64)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'stage64pilot'</span>, <span class="st">'stage64'</span>):</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage64pilot or stage64'</span>)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> COLONY64_PLAN[<span class="st">'frozen'</span>], <span class="st">'freeze and commit COLONY64_PLAN before the pilot'</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> STAGE <span class="op">==</span> <span class="st">'stage64pilot'</span>:</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>        _, P64, _ <span class="op">=</span> runPilot64()</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'Stage 64 pilot:'</span>, P64)</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>        pr <span class="op">=</span> demo_artifact_dir(<span class="st">'stage64pilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> pilotCheck64(readCSV(pr)) <span class="cf">if</span> pr.exists() <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> v <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> <span class="kw">not</span> v[<span class="st">'ok'</span>] <span class="kw">or</span> v[<span class="st">'verdict'</span>] <span class="op">!=</span> <span class="st">'run'</span>:</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">'Stage 64 not run: the pilot has not passed (stop and ask):'</span>, v)</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>            rows64, S64, _ <span class="op">=</span> run64()</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage64'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="stage-4-regression-gate---flags-llm-without-explrl_llm_live-0" class="level2">
+<h2 class="anchored" data-anchor-id="stage-4-regression-gate---flags-llm-without-explrl_llm_live-0">Stage 4 regression gate (<code>--flags llm</code>, without <code>EXPLRL_LLM_LIVE</code>; $0)</h2>
+<p>Every earlier live cell (the pilot, Stage 1, 32 agents, Stage 3 and its pilot, 64 agents and its pilot) replayed through the cache-only client: a request the cache does not hold raises <a href="https://Positron00.github.io/explRL/liar_trace.html#cachemiss"><code>CacheMiss</code></a>, so nothing can be spent; every column of each replayed row must equal its saved row (AC-13). Run after any change to the board, prompts or runners, before the live-flag cached reruns.</p>
+<div id="2a62e108" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony3 <span class="im">import</span> stage3Grid <span class="im">as</span> _s3</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony32 <span class="im">import</span> stage32Grid <span class="im">as</span> _s32</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> LIVE:</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: the regression gate runs without EXPLRL_LLM_LIVE (cache-only)'</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> mode, cells <span class="kw">in</span> ((<span class="st">'pilot'</span>, colonyPilotGrid()), (<span class="st">'stage1'</span>, stage1Grid()), (<span class="st">'stage32'</span>, _s32()), (<span class="st">'stage3pilot'</span>, stage3PilotGrid()),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                        (<span class="st">'stage3'</span>, _s3()), (<span class="st">'stage64pilot'</span>, stage64PilotGrid()), (<span class="st">'stage64'</span>, stage64Grid())):</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        f <span class="op">=</span> demo_artifact_dir(mode, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> f.exists():</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: skipped, no live run'</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>        chk <span class="op">=</span> replayCheck(cells, readCSV(f), LIVE_SPEC[<span class="st">'cache'</span>])</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="kw">not</span> chk[<span class="st">'mismatches'</span>], (mode, chk[<span class="st">'mismatches'</span>][:<span class="dv">3</span>])</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>chk[<span class="st">'checked'</span>]<span class="sc">}</span><span class="ss"> cells replayed from the cache, every saved column equal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="stage-4-guards-that-scale---flags-llm-live-explrl_colony_stagestage4pilot-then-stage4" class="level2">
+<h2 class="anchored" data-anchor-id="stage-4-guards-that-scale---flags-llm-live-explrl_colony_stagestage4pilot-then-stage4">Stage 4: guards that scale (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage4pilot</code>, then <code>stage4</code>)</h2>
+<p>Guard copies (<code>guardDeal</code>), failure flags (<code>failFlag</code>) and squads of 8 (<code>squads</code>) on top of assigned guards, plus two combined arms, at 16 and 64 agents (80 boards, 87,040 calls, about $48); the 56 reference cells (Stage 1 and the 64-agent run) are replayed from the cache ($0) with the new columns and saved as <code>reused.csv</code>. The pilot (three boards, seed 1890) checks invalid replies, guard coverage and contest rate, flags on true values and the squad prompt length, and projects the cost (run if at most $60). <code>STAGE4_PLAN</code> must be frozen, with the committed forecast’s hash, first (<a href="../specs/multiagent/phase18/stage4.md">stage4.md</a>).</p>
+<div id="e39eb7cd" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> hashlib</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pilot4(rows, prior<span class="op">=</span>()):</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    ref <span class="op">=</span> ref8Tokens(readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>))</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pilotCheck4(rows, ref), <span class="kw">lambda</span> path, S, meta: <span class="bu">open</span>(path, <span class="st">'w'</span>).write(<span class="ss">f"# Stage 4 pilot</span><span class="ch">\n\n</span><span class="sc">{</span>S<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reused4():</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> demo_artifact_dir(<span class="st">'stage4'</span>, COLONY)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    d.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    prior <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>) <span class="op">+</span> readCSV(demo_artifact_dir(<span class="st">'stage64'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> reusedRows4(<span class="kw">lambda</span> cfg: cacheOnlyClient(cfg, LIVE_SPEC[<span class="st">'cache'</span>]), prior, reusedCells4())</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    writeCSV(rows, d <span class="op">/</span> <span class="st">'reused.csv'</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rows</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run4():</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage4'</span>, [(<span class="st">'colony4'</span>, stage4Grid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>STAGE4_PLAN[<span class="st">'cap'</span>]), plan<span class="op">=</span>STAGE4_PLAN,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>                     prior<span class="op">=</span>reused4(), run<span class="op">=</span>runStage4Cell,</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>                     analyse<span class="op">=</span><span class="kw">lambda</span> rows, prior: (stage4Summaries(rows, prior, nboot<span class="op">=</span>STAGE4_PLAN[<span class="st">'nboot'</span>]), writeStage4))</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runPilot4():</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage4pilot'</span>, [(<span class="st">'colony4Pilot'</span>, stage4PilotGrid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>STAGE4_PLAN[<span class="st">'cap'</span>]),</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>                     plan<span class="op">=</span>STAGE4_PLAN, run<span class="op">=</span>runStage4Cell, analyse<span class="op">=</span>pilot4)</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>BATCHES4 <span class="op">=</span> {<span class="st">'stage4b1'</span>: COLONY_SEEDS[:<span class="dv">4</span>], <span class="st">'stage4b2'</span>: COLONY_SEEDS[<span class="dv">4</span>:]}   <span class="co"># seed batches of the full grid; every batch runs</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> batch4(rows, prior<span class="op">=</span>()):</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    <span class="co">"A batch is not analysed: its boards, invalid share and cost only (the frozen analysis runs on the full grid)."</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>    calls <span class="op">=</span> <span class="bu">sum</span>(r[<span class="st">'calls'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="kw">or</span> <span class="dv">1</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> <span class="bu">dict</span>(boards<span class="op">=</span><span class="bu">len</span>(rows), invalid<span class="op">=</span><span class="bu">sum</span>(r[<span class="st">'invalid'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows) <span class="op">/</span> calls, cost<span class="op">=</span><span class="bu">sum</span>(r[<span class="st">'cost'</span>] <span class="cf">for</span> r <span class="kw">in</span> rows))</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> S, <span class="kw">lambda</span> path, S, meta: <span class="bu">open</span>(path, <span class="st">'w'</span>).write(<span class="ss">f"# Stage 4 batch (not analysed)</span><span class="ch">\n\n</span><span class="sc">{</span>S<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runBatch4(mode):</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(mode, [(<span class="st">'colony4'</span>, stage4Grid(BATCHES4[mode]))], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>STAGE4_PLAN[<span class="st">'cap'</span>]), plan<span class="op">=</span>STAGE4_PLAN,</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>                     run<span class="op">=</span>runStage4Cell, analyse<span class="op">=</span>batch4)</span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> forecast4Ok():</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> FORECAST4.exists() <span class="kw">and</span> hashlib.sha256(FORECAST4.read_bytes()).hexdigest() <span class="op">==</span> STAGE4_PLAN[<span class="st">'forecast'</span>][<span class="st">'sha256'</span>]</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'stage4pilot'</span>, <span class="st">'stage4b1'</span>, <span class="st">'stage4b2'</span>, <span class="st">'stage4'</span>):</span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage4pilot, stage4b1, stage4b2 or stage4'</span>)</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> STAGE4_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> forecast4Ok(), <span class="st">'commit the Stage 4 forecast, then freeze and commit STAGE4_PLAN with its hash'</span></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> STAGE <span class="op">==</span> <span class="st">'stage4pilot'</span>:</span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>        _, P4, _ <span class="op">=</span> runPilot4()</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'Stage 4 pilot:'</span>, P4)</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>        pr <span class="op">=</span> demo_artifact_dir(<span class="st">'stage4pilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> pilot4(readCSV(pr))[<span class="dv">0</span>] <span class="cf">if</span> pr.exists() <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>        b1 <span class="op">=</span> demo_artifact_dir(<span class="st">'stage4b1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>        inv1 <span class="op">=</span> batch4(readCSV(b1))[<span class="dv">0</span>][<span class="st">'invalid'</span>] <span class="cf">if</span> b1.exists() <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> v <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> <span class="kw">not</span> v[<span class="st">'ok'</span>]:</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">'Stage 4 not run: the pilot has not passed (stop and ask):'</span>, v)</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> STAGE <span class="op">==</span> <span class="st">'stage4b2'</span> <span class="kw">and</span> (inv1 <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> inv1 <span class="op">&gt;=</span> STAGE4_PLAN[<span class="st">'pilot'</span>][<span class="st">'maxInvalid'</span>]):</span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">'batch 2 not run: batch 1 is missing or its invalid share reached 5% (stop and ask):'</span>, inv1)</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> STAGE <span class="kw">in</span> BATCHES4:</span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>            _, SB, _ <span class="op">=</span> runBatch4(STAGE)</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>STAGE<span class="sc">}</span><span class="ss">:'</span>, SB)</span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>            run4()</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage4'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="stage-4b-the-stage-4-designs-at-32-agents---flags-llm-live-explrl_colony_stagestage4bpilot-then-stage4b-then-stage4brerun-a-user-approved-deviation" class="level2">
+<h2 class="anchored" data-anchor-id="stage-4b-the-stage-4-designs-at-32-agents---flags-llm-live-explrl_colony_stagestage4bpilot-then-stage4b-then-stage4brerun-a-user-approved-deviation">Stage 4b: the Stage 4 designs at 32 agents (<code>--flags llm</code>, live; <code>EXPLRL_COLONY_STAGE=stage4bpilot</code>, then <code>stage4b</code>, then <code>stage4brerun</code>; a user-approved deviation)</h2>
+<p>Guard copies, failure flags and squads of 8 at 32 agents with independent liars (24 boards, 23,040 calls, about $11.50), so each design’s trend rests on 16, 32 and 64 agents. The 16 references (the 32-agent run’s plain board and guards) are replayed from the cache ($0) and saved as <code>reused.csv</code>. The pilot (three boards, seed 1890) checks invalid replies and projects the cost (run if at most $20). <code>stage4brerun</code> reruns both from the cache and checks they are byte-identical. <code>STAGE4B_PLAN</code> must be frozen, with the committed forecast’s hash, first (<a href="../specs/multiagent/phase18/stage4.md">stage4.md</a>).</p>
+<div id="12b1a853" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>FORECAST4B <span class="op">=</span> LLM.parents[<span class="dv">2</span>] <span class="op">/</span> STAGE4B_PLAN[<span class="st">'forecast'</span>][<span class="st">'file'</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prior4b():</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Rows at the other team sizes, for the trends: Stage 1, the 32- and 64-agent runs, Stage 4 and its references."</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> <span class="kw">lambda</span> mode, f<span class="op">=</span><span class="st">'runs.csv'</span>: readCSV(demo_artifact_dir(mode, COLONY) <span class="op">/</span> f)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d(<span class="st">'stage1'</span>) <span class="op">+</span> d(<span class="st">'stage32'</span>) <span class="op">+</span> d(<span class="st">'stage64'</span>) <span class="op">+</span> d(<span class="st">'stage4'</span>) <span class="op">+</span> d(<span class="st">'stage4'</span>, <span class="st">'reused.csv'</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> reused4b():</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> demo_artifact_dir(<span class="st">'stage4b'</span>, COLONY)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    out.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> reusedRows4(<span class="kw">lambda</span> cfg: cacheOnlyClient(cfg, LIVE_SPEC[<span class="st">'cache'</span>]), readCSV(demo_artifact_dir(<span class="st">'stage32'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>),</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>                       reusedCells4b())</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    writeCSV(rows, out <span class="op">/</span> <span class="st">'reused.csv'</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rows</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pilot4b(rows, prior<span class="op">=</span>()):</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pilotCheck4b(rows), <span class="kw">lambda</span> path, S, meta: <span class="bu">open</span>(path, <span class="st">'w'</span>).write(<span class="ss">f"# Stage 4b pilot</span><span class="ch">\n\n</span><span class="sc">{</span>S<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runPilot4b():</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage4bpilot'</span>, [(<span class="st">'colony4bPilot'</span>, stage4bPilotGrid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>STAGE4B_PLAN[<span class="st">'cap'</span>]),</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>                     plan<span class="op">=</span>STAGE4B_PLAN, run<span class="op">=</span>runStage4Cell, analyse<span class="op">=</span>pilot4b)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run4b():</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    prior <span class="op">=</span> prior4b()</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> runColony(<span class="st">'stage4b'</span>, [(<span class="st">'colony4b'</span>, stage4bGrid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>STAGE4B_PLAN[<span class="st">'cap'</span>]), plan<span class="op">=</span>STAGE4B_PLAN,</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>                     prior<span class="op">=</span>reused4b(), run<span class="op">=</span>runStage4Cell,</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>                     analyse<span class="op">=</span><span class="kw">lambda</span> rows, reused: (stage4bSummaries(rows, reused, prior, nboot<span class="op">=</span>STAGE4B_PLAN[<span class="st">'nboot'</span>]), writeStage4b))</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> forecast4bOk():</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> FORECAST4B.exists() <span class="kw">and</span> hashlib.sha256(FORECAST4B.read_bytes()).hexdigest() <span class="op">==</span> STAGE4B_PLAN[<span class="st">'forecast'</span>][<span class="st">'sha256'</span>]</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> <span class="kw">not</span> STAGE.startswith(<span class="st">'stage4b'</span>) <span class="kw">or</span> STAGE <span class="kw">in</span> (<span class="st">'stage4b1'</span>, <span class="st">'stage4b2'</span>):</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_COLONY_STAGE=stage4bpilot, stage4b or stage4brerun'</span>)</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> STAGE4B_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> forecast4bOk(), <span class="st">'commit the Stage 4b forecast, then freeze and commit STAGE4B_PLAN with its hash'</span></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>    pr <span class="op">=</span> demo_artifact_dir(<span class="st">'stage4bpilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> STAGE <span class="op">==</span> <span class="st">'stage4bpilot'</span>:</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>        _, P4b, _ <span class="op">=</span> runPilot4b()</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'Stage 4b pilot:'</span>, P4b)</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> STAGE <span class="op">==</span> <span class="st">'stage4b'</span>:</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> pilotCheck4b(readCSV(pr)) <span class="cf">if</span> pr.exists() <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> v <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> <span class="kw">not</span> v[<span class="st">'ok'</span>]:</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">'Stage 4b not run: the pilot has not passed (stop and ask):'</span>, v)</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>            run4b()</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'stage4b'</span>, COLONY) <span class="op">/</span> <span class="st">'report.md'</span>).read())</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> mode, again <span class="kw">in</span> ((<span class="st">'stage4bpilot'</span>, runPilot4b), (<span class="st">'stage4b'</span>, run4b)):</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>            files <span class="op">=</span> [demo_artifact_dir(mode, COLONY) <span class="op">/</span> f <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>)]</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>            before <span class="op">=</span> [f.read_bytes() <span class="cf">for</span> f <span class="kw">in</span> files]</span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a>            again()</span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a>            <span class="cf">assert</span> [f.read_bytes() <span class="cf">for</span> f <span class="kw">in</span> files] <span class="op">==</span> before, mode</span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: cached rerun byte-identical'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="cached-reruns---flags-llm-after-the-live-runs" class="level2">
+<h2 class="anchored" data-anchor-id="cached-reruns---flags-llm-after-the-live-runs">Cached reruns (<code>--flags llm</code>, after the live runs)</h2>
+<p>Every reply from the cache: <code>runs.csv</code> and <code>turns.jsonl</code> byte-identical, nothing spent (AC-10).</p>
+<div id="10e00e10" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE.startswith(<span class="st">'stage4b'</span>) <span class="kw">and</span> STAGE <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'stage4b1'</span>, <span class="st">'stage4b2'</span>):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: set EXPLRL_LLM_LIVE=1 (Stage 4b checks its own cached rerun)'</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> stage2Cells():</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> (COLONY2_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> COLONY2_PLAN[<span class="st">'arm'</span>]):</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        pr <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'pilot'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> costRule2(pilotCheck(pr)[<span class="st">'costPerCall'</span>] <span class="op">*</span> COLONY2_PLAN[<span class="st">'priceRatio'</span>], COLONY2_PLAN[<span class="st">'arm'</span>])[<span class="st">'cells'</span>]</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> mode3, again <span class="kw">in</span> ((<span class="st">'stage64pilot'</span>, runPilot64), (<span class="st">'stage64'</span>, run64), (<span class="st">'stage3pilot'</span>, <span class="kw">lambda</span>: runColony(<span class="st">'stage3pilot'</span>, [(<span class="st">'colony3Pilot'</span>, stage3PilotGrid())], <span class="bu">dict</span>(LIVE_SPEC, cap<span class="op">=</span>COLONY3_PLAN[<span class="st">'cap'</span>]),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                                                       plan<span class="op">=</span>COLONY3_PLAN, run<span class="op">=</span>runStage3Cell, analyse<span class="op">=</span>pilot3)), (<span class="st">'stage3'</span>, run3)):</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        f3 <span class="op">=</span> [demo_artifact_dir(mode3, COLONY) <span class="op">/</span> f <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>)]</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> f3[<span class="dv">0</span>].exists() <span class="kw">and</span> COLONY3_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> (<span class="kw">not</span> mode3.startswith(<span class="st">'stage64'</span>) <span class="kw">or</span> COLONY64_PLAN[<span class="st">'frozen'</span>]):</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>            before <span class="op">=</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> f3]</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>            again()</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">assert</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> f3] <span class="op">==</span> before</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>mode3<span class="sc">}</span><span class="ss">: cached rerun byte-identical'</span>)</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> mode4, again <span class="kw">in</span> ((<span class="st">'stage4pilot'</span>, runPilot4), (<span class="st">'stage4b1'</span>, <span class="kw">lambda</span>: runBatch4(<span class="st">'stage4b1'</span>)),</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>                         (<span class="st">'stage4b2'</span>, <span class="kw">lambda</span>: runBatch4(<span class="st">'stage4b2'</span>)), (<span class="st">'stage4'</span>, run4)):</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        f4 <span class="op">=</span> [demo_artifact_dir(mode4, COLONY) <span class="op">/</span> f <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>)]</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> f4[<span class="dv">0</span>].exists() <span class="kw">and</span> STAGE4_PLAN[<span class="st">'frozen'</span>]:</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>            before <span class="op">=</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> f4]</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>            again()</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>            <span class="cf">assert</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> f4] <span class="op">==</span> before</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>mode4<span class="sc">}</span><span class="ss">: cached rerun byte-identical'</span>)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    files32 <span class="op">=</span> [demo_artifact_dir(<span class="st">'stage32'</span>, COLONY) <span class="op">/</span> f <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>)]</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> files32[<span class="dv">0</span>].exists() <span class="kw">and</span> COLONY32_PLAN[<span class="st">'frozen'</span>]:</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>        before <span class="op">=</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> files32]</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>        run32()</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> files32] <span class="op">==</span> before</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">'stage32: cached rerun byte-identical'</span>)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> mode, grid <span class="kw">in</span> ((<span class="st">'pilot'</span>, <span class="kw">lambda</span>: colonyPilotGrid()), (<span class="st">'stage1'</span>, stage1Cells), (<span class="st">'stage2'</span>, stage2Cells)):</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> [demo_artifact_dir(mode, COLONY) <span class="op">/</span> f <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'turns.jsonl'</span>)]</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> files[<span class="dv">0</span>].exists() <span class="kw">or</span> (cells <span class="op">:=</span> grid()) <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: skipped, no live run'</span>)</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>        before, spent <span class="op">=</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> files], Budget(CAP, LIVE_SPEC[<span class="st">'ledger'</span>]).spent()</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>        study <span class="op">=</span> <span class="bu">dict</span>(pilot<span class="op">=</span><span class="st">'colonyPilot'</span>, stage1<span class="op">=</span><span class="st">'colony1'</span>, stage2<span class="op">=</span><span class="st">'colony2'</span>)[mode]</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>        plan <span class="op">=</span> COLONY_PLAN <span class="cf">if</span> mode <span class="op">!=</span> <span class="st">'stage2'</span> <span class="cf">else</span> <span class="bu">dict</span>(COLONY_PLAN, sizes<span class="op">=</span>COLONY_PLAN[<span class="st">'sizes'</span>] <span class="op">+</span> COLONY2_PLAN[<span class="st">'sizes'</span>],</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>                                                          stage2<span class="op">=</span><span class="bu">dict</span>(arm<span class="op">=</span>COLONY2_PLAN[<span class="st">'arm'</span>], sizes<span class="op">=</span>COLONY2_PLAN[<span class="st">'sizes'</span>]))</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>        prior <span class="op">=</span> readCSV(demo_artifact_dir(<span class="st">'stage1'</span>, COLONY) <span class="op">/</span> <span class="st">'runs.csv'</span>) <span class="cf">if</span> mode <span class="op">==</span> <span class="st">'stage2'</span> <span class="cf">else</span> ()</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>        runColony(mode, [(study, cells)], LIVE_SPEC, plan<span class="op">=</span>plan, prior<span class="op">=</span>prior)</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> [p.read_bytes() <span class="cf">for</span> p <span class="kw">in</span> files] <span class="op">==</span> before <span class="kw">and</span> Budget(CAP, LIVE_SPEC[<span class="st">'ledger'</span>]).spent() <span class="op">==</span> spent, mode</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: cached rerun byte-identical, free'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
