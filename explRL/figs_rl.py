@@ -13,7 +13,7 @@ import numpy as np
 
 from .figs_team import W, drawn, sem, signP, star
 
-PANELS = (('sharePerHeld', 'clues shared / clues held'), ('soloShare', 'solves made without a shared clue'),
+PANELS = (('sharePerHeld', 'clues shared / clues held'), ('soloShare', 'solves made by guessing'),
           ('guesses', 'guesses per board'), ('welfare', 'welfare per agent-turn'))
 FIX_COLORS = dict(affordance='tab:blue', instruction='tab:orange')
 
@@ -46,7 +46,7 @@ def incentives(d, paper):
                  'sharing and welfare vary from run to run', fontsize=12)
     fig.text(0.5, 0.005, 'Qwen2.5-3B-Instruct, 4 agents sharing one LoRA adapter, GRPO; 15 held-out boards; mean ± SEM over boards; '
              '* p < 0.05, two-sided exact sign-flip test against the warm start, paired on board; '
-             'vertical lines: Claude Haiku 5.5 and rule agents on the same boards', ha='center', fontsize=8, color='#566372')
+             'vertical lines: Claude Haiku 5.5 (full turn history) and rule agents on 5 of these boards', ha='center', fontsize=8, color='#566372')
     fig.tight_layout(rect=(0, 0.03, 1, 0.95))
     return fig
 

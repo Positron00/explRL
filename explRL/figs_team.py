@@ -160,7 +160,7 @@ def guards(d, paper):
 # %% ../nbs/figs_team.ipynb #cf50ce3f
 @drawn
 def trustScale(d, paper):
-    """Left: honest answers built on a false clue per runner and team size (per-seed values; permutation test against the smallest team).
+    """Left: honest answers made while misinformed per runner and team size (per-seed values; permutation test against the smallest team).
     Right: the track record's damage recovered and the request board's gap closed against team size (rows [N, gap, se, p])."""
     fig, (a, b) = plt.subplots(1, 2, figsize=(W, 2.4) if paper else (11, 4.0))
     sz = 9 if paper else 12
@@ -172,12 +172,12 @@ def trustScale(d, paper):
         for N, yi, ei in zip(Ns[1:], y[1:], e[1:]):
             star(a, N, yi + ei, permP(per[N], per[Ns[0]]), color=col, size=sz)
     a.set(xscale='log', xticks=[8, 16, 32], xlabel='team size (a quarter of the agents liars)', ylim=(0.6, 1.04),
-          ylabel='answers built on a false clue' if paper else 'honest answers built on a false clue',
-          title='' if paper else 'Larger teams build on lies more often')
+          ylabel='answers made while misinformed' if paper else 'honest answers made while misinformed',
+          title='' if paper else 'Larger teams act on false clues more often')
     a.set_xticklabels(['8', '16', '32'])
     a.legend(fontsize=None if paper else 8, loc='lower right')
     for key, col, short, lab in (('record', '#1f6391', 'public track record', 'track record (each sender\'s past accuracy shown): damage won back'),
-                                 ('request', '#c0392b', 'request board', 'request board (agents can ask for clues): sharing gap closed')):
+                                 ('request', '#c0392b', 'request board', 'request board (agents can ask for clues): pooling gap closed')):
         pts = d[key]
         x, y, e = [r[0] for r in pts], np.array([r[1] for r in pts]), np.array([r[2] for r in pts])
         b.errorbar(x, y, yerr=e, fmt='o-', capsize=2 if paper else 3, color=col, label=short if paper else lab)
@@ -193,8 +193,8 @@ def trustScale(d, paper):
     if paper:
         fig.tight_layout()
     else:
-        fig.text(0.5, 0.005, 'Left: mean ± SEM over seeds (5 for Claude Haiku, 20 for rule agents); * p < 0.05, exact permutation test against '
-                 '8 agents.\nRight: 10 seeds at 4 agents, 5 per larger size; mean ± bootstrap SE; * p < 0.05, two-sided exact sign-flip test '
+        fig.text(0.5, 0.005, 'Left: mean ± SEM over seeds (5 for Claude Haiku, 20 for rule agents); * p < 0.05, permutation test against 8 agents (exact for '
+                 'Claude Haiku; 20,000 random permutations for rule agents).\nRight: track record 10 seeds at 4 agents, 5 per larger size; request board 5 seeds per size; mean ± bootstrap SE; * p < 0.05, two-sided exact sign-flip test '
                  'against 0 (with 5 seeds the exact two-sided p cannot fall below 0.0625).', ha='center', fontsize=7, color='#566372')
         fig.tight_layout(rect=(0, 0.07, 1, 1))
     return fig

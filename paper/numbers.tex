@@ -65,6 +65,8 @@
 \newcommand{\BestWelfare}{0.39}
 \newcommand{\BoardBenefitFour}{0.39}
 \newcommand{\BoardBenefitFourCI}{[0.37, 0.40]}
+\newcommand{\BoundGuardsEight}{9.8}
+\newcommand{\BoundPlainEight}{8.4}
 \newcommand{\CheckedFalseLiar}{13}
 \newcommand{\ChecksLiar}{14}
 \newcommand{\ColonyBoard}{0.075}
@@ -74,6 +76,10 @@
 \newcommand{\ColonyBoardContam}{0.60}
 \newcommand{\ColonyBoardContest}{0.21}
 \newcommand{\ColonyBoardHolm}{0.013}
+\newcommand{\ColonyCleanEight}{0.09}
+\newcommand{\ColonyCleanSixteen}{0.06}
+\newcommand{\ColonyCleanWelfareEight}{0.08}
+\newcommand{\ColonyCleanWelfareSixteen}{0.06}
 \newcommand{\ColonyConfirmAdvEight}{0.12}
 \newcommand{\ColonyConfirmAdvSixteen}{0.03}
 \newcommand{\ColonyContam}{0.130}
@@ -96,11 +102,14 @@
 \newcommand{\ColonyRecordAdvSixteen}{0.09}
 \newcommand{\ColonyRecoverBoard}{0.37}
 \newcommand{\ColonyRecoverGuards}{0.72}
+\newcommand{\ColonyRecoverGuardsPlain}{0.66}
 \newcommand{\ColonyRecoverRecord}{0.34}
 \newcommand{\ColonyTax}{-0.026}
 \newcommand{\ColonyTaxCI}{[-0.038, -0.011]}
 \newcommand{\ColonyTaxHolm}{0.999}
 \newcommand{\ColonyVsConfirm}{-0.001}
+\newcommand{\ConfirmCleanEight}{0.08}
+\newcommand{\ConfirmCleanSixteen}{0.05}
 \newcommand{\CoordBenefitFour}{0.10}
 \newcommand{\CreditMinusIndividual}{0.19}
 \newcommand{\CreditMinusIndividualCI}{[0.09, 0.27]}
@@ -122,14 +131,18 @@
 \newcommand{\DiagUnguardedMin}{81}
 \newcommand{\DiagUnguardedShare}{0.91}
 \newcommand{\DiagUsesGuarded}{0.24}
+\newcommand{\DiagUsesGuardedEight}{0.20}
 \newcommand{\DiagUsesGuardedMax}{0.24}
 \newcommand{\DiagUsesGuardedMin}{0.19}
+\newcommand{\DiagUsesGuardedSixtyFour}{0.24}
 \newcommand{\DiagUsesUnguarded}{1.49}
 \newcommand{\DiagUsesUnguardedEight}{0.64}
 \newcommand{\DisclosedBase}{0.50}
 \newcommand{\FollowFour}{-0.13}
 \newcommand{\FollowFourCI}{[-0.16, -0.10]}
 \newcommand{\ForecastAgree}{4}
+\newcommand{\ForecastCallsAll}{21}
+\newcommand{\ForecastRightAll}{14}
 \newcommand{\ForecastTotal}{8}
 \newcommand{\FourAdvCopiesSixteen}{0.17}
 \newcommand{\FourAdvCopiesSixtyFour}{0.21}
@@ -164,18 +177,23 @@
 \newcommand{\FourCopiesClean}{0.129}
 \newcommand{\FourCopiesContest}{0.61}
 \newcommand{\FourCopiesHolm}{0.012}
+\newcommand{\FourCopiesRaw}{+0.06}
 \newcommand{\FourCost}{43.80}
 \newcommand{\FourFlags}{+0.062}
 \newcommand{\FourFlagsCI}{[0.042, 0.082]}
 \newcommand{\FourFlagsClean}{+0.000}
 \newcommand{\FourFlagsHolm}{0.012}
 \newcommand{\FourFlagsOnTrue}{0.27}
+\newcommand{\FourFlagsRaw}{+0.08}
 \newcommand{\FourFlagsSixteen}{+0.054}
 \newcommand{\FourForecastNoCall}{1}
 \newcommand{\FourForecastRight}{4}
 \newcommand{\FourForecastWrong}{1}
 \newcommand{\FourGuardsContest}{0.75}
 \newcommand{\FourGuardsEightLevel}{0.28}
+\newcommand{\FourGuardsHeld}{0.37}
+\newcommand{\FourGuardsLag}{1.5}
+\newcommand{\FourGuardsUnguarded}{1.48}
 \newcommand{\FourPlanHash}{a441381ce078}
 \newcommand{\FourPositive}{8}
 \newcommand{\FourSeeds}{8}
@@ -184,12 +202,18 @@
 \newcommand{\FourSquadsDid}{+0.111}
 \newcommand{\FourSquadsDidCI}{[0.069, 0.152]}
 \newcommand{\FourSquadsDidP}{0.008}
+\newcommand{\FourSquadsHeld}{0.40}
 \newcommand{\FourSquadsHolm}{0.012}
+\newcommand{\FourSquadsLag}{0.1}
 \newcommand{\FourSquadsLevel}{0.25}
+\newcommand{\FourSquadsRaw}{+0.22}
 \newcommand{\FourSquadsSlope}{+0.038}
 \newcommand{\FourSquadsSlopeP}{0.008}
 \newcommand{\FourSquadsSlopeRising}{8}
 \newcommand{\FourSquadsTokens}{780}
+\newcommand{\FourSquadsUnguarded}{0.79}
+\newcommand{\FourSquadsVsEight}{-0.04}
+\newcommand{\FourSquadsVsEightCI}{[-0.06, -0.01]}
 \newcommand{\GainCredit}{0.02}
 \newcommand{\GainCreditCI}{[-0.03, 0.06]}
 \newcommand{\GainCreditOne}{0.02}
@@ -208,6 +232,8 @@
 \newcommand{\GainIndpenTwoCI}{[-0.07, 0.10]}
 \newcommand{\GainTeam}{-0.20}
 \newcommand{\GainTeamCI}{[-0.26, -0.14]}
+\newcommand{\GuardContestShareEight}{0.16}
+\newcommand{\GuardPostsEight}{0.99}
 \newcommand{\GuardsAdvEight}{0.26}
 \newcommand{\GuardsAdvSixtyFour}{0.17}
 \newcommand{\GuardsByEight}{+0.261}
@@ -220,6 +246,9 @@
 \newcommand{\GuardsCleanEight}{0.09}
 \newcommand{\GuardsCleanSixteen}{0.06}
 \newcommand{\GuardsCleanThirtyTwo}{0.04}
+\newcommand{\GuardsCleanWelfareEight}{0.03}
+\newcommand{\GuardsCleanWelfareSixteen}{0.03}
+\newcommand{\GuardsCleanWelfareThirtyTwo}{0.03}
 \newcommand{\GuardsEightPlainClean}{0.45}
 \newcommand{\GuardsEightPlainLiar}{0.02}
 \newcommand{\GuardsRecoverEight}{0.81}
@@ -271,6 +300,7 @@
 \newcommand{\HbEpisodes}{195}
 \newcommand{\HbGapDissent}{0.41}
 \newcommand{\HbGapDissentCI}{[0.00, 0.71]}
+\newcommand{\HbGapDissentP}{0.09}
 \newcommand{\HbGapFacts}{0.11}
 \newcommand{\HbGapFactsCI}{[-0.37, 0.45]}
 \newcommand{\HbGapFactsP}{1.000}
@@ -304,6 +334,7 @@
 \newcommand{\RhoBoardCI}{[0.55, 0.93]}
 \newcommand{\RhoClue}{0.79}
 \newcommand{\RhoClueCI}{[0.74, 0.81]}
+\newcommand{\RhoClueChannel}{0.52}
 \newcommand{\RhoForage}{0.02}
 \newcommand{\RhoForageCI}{[-0.47, 0.45]}
 \newcommand{\ScaleLossEight}{0.47}
@@ -330,6 +361,8 @@
 \newcommand{\ScaleRequestThirtyTwo}{-0.16}
 \newcommand{\ScaleRequestThirtyTwoCI}{[-0.18, -0.15]}
 \newcommand{\ScaleRequestThirtyTwoP}{0.188}
+\newcommand{\ScaleShareHeldMax}{0.41}
+\newcommand{\ScaleShareHeldMin}{0.38}
 \newcommand{\SeventeenBadHalts}{1}
 \newcommand{\SeventeenFlatHalts}{3}
 \newcommand{\SeventeenGain}{+0.078}
@@ -361,6 +394,8 @@
 \newcommand{\ShareHeldCreditTwo}{0.84}
 \newcommand{\ShareHeldCredturnOne}{0.61}
 \newcommand{\ShareHeldCredturnTwo}{0.93}
+\newcommand{\ShareHeldIndMax}{0.41}
+\newcommand{\ShareHeldIndMin}{0.11}
 \newcommand{\ShareHeldIndividual}{0.15}
 \newcommand{\ShareHeldIndpenOne}{1.00}
 \newcommand{\ShareHeldIndpenTwo}{0.83}
@@ -440,6 +475,8 @@
 \newcommand{\TraceShareAC}{0.72}
 \newcommand{\TraceShareACCI}{[0.16, 3.2]}
 \newcommand{\TraceSuppress}{89--94}
+\newcommand{\TraceSuppressChange}{+0.04}
+\newcommand{\TraceSuppressChangeCI}{[-0.04, 0.13]}
 \newcommand{\TraceVarFirst}{-0.16}
 \newcommand{\TraceVarRelay}{-0.23}
 \newcommand{\TraceVarRepost}{-0.05}

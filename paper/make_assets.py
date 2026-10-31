@@ -408,6 +408,11 @@ for N, w in ((8, 'Eight'), (16, 'Sixteen'), (32, 'ThirtyTwo')):
     M['GuardsRecover' + w] = f"{lossRecovered(gr, 'colonyGuards', [N]):.2f}"
 M['GuardsEightPlainClean'], M['GuardsEightPlainLiar'] = (f"{np.mean(list(cellVals(gr, 'plain', f, 'honestPooled', [8]).values())):.2f}"
                                                          for f in ('clean', 'independent'))
+for N, w in ((8, 'Eight'), (16, 'Sixteen')):               # the same clean cost without guards (these arms ran at 8 and 16 only)
+    pl = cellVals(gr, 'plain', 'clean', 'honestPooled', [N])
+    for arm, name in (('colony', 'ColonyClean'), ('confirm', 'ConfirmClean')):
+        a = cellVals(gr, arm, 'clean', 'honestPooled', [N])
+        M[name + w] = f"{np.mean([pl[k] - a[k] for k in a if k in pl]):.2f}"
 vb = [r for r in rows('colony/stage3/runs.csv') if r['level'].startswith('colonyVolunteer')]
 M['VolunteerBoards'], M['Volunteers'] = str(len(vb)), str(int(sum(float(r['volunteers']) for r in vb)))
 from explRL.colony_grid import stage1Grid
@@ -447,6 +452,50 @@ pp = {N: sum(a for a, _ in v) / sum(b for _, b in v) for N, v in pu.items()}
 M['PlainUsesPerLieEight'], M['PlainUsesPerLieSixtyFour'] = f"{pp[8]:.1f}", f"{pp[64]:.1f}"
 S4F = json.loads(Path('specs/multiagent/phase18/colony4_score.json').read_text())
 M['FourForecastRight'], M['FourForecastWrong'], M['FourForecastNoCall'] = str(S4F['right']), str(S4F['wrong']), str(S4F['noCall'])
+
+# Gap fixes (2026-10-31): matched baselines, raw welfare, the guards' posts, the squads' replay, suppression by size, tallies
+def recoveredOnPlain(rs, arm, sizes):                     # damage recovered against the plain board's clean boards (the record's baseline)
+    loss = lambda a: (lambda c, l: [c[k] - l[k] for k in l if k in c])(cellVals(rs, 'plain', 'clean', 'welfareHonest', sizes),
+                                                                      cellVals(rs, a, 'independent', 'welfareHonest', sizes))
+    return 1 - np.mean(loss(arm)) / np.mean(loss('plain'))
+M['ColonyRecoverGuardsPlain'] = f"{recoveredOnPlain(gr, 'colonyGuards', [8, 16]):.2f}"
+for N, w in ((8, 'Eight'), (16, 'Sixteen'), (32, 'ThirtyTwo')):                # clean costs in raw honest welfare (no arm-dependent bound)
+    pl = cellVals(gr, 'plain', 'clean', 'welfareHonest', [N])
+    for arm, name in (('colonyGuards', 'GuardsCleanWelfare'), ('colony', 'ColonyCleanWelfare')):
+        if (a := cellVals(gr, arm, 'clean', 'welfareHonest', [N])):
+            M[name + w] = f"{np.mean([pl[k] - a[k] for k in a if k in pl]):.2f}"
+for arm, name in (('plain', 'BoundPlainEight'), ('colonyGuards', 'BoundGuardsEight')):          # the pooled share's bound, clean boards
+    M[name] = f"{np.mean(list(cellVals(gr, arm, 'clean', 'pooledBound', [8]).values())):.1f}"
+g8 = c4['colonyGuards|independent N 8']
+s1g = [r for r in rows('colony/stage1/runs.csv') if r['level'] == 'colonyGuards|independent' and int(float(r['N'])) == 8]
+contests = np.mean([float(r['falseValues']) * float(r['contestFalse']) for r in s1g])           # contests per board, all honest agents
+M['GuardPostsEight'] = f"{g8['guardPostsPerTurn']:.2f}"
+M['GuardContestShareEight'] = f"{contests / (8 // 4 * float(s1g[0]['turns']) * g8['guardPostsPerTurn']):.2f}"   # at most this share of guard posts
+sq, g64c = c4['squads|independent N 64'], c4['colonyGuards|independent N 64']
+M['FourSquadsHeld'], M['FourGuardsHeld'] = f"{sq['guardHeldLies']:.2f}", f"{g64c['guardHeldLies']:.2f}"
+M['FourSquadsUnguarded'], M['FourGuardsUnguarded'] = f"{sq['usesPerLieUnguarded']:.2f}", f"{g64c['usesPerLieUnguarded']:.2f}"
+M['FourSquadsLag'], M['FourGuardsLag'] = f"{sq['contestLagGuarded']:.1f}", f"{g64c['contestLagGuarded']:.1f}"
+M['FourSquadsVsEight'] = f"{S4['squads8']['estimate']:+.2f}"
+M['FourSquadsVsEightCI'] = f"[{S4['squads8']['ci'][0]:.2f}, {S4['squads8']['ci'][1]:.2f}]"
+for k, name in (('H18_13', 'Copies'), ('H18_14', 'Flags'), ('H18_15', 'Squads')):
+    M['Four' + name + 'Raw'] = f"{S4['hyp'][k]['robustness']['estimate']:+.2f}"
+sc15 = TL['change']['haiku']['suppressed']
+M['TraceSuppressChange'], M['TraceSuppressChangeCI'] = f"{sc15['mean']:+.2f}", f"[{sc15['ci'][0]:.2f}, {sc15['ci'][1]:.2f}]"
+M['DiagUsesGuardedEight'], M['DiagUsesGuardedSixtyFour'] = f"{gu[0]:.2f}", f"{gu[-1]:.2f}"
+sh = [np.mean([float(r['sharePerHeld']) for r in rows('scale/full/runs.csv') if r['level'] == 'baseline' and r['runner'] == 'llm'
+               and int(float(r['N'])) == N]) for N in (8, 16, 32)]                                # clues shared per held clue, no liars
+M['ScaleShareHeldMin'], M['ScaleShareHeldMax'] = f"{min(sh):.2f}", f"{max(sh):.2f}"
+ind = [v['sharePerHeld'] for n, v in r16.items() if n.startswith('individual')]
+M['ShareHeldIndMin'], M['ShareHeldIndMax'] = f"{min(ind):.2f}", f"{max(ind):.2f}"
+M['HbGapDissentP'] = f"{hb['gap']['dissent']['p']:.2f}"
+ssc = json.loads((R / 'forecast/scale_score.json').read_text())
+SC1 = json.loads(Path('specs/multiagent/phase18/colony_score.json').read_text())
+M['ForecastRightAll'] = str(fs['forecast']['agree'] + ssc['agree'] + SC1['right'] + S4F['right'] + res4b.count('right'))
+M['ForecastCallsAll'] = str(fs['forecast']['total'] + ssc['total'] + SC1['right'] + SC1['wrong'] + S4F['right'] + S4F['wrong']
+                            + len(res4b) - res4b.count('no call'))
+S11c = clueSummaries([r for r in clue if r['runner'] == 'llm' and r['channel'] != 'none'],
+                     [r for r in clue if r['study'] == 'clueNumpy' and r['channel'] != 'none'])
+M['RhoClueChannel'] = f"{S11c['numpy']['rho']:.2f}"
 
 lines = ['% Generated by paper/make_assets.py from results/multiagent/; do not edit by hand.']
 lines += [f'\\newcommand{{\\{k}}}{{{v}}}' for k, v in sorted(M.items())]
