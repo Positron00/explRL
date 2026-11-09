@@ -140,6 +140,30 @@ Scope: the claims planned in [phase18/README.md](phase18/README.md) (H18-1 to H1
 
 **What Phase 18 could claim, before the results.** That a simple, oracle-free agreement display, the colony rule set, changes how much a team of LLM agents is misled by faulty members on a shared board, at what clean cost, and how that changes with team size; and, from Part B, whether copies of one adapter divide labour under team reward. **What it cannot claim.** That quorum, voting or redundancy defeating faulty minorities is new (classic BFT and several LLM papers show it); that guards or verifier agents are new; that free-riding under team reward is new; or protection against colluding or correlated faults beyond what q and independence allow.
 
+## 16. Insect-derived hypotheses for training large teams (checked 2026-10-30)
+
+Scope: five hypotheses for training large agent teams, each borrowed from social insects, proposed on 2026-10-29 and not yet tested. Method: each new reference's metadata checked on Crossref (arXiv for [87]) and its abstract read on Europe PMC or OpenAlex, 2026-10-29 and 2026-10-30. Claims beyond an abstract are marked as background knowledge.
+
+**What is known (social insects).**
+
+- *Experience and group size.* Ant workers experimentally led to find prey on every foraging attempt kept exploring for food a month later, while those that always failed specialized in brood care: individual experience alone produced a lasting division of labour [77] (the abstract says "all else being equal"; that the species is the clonal *Cerapachys biroi* is background knowledge). In clonal ant colonies, larger groups generated division of labour among extremely similar workers, in groups as small as six, with large gains in homeostasis and per-capita fitness [78]. In the threshold-reinforcement model, performing a task lowers a worker's threshold for it and not performing it raises the threshold, so specialists emerge from identical individuals; specialists removed and later reintroduced do not restore the earlier state [79]. Division of labour can be measured as the mutual entropy between individuals and tasks divided by marginal entropy, which stays comparable as the numbers of individuals or tasks change [80].
+- *Thresholds that track the threat.* The optimal acceptance threshold depends on how often an actor meets each class of recipient and on the fitness costs of accepting or rejecting each [81]. Honeybee guards matched this in the field: in a nectar dearth they accepted 80% of nestmates and 25% of non-nestmates; as robbing and its cost declined they grew more permissive, down to accepting all; guards and fights at the entrance kept a ratio of about 9:1 [82]. House-hunting *Leptothorax albipennis* ants lower their quorum thresholds in harsh conditions, choosing faster but less accurately and relying more on individual decisions [83].
+- *Policing.* In an ESS model, policing both stops worker-laid eggs from being reared and can make laying unprofitable in the first place, which explains why almost no workers reproduce in species with efficient policing [84]; worker cooperation results from strict policing by nestmates [85]; see also [58].
+- *Network plasticity.* In *Lasius niger*, pathogen exposure changed the behaviour of both exposed ants and their nestmates in ways that reinforced the contact network's transmission-inhibiting properties and helped contain disease [86] (that these included higher modularity is from the paper's main text, background knowledge).
+- *Diversity.* Genetically diverse honeybee colonies are more productive and fitter [54].
+
+**What is known (models).** Across more than 350 LLMs, errors are substantially correlated: on one leaderboard dataset, two models that both err agree 60% of the time, and larger, more accurate models have highly correlated errors even across architectures and providers [87]. Role and specialization results for multi-agent RL and LLM teams are in section 15 ([57], [69], [70], [72], [75]).
+
+| Hypothesis (untested) | Insect evidence | explRL starting point | Closest work in this review |
+|---|---|---|---|
+| P1: copies with a private record of their own experience divide labour, more so in larger teams, and refill a role after removal | [77]-[80] | No volunteer guard on any of 24 boards; team-reward RL specialization +1.32, below the warm start's +3.44 | Role embeddings [57]; private adapters specialized where one shared adapter did not [70]; prompted differentiation [69], [72], [75] |
+| P2: trained agents wait for confirmation, and guards contest, as strictly as the threat warrants | [81]-[83] | Answers built on false clues 0.79 -> 0.91 (8 -> 32 agents); a "confirm" instruction helped at 8 agents (+0.12) and faded by 16 (+0.03); guards' clean cost 0.09, 0.06, 0.04 at 8, 16, 32 | Challenger and Inspector [60]; confidence-weighted voting [61]; majority collapse [67] |
+| P3: guarding deters lying once a lie costs the liar | [84], [85], [58] | Prompted Claude liars lied less often but did not avoid guarded clues; guards held 37-43% of lied clues | Colluding and persuasive agents [64], [66], [67] |
+| P4: separately trained adapters or mixed models make errors less correlated | [54] | Not tested; explRL's errors are injected | Correlated errors across models [87], which cuts against mixing frontier models |
+| P5: squads contain lies and let training in small worlds hold at large sizes; teams rewire under threat | [86] | Squads held their advantage at 64 agents (0.26, 0.34, 0.34 at 16, 32, 64) on 780 vs 6,463 prompt tokens per turn; Phase 17's gain at 4 agents was gone at 32 | Topology and pruning [18]-[20]; scaling without faults [72]; H18-B3 (section 15) |
+
+Novelty was not searched for these five beyond sections 2 and 15; a targeted search should come before any claim.
+
 ## References
 
 Checked on 2026-10-16 against each paper's own page. Venues are given only where that page states them. Re-checked on 2026-10-23 for every source the two preprints cite (arXiv records, Crossref DOIs, the ACL Anthology, the AAAI proceedings or the publisher's page), each claim against the source's abstract; the fixes are listed in `paper/README.md`.
@@ -223,5 +247,19 @@ References 47-75 were checked on 2026-10-19 (section 15).
 74. Nakamura et al. Terrarium: Revisiting the Blackboard for Multi-Agent Safety, Privacy, and Security Studies. 2025. https://arxiv.org/abs/2510.14312
 75. El Kandoussi. "Who Am I, and Who Else Is Here?" Behavioral Differentiation Without Role Assignment in Multi-Agent LLM Systems. 2026. https://arxiv.org/abs/2604.00026; Riedl. Emergent Coordination in Multi-Agent Language Models. ICLR 2026 (arXiv journal reference). https://arxiv.org/abs/2510.05174
 76. Breed, Guzmán-Novoa, Hunt. Defensive behavior of honey bees: organization, genetics, and comparisons with other bees. Annual Review of Entomology 49, 271-298, 2004. https://doi.org/10.1146/annurev.ento.49.061802.123155 (checked on Crossref 2026-10-23; cited in `paper/` for honeybee guards, which *Honeybee Democracy* [50] does not cover)
+
+References 77-87 were checked on 2026-10-29 and 2026-10-30 (section 16): metadata on Crossref (arXiv for [87]), abstracts on Europe PMC, OpenAlex or arXiv.
+
+77. Ravary, Lecoutey, Kaminski, Châline, Jaisson. Individual experience alone can generate lasting division of labor in ants. Current Biology 17, 1308-1312, 2007. https://doi.org/10.1016/j.cub.2007.06.047
+78. Ulrich, Saragosti, Tokita, Tarnita, Kronauer. Fitness benefits and emergent division of labour at the onset of group living. Nature 560, 635-638, 2018. https://doi.org/10.1038/s41586-018-0422-6
+79. Theraulaz, Bonabeau, Deneubourg. Response threshold reinforcements and division of labour in insect societies. Proceedings of the Royal Society B 265, 327-332, 1998. https://doi.org/10.1098/rspb.1998.0299 (Crossref spells the third author "Denuebourg")
+80. Gorelick, Bertram, Killeen, Fewell. Normalized mutual entropy in biology: quantifying division of labor. The American Naturalist 164, 677-682, 2004. https://doi.org/10.1086/424968
+81. Reeve. The evolution of conspecific acceptance thresholds. The American Naturalist 133, 407-435, 1989. https://doi.org/10.1086/284926
+82. Downs, Ratnieks. Adaptive shifts in honey bee (*Apis mellifera* L.) guarding behavior support predictions of the acceptance threshold model. Behavioral Ecology 11, 326-333, 2000. https://doi.org/10.1093/beheco/11.3.326
+83. Franks, Dornhaus, Fitzsimmons, Stevens. Speed versus accuracy in collective decision making. Proceedings of the Royal Society B 270, 2457-2463, 2003. https://doi.org/10.1098/rspb.2003.2527
+84. Wenseleers, Helanterä, Hart, Ratnieks. Worker reproduction and policing in insect societies: an ESS analysis. Journal of Evolutionary Biology 17, 1035-1047, 2004. https://doi.org/10.1111/j.1420-9101.2004.00751.x
+85. Wenseleers, Ratnieks. Enforced altruism in insect societies. Nature 444, 50, 2006. https://doi.org/10.1038/444050a
+86. Stroeymeyt, Grasse, Crespi, Mersch, Cremer, Keller. Social network plasticity decreases disease transmission in a eusocial insect. Science 362, 941-945, 2018. https://doi.org/10.1126/science.aat4793
+87. Kim, Garg, Peng, Garg. Correlated Errors in Large Language Models. ICML 2025 (arXiv comment). https://arxiv.org/abs/2506.07962
 
 Two classic references (Caraco and Giraldeau 1991; Wolpert and Tumer 2001) are cited from background knowledge without a checked link. For [47], [48] and [55] no abstract was available on the checked pages: their metadata is checked, the content attributed to them in section 15 is background knowledge.
