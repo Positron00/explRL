@@ -25,6 +25,7 @@ website:
           - demo_rl16.ipynb
           - demo_rl17.ipynb
           - demo_rl18.ipynb
+          - demo_rl19.ipynb
           - demo_safety.ipynb
           - demo_team.ipynb
           - demo_trust.ipynb
@@ -70,6 +71,8 @@ website:
           - colony_mech.ipynb
           - colony_report.ipynb
           - colony_trace.ipynb
+          - contest.ipynb
+          - contest_eval.ipynb
           - coop_grid.ipynb
           - coop_report.ipynb
           - credit.ipynb
@@ -120,6 +123,13 @@ website:
           - rl17_update.ipynb
           - rl18_grid.ipynb
           - rl18_report.ipynb
+          - rl19_grid.ipynb
+          - rl19_measures.ipynb
+          - rl19_report.ipynb
+          - rl19_spec.ipynb
+          - rl19_step.ipynb
+          - rl19_suite.ipynb
+          - rl19_synth.ipynb
           - rl_adv.ipynb
           - rl_control.ipynb
           - rl_report.ipynb

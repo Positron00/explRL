@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .contest import ContestLog
 from .cluetask import ClueTask, makeClueTask
 from .multi import spawnRngs
 
@@ -30,11 +31,13 @@ class Subtask:
 class ClueBoardEnv:
     """The clue board (Phase 11) in the Phase 5 world protocol, time in turns: as the Phase 10 board, but each
     subtask's answer is fixed by m modular clues dealt to different agents. Actions: ('open', k), ('submit', x),
-    ('share', (k, j, r)) (records the share of clue j of open subtask k with residue r), ('wait', None)."""
+    ('share', (k, j, r)) (records the share of clue j of open subtask k with residue r), ('wait', None). Phase 19: scheme
+    'contest' is credit plus contest credit (`contest`: ContestLog's options; liarSlots, contestSlots, halfLife)."""
     timeUnit = 'turn'
 
     def __init__(self, seed, nAgents, m=3, r=1, R=105, value=(1, 2, 3), life=30, penalty=0.5, scheme='individual',
-                 credit=0.5):
+                 credit=0.5, contest=None):
+        self.contestOpts = dict(contest or {})
         self.m, self.r, self.R, self.values, self.life = int(m), int(r), int(R), tuple(value), float(life)
         self.penalty, self.scheme, self.credit = float(penalty), scheme, float(credit)
         self.reset(seed, nAgents)
@@ -46,6 +49,7 @@ class ClueBoardEnv:
         self.opened, self.last, self.pending, self.wrongBy = [None] * N, [0.0] * N, np.zeros(N), np.zeros(N, int)
         self.shareLog, self.solveLog, self.submits, self.bound, self._noted, self._tBound = [], [], [], [], {}, None
         self.counts = dict(solved=0, wrong=0, late=0, opens=0, shares=0)
+        self.contestLog = ContestLog(self, **self.contestOpts) if self.scheme == 'contest' else None
         M = 2 * N + 2
         for k in range(M):                 # staggered ages, so expiries spread over the first `life` turns
             self._new(-self.life * k / M)
@@ -90,6 +94,15 @@ class ClueBoardEnv:
         s = self.tasks[k]
         return {j: s.task.clue(j)[1] for j, hs in enumerate(s.holders) if i in hs}
 
+    def _visible(self, i):
+        "The open subtasks agent i sees (all of them; squads see their own)."
+        return self.open
+
+    def endPenalty(self, slots, amount):
+        "Phase 19: at the board's end, `amount` taken from the pending (last) reward of each of `slots`."
+        for a in slots:
+            self.pending[a] -= amount
+
     def holders(self, k):
         return list(self.tasks[k].holders)
 
@@ -110,7 +123,7 @@ class ClueBoardEnv:
     def _reward(self, i, delta, k=None, solved=False):
         if self.scheme == 'team':
             self.pending += delta / self.nAgents
-        elif self.scheme == 'credit' and solved and (to := self._creditTo(i, k)):
+        elif self.scheme in ('credit', 'contest') and solved and (to := self._creditTo(i, k)):
             for a in to:
                 self.pending[a] += self.credit * delta / len(to)
             self.pending[i] += (1 - self.credit) * delta
@@ -122,6 +135,8 @@ class ClueBoardEnv:
     def apply(self, i, action, t):
         kind, arg = action
         self.advance(t)
+        if self.contestLog is not None:            # Phase 19: what agent i is shown this turn
+            self.contestLog.onShown(t, i, self.contestLog.shownOn(self._visible(i)))
         k, h, delta, solved = self.opened[i], 0.0, 0.0, False
         if kind == 'open' and arg in self.open:
             self.opened[i], self.counts['opens'] = int(arg), self.counts['opens'] + 1
@@ -137,6 +152,8 @@ class ClueBoardEnv:
                 s.solvedBy, res, solved = i, 'solved', True
                 self.solveLog.append((float(t), i, k, not all(i in hs for hs in s.holders)))
                 self.counts['solved'] += 1
+                for a, x in (self.contestLog.onSolve(t, i, k) if self.contestLog is not None else ()):
+                    self.pending[a] += x
                 self.open.remove(k)
                 self._new(t)
             else:
@@ -147,6 +164,8 @@ class ClueBoardEnv:
         elif kind == 'share' and arg[0] in self.open:
             k2, j, r = int(arg[0]), int(arg[1]), int(arg[2])
             redundant = any(s[2] == k2 and s[3] == j for s in self.shareLog)
+            if self.contestLog is not None:
+                self.contestLog.onShare(t, i, k2, j, r, self.tasks[k2].task.clue(j)[1] == r)
             self.shareLog.append((float(t), i, k2, j, r, redundant, self.tasks[k2].task.clue(j)[1] != r))
             self.counts['shares'] += 1
             row, res, loc = (i, t, 1.0, 'stay', k2, None, 0.0), 'shared', k2

@@ -138,11 +138,11 @@ def checkOptions(world, N=None, nLiar=0):
         raise ValueError(f"fault must be one of {FAULTS}, got {world.get('fault')!r}")
     if int(world.get('q', Q)) < 1:
         raise ValueError('q must be >= 1')
-    if (world.get('failFlag') or world.get('squads') or world.get('guardDeal')) and not world.get('colony'):
-        raise ValueError('failFlag, squads and guardDeal need colony')
+    if (world.get('failFlag') or world.get('guardDeal')) and not world.get('colony'):   # Phase 19: squads also on the plain board
+        raise ValueError('failFlag and guardDeal need colony')
     if world.get('guardDeal') and not world.get('guards', 0):
         raise ValueError('guardDeal needs guards')
     S = world.get('squads')
-    if S and N is not None and (N % S or nLiar % (N // S) or g % (N // S)):
-        raise ValueError(f'squads: N, nLiar and guards must split evenly into N // {S} squads')
+    if S and N is not None and (N % S or g % (N // S)):          # Phase 19: liars may split unevenly (dealSquads)
+        raise ValueError(f'squads: N and guards must split evenly into N // {S} squads')
     return True

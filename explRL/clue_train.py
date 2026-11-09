@@ -31,18 +31,20 @@ class ClueEpisodes:
     """A batch of clue boards stepped one agent-turn at a time (event order per board), for rollouts with a shared
     policy: `reset()` and `step()` return, per board, whose turn it is and that agent's text observation.
     `seeds`: a board seed per batch entry (repeats allowed; default seed + b); `scripted`: {slot: factory(channel, rng)}
-    for members that act on the board directly (liars; rngs as runClue's); `text`: TextClueEnv options."""
+    for members that act on the board directly (liars; rngs as runClue's); `text`: TextClueEnv options; `makeBoard`:
+    factory(seed) -> board in place of the plain ClueBoardEnv (Phase 19: squads, guards, contest credit)."""
     def __init__(self, batch, nAgents, settings=None, scheme='individual', turns=40, seed=0, channel='blackboard',
-                 seeds=None, scripted=None, text=None, passPooled=False):
+                 seeds=None, scripted=None, text=None, passPooled=False, makeBoard=None):
         self.batch, self.N, self.turns, self.seed, self.channelName = int(batch), int(nAgents), int(turns), int(seed), channel
         self.settings, self.scheme = {k: v for k, v in (settings or {}).items() if k in BOARD}, scheme
         self.seeds = [int(s) for s in seeds] if seeds is not None else [self.seed + b for b in range(self.batch)]
         if len(self.seeds) != self.batch:
             raise ValueError('one seed per board')
         self.scripted, self.text, self.passPooled = dict(scripted or {}), dict(text or {}), bool(passPooled)
+        self.makeBoard = makeBoard or (lambda s: ClueBoardEnv(s, self.N, scheme=self.scheme, **self.settings))
 
     def reset(self):
-        self.boards = [ClueBoardEnv(s, self.N, scheme=self.scheme, **self.settings) for s in self.seeds]
+        self.boards = [self.makeBoard(s) for s in self.seeds]
         self.channels = [_channel(self.channelName, self.N, s, self.passPooled) for s in self.seeds]
         self.envs = [TextClueEnv(bd, **self.text) for bd in self.boards]
         self.members = [self._members(b) for b in range(self.batch)]
