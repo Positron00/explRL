@@ -8,7 +8,42 @@ on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
+
+# The steps of AnswerDotAI/workflows/quarto-ghp3, with Quarto installed from a pinned
+# GitHub release first. nbdev-docs otherwise downloads "latest" from quarto.org, which
+# failed on 2026-11-09 (a 92-byte error page instead of the .deb). 1.10.20 is the version
+# the last good deploy (59fa6ef, 2026-10-31) used.
+env:
+  QUARTO_VERSION: 1.10.20
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps: [uses: AnswerDotAI/workflows/quarto-ghp3@master]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: ${{ env.QUARTO_VERSION }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install dependencies and build the docs
+        shell: bash
+        run: |
+          set -ux
+          quarto --version
+          python -m pip install -q --upgrade pip
+          pip install -Uq "nbdev>=3.3.10"
+          pip install -q -e ".[dev]" --extra-index-url https://download.pytorch.org/whl/cpu
+          nbdev-docs
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          force_orphan: true
+          publish_dir: ./_docs
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          publish_branch: gh-pages
