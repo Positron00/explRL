@@ -180,11 +180,12 @@ def _flagged(cls):
 def stage4Members(world, members):
     """A run's members with Stage 4's options: with failFlag, colony rule agents read failures (their class gains the
     flag-aware knownFor); with squads, every numpy member (scripted liars included) acts through InSquad. Claude members are
-    left alone (TextClueEnv gives them the squad view). No Stage 4 key: the members unchanged."""
+    left alone (TextClueEnv gives them the squad view). Phase 20's bridge keys: bridge_agents.bridgeMembers. No key: unchanged."""
     from explRL.colony_agents import ColonyAgent
     out = []
     for m in members:
         if world.get('failFlag') and isinstance(m, ColonyAgent) and not type(m).__name__.startswith('Flag'):
             m.__class__ = _flagged(type(m))
         out.append(InSquad(m) if world.get('squads') and isinstance(m, RuleAgent) else m)
-    return out
+    from explRL.bridge_agents import BRIDGE_KEYS, bridgeMembers      # Phase 20 (lazy: bridge_agents imports this module)
+    return bridgeMembers(world, out) if any(k in world for k in BRIDGE_KEYS) else out

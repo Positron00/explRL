@@ -10,6 +10,7 @@ __all__ = ['COLONY_OPTS', 'FAULTS', 'Q', 'SHARE_AGAIN', 'COLONY_RULES', 'CONFIRM
            'knownColony', 'guardSlots', 'colonyRules', 'checkOptions']
 
 # %% ../nbs/clue_colony.ipynb #1838564c
+from .bridge_board import checkBridge
 from .clue_agents import ClueBoard
 from .colony_board import failures
 
@@ -122,7 +123,8 @@ def colonyRules(env, text, i=None):
         text += '\n\n' + DECEIVER_RULE
     elif getattr(env, 'volunteer', False) and i >= env.nLiar:
         text += '\n\n' + VOLUNTEER_RULE
-    return text
+    from explRL.bridge_agents import bridgeRules                  # Phase 20 (lazy: it imports this module)
+    return text + bridgeRules(env, i)
 
 
 def checkOptions(world, N=None, nLiar=0):
@@ -145,4 +147,4 @@ def checkOptions(world, N=None, nLiar=0):
     S = world.get('squads')
     if S and N is not None and (N % S or g % (N // S)):          # Phase 19: liars may split unevenly (dealSquads)
         raise ValueError(f'squads: N and guards must split evenly into N // {S} squads')
-    return True
+    return checkBridge(world, N, nLiar)                            # Phase 20: the bridge keys

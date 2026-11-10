@@ -21,6 +21,7 @@ from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
 from .colony_agents import scriptedFaults
 from .colony_board import STAGE4_KEYS, ColonyBoardEnv, stage4Members
+from .bridge_board import BRIDGE_KEYS, BridgeBoardEnv
 from .contest import applySharePenalty, contestOptions
 from .contest_eval import contestColumns, enforceBoard, isPhase19
 from .colony_trace import isPhase18, rolloutColumns
@@ -55,7 +56,7 @@ def boardFactory(cfg, scripted=None):
     """Phase 19: (factory(seed) -> board, scripted) for a world with Stage 4 keys (ColonyBoardEnv, guard slots after the liars;
     scripted members act through their squad's view, as runClue's) or scheme 'contest' (contestOptions), and enforceK (contest_eval.enforceBoard); else (None, scripted)."""
     w, nl = cfg.world, cfg.nLiar
-    s4, kw = {k: w[k] for k in STAGE4_KEYS if k in w}, dict(scheme=w.get('scheme', 'individual'), **{k: w[k] for k in BOARD if k in w})
+    s4, kw = {k: w[k] for k in STAGE4_KEYS + BRIDGE_KEYS if k in w}, dict(scheme=w.get('scheme', 'individual'), **{k: w[k] for k in BOARD if k in w})
     if kw['scheme'] == 'contest':
         if cfg.channel != 'blackboard':
             raise ValueError("scheme 'contest' needs the blackboard channel")
@@ -65,7 +66,8 @@ def boardFactory(cfg, scripted=None):
     if s4 and scripted:
         scripted = {i: (lambda ch, rng, f=f: stage4Members(w, [f(ch, rng)])[0]) for i, f in scripted.items()}
     g = range(nl, nl + w.get('guards', 0))
-    make = lambda s: ColonyBoardEnv(s, cfg.N, guardSlots=g, **s4, **kw) if s4 else ClueBoardEnv(s, cfg.N, **kw)
+    br = dict(nLiar=nl) if any(k in w for k in BRIDGE_KEYS) else {}                 # Phase 20: the bridge board
+    make = lambda s: (BridgeBoardEnv if br else ColonyBoardEnv)(s, cfg.N, guardSlots=g, **br, **s4, **kw) if s4 else ClueBoardEnv(s, cfg.N, **kw)
     return ((lambda s: enforceBoard(make(s), w['enforceK'])) if w.get('enforceK') else make), scripted
 
 

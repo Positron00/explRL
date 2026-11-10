@@ -53,7 +53,7 @@ def relaySource(board, post):              # the mirrorLog post a relay copied, 
 The rule sentences (P20-4). `{s2}`: the squad that holds the cross clues (s + 1); `{s0}`: the squad whose subtasks need the agent's clue (s − 1). `bridge_board.checkBridge(world, N, nLiar)` holds FR-B3's checks, and `bridge_agents.bridgeRules(env, i)` returns the rule sentences that apply to agent i.
 
 ```python
-COUPLE_RULE = ("About a quarter of your squad's subtasks need one clue held in squad {s2}; their line says 'needs squad {s2}'. "
+COUPLE_RULE = ("About a quarter of your squad's subtasks need one clue held in squad {s2}; they are listed under 'Your subtasks that need squad {s2}'. "
                "Nobody in your squad holds that clue.")
 MIRROR_RULE = ("This is the one exception to the squad rule: some subtasks of squad {s0} need a clue that you or your squad hold; they are listed under 'For squad {s0}'. "
                "Share your clue there. You cannot open or answer them.")
@@ -61,7 +61,7 @@ BRIDGE_RULE = ("This is the one exception to the squad rule: you are the bridge 
                "subtasks that need it. Relay a value by sharing it on the matching subtask of your squad.")
 ```
 
-- **The squad rule.** `SQUAD_RULE` stays byte-identical, so the reused `squads` cells and the clean `squads` cells keep their prompts. The mirror and bridge rules open with "This is the one exception to the squad rule" (P20-15). `MIRROR_RULE` and the mirror line go only to agents that hold a cross clue (P20-16); `view.mirrors(i)` lists only the mirrors whose clue i holds, and liars of s + 1 draw from all mirrors (P20-5).
+- **The squad rule.** `SQUAD_RULE` stays byte-identical, so the reused `squads` cells and the clean `squads` cells keep their prompts. The mirror and bridge rules open with "This is the one exception to the squad rule" (P20-15). The mirror line goes only to agents that hold a cross clue (P20-16). `MIRROR_RULE` goes to every agent on a coupled board: the rules are system text, cached once per agent, and on the ring every squad is some squad's s + 1, so any agent may come to hold a cross clue (implementation note, T2); `view.mirrors(i)` lists only the mirrors whose clue i holds, and liars of s + 1 draw from all mirrors (P20-5).
 - **`bridgeLines(view, i, t)`** renders:
   - for a mirror holder: `For squad 3 (share your clue; you cannot answer): T41: x mod 5 = 2 (yours); posted: x mod 5 = 2 (2 agents)`;
   - for a bridge: `From squad 4 for your subtasks: T37: x mod 7 = 3 (2 agents), x mod 7 = 6 (1 agent)`.

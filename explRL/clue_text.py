@@ -13,6 +13,7 @@ import re
 from .clue_agents import ClueBoard, ClueLead, ClueMessages, candidates, known
 from .clue_colony import checkOptions, colonyLine, colonyRules, knownColony, tally
 from .colony_board import failures, squadView
+from .bridge_agents import bridgeLines, parseBridge
 from .clue_fix import fixBoard, fixChecked, fixLines, fixParse, fixRules, fixSchema, fixSettings
 
 _STR = {'type': 'string'}
@@ -46,7 +47,7 @@ class TextClueEnv:
         checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q, volunteer=volunteer, fault=fault, failFlag=failFlag, squads=squads))
         self.colony, self.confirm, self.guards, self.nLiar, self.q = bool(colony), bool(confirm), int(guards), int(nLiar), int(q)
         self.volunteer, self.fault, self.failFlag, self.squads = bool(volunteer), fault, bool(failFlag), squads
-        self.slotRules = bool(self.guards or self.volunteer or fault == 'adaptive')   # rules(i) differ by slot
+        self.slotRules = bool(self.guards or self.volunteer or fault == 'adaptive' or hasattr(board, 'bridgeOf'))   # rules(i) differ by slot
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
         self.ask, self.table, (self.record, self.check) = bool(ask), bool(table), fixSettings(record, check)
@@ -121,7 +122,7 @@ class TextClueEnv:
             lines.append('Clues the coordinator passed to you: ' + ('; '.join(f'T{k}: {_fmt(c[1], c[2])} (from agent {a})'
                                                                               for a, k, c, _ in routed) or 'none'))
             lines.append(f'The coordinator suggests: T{j}.')
-        lines += fixLines(self, i, t, channel)
+        lines += fixLines(self, i, t, channel) + bridgeLines(b, i, t)     # Phase 20: mirrors, the bridge's pair, coupled subtasks
         if self.showOpen:
             lines.append('Teammates working on: ' + '; '.join(
                 f'agent {a}: ' + (f'T{x}' if x in b.open else 'none') for a, x in enumerate(b.opened) if a != i))
@@ -144,6 +145,8 @@ class TextClueEnv:
         b, wait = squadView(self.world, i), ('wait', None)
         if not isinstance(parsed, dict):
             return wait, None, False
+        if (x := parseBridge(self, parsed, i)) is not None:            # Phase 20: mirror shares and relays
+            return x
         a, k = parsed.get('action'), self._task(parsed.get('target', ''))
         if a == 'wait':
             return wait, None, True
@@ -185,7 +188,7 @@ class TextClueEnv:
         res, k = info['result'], info['task']
         verb = self._did.pop(i, None) or dict(                       # an ask or a check (a wait on the board)
             opened=f'opened T{k}', solved=f'solved T{k}', wrong=f'answered {action[1]} to T{k}: wrong',
-                    late=f'answered T{k} too late', shared=f'shared T{k}: {_fmt(*report[1][1:]) if report else ""}',
+                    late=f'answered T{k} too late', shared=f'shared T{k}: {_fmt(*report[1][1:]) if report else _fmt(self.world.tasks[k].task.primes[action[1][1]], action[1][2]) if action[0] == "share" else ""}',
                     wait='waited', invalid='made an invalid move')[res]
         s = f'turn {t:g}: {verb}, earned {reward:.2f}'
         if self._heard.get(i):

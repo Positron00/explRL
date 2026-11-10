@@ -42,6 +42,7 @@ website:
           - bench_stats.ipynb
           - board_agents.ipynb
           - bridge_board.ipynb
+          - bridge_agents.ipynb
           - circuit.ipynb
           - circuit_agent.ipynb
           - circuit_runs.ipynb

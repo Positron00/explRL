@@ -35,6 +35,7 @@ Rules are as in Phases 16-19:
   - `test_relay`, `test_bridge_liars`, `test_bridge_prompts` and `test_rollout_bridges` pass (AC-4, AC-5, AC-7);
   - a recorded 64-agent fake-client board shows mirror lines, bridge lines and relays in the turn log;
   - a 16-agent rollout in squads of 4 with bridges reports its longest prompt per role.
+- **Status (2026-11-10): done.** `explRL/bridge_agents.py` (198 lines) and the hooks (`colony_board` 191, `clue_colony` 150, `clue_text` 196, `clue_runs` 107, `clue_roll` 197; `colony_trace`, `clue_agents`, `colony_agents` and `clueboard` unchanged). Pre-Phase-20 prompts, rows and numpy rows hashed before and after: unchanged. A 64-agent numpy board at seed 1890: 260 mirror posts (66 false, all liars'), 92 relays; the channel holds only same-squad posts. Notes: `RuleBridge` is a mixin on every honest numpy member (only bridges relay; all make P22-12 mirror posts); `bridgePromptTokens(cfg, seeds, tok=None, policy=None)`; `MIRROR_RULE` goes to every agent on a coupled board (design-low-level). The `coopRows` hook and `test_c1_numpy` are T3's.
 
 ## T3. Measures (about half a day)
 - **Files:** `nbs/bridge_mech.ipynb` (new: `bridgeColumns`, `isPhase20`, and the core measures of FR-D5 through Phase 19's `contest_eval.contestColumns`, `rl19_measures.ratio` and `lags`, and `rl19_spec.dolIndex`).
