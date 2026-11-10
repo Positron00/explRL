@@ -1,6 +1,6 @@
 # Requirements: Phase 19, contest credit
 
-Part of [README.md](README.md) (plan and decisions P19-1 to P19-9). It builds on these modules:
+Part of [README.md](README.md) (plan and decisions P19-1 to P19-11). It builds on these modules:
 
 - `clue_rl` (`RLConfig`, `trainRL`) and `rl17_grid`, `rl17_update`, `rl17_train` (`RL17Config`, `trainRL17`, `FIX17`, claiming);
 - `rl18_grid` (`FIX18`, `evalAdapter`, `colonySuite`);
@@ -40,7 +40,7 @@ Terms are as in Phases 16-18. In addition:
 - **Division of labour:** Gorelick et al. (2004)'s index, the plan's measure: the mutual information between agents and tasks (contest, other share, submit, open, wait), normalized by the tasks' marginal entropy. Reported separately from specialization.
 - **Role persistence:** the correlation, across agents, of each agent's share of contesting turns between consecutive boards of a sequence.
 - **Gullibility:** first wrong answers made while misinformed per honest agent-turn: an agent's first wrong answer to a subtask while a false value was posted for one of its clues the agent does not hold. Beside it, **suppression**: the share of liar-first clues (the first value posted was a liar's false one) that no honest agent later corrected.
-- **Error correlation:** the share of honest wrong answers that repeat a wrong value another honest agent gave the same subtask earlier (correlated errors). **Contamination across squads** (an answer in one squad built on a false value from another) needs bridges: specified here, measured once bridged rollouts exist.
+- **Error correlation:** the share of honest wrong answers that repeat a wrong value another honest agent gave the same subtask earlier (correlated errors). **Contamination across squads** (an answer in one squad built on a false value from another) is Phase 20's `bridgeColumns['crossContamination']`, already in every bridged row through `coopRows`; `contestColumns` is unchanged.
 
 ## Functional requirements
 
@@ -63,8 +63,9 @@ Terms are as in Phases 16-18. In addition:
 - **FR-A7** Per-agent records for 3B agents (the plan's engineering row): an option `records` in {False, 'payoffs', 'a2'}; `'payoffs'` (today's `True`) adds each agent's own past payoffs to its prompt across a sequence of 6 boards, for training and evaluation. In training, records are keyed by board slot (team size, liar count, board, GRPO copy), so the liar slots stay fixed within a sequence. Built in this phase whatever P19-5 decides; arm 4 uses it only if Gate A2 has passed, and then in the `'a2'` format (P21-11): beside the payoffs, per board, the contests the agent made and the correct answers that followed them (at most one per subtask, Phase 21's rule). If Gate A2 is not read (too few calls or not run), arm 4 runs without records, recorded as a deviation (Phase 21).
   - **Record format (A2's P21-11, accepted 2026-11-09).** If Gate A2 passes, the record line (`contest.Records.line`) also lists, per earlier board, the contests the agent made and the correct answers that followed (correct answers to the contested subtask by other honest agents after the contest), beside the payoffs. So A1 tests the format that passed in A2. `RL19_PLAN` records the format at the freeze (T8 step 1).
 - **FR-A8** The answer halt (the plan's training hygiene): a run halts when answers per board stay below a third of the warm start's (`WARM_ANSWERS`) for 3 steps in a row. This joins `FIX18`'s KL rule and the invalid-reply halt. A halted run is evaluated with the last checkpoint whose policy produced no step of its halting streak (`evalAdapter19`: step m's rollouts and logged KL come from the policy before step m's update, ckpt-(m-1), so a streak of n steps ending at step h is evaluated at ckpt-(h-n-1)), and reported.
-- **FR-A9** The bridged world (P19-1): A1 trains and is evaluated in squads joined by bridges once C1's code (Phase 20) exists. `SPEED19`, `PILOT19_PLAN` and `RL19_PLAN` carry `world` (`'bridges'`, from `DECISIONS19['P19_1']`; `'squads'` only if Gate C1 fails), read by `rl19Config`. Until bridged rollouts exist, `rl19Config` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20. The bridged rollouts must log a bridge agent's longest prompt plus reply (`longestBridge`).
-  - **Relay credit (Phase 20's P20-12, accepted 2026-11-09).** Under `scheme='credit'` or `'contest'`, a relayed clue's credit share is split equally between the bridge and the first true poster of that clue on the mirror. `ContestLog` treats a relayed liar's value as the liar's (it reads `bridge_board.relaySource`), so a contest against a relayed lie earns contest credit. At the default schemes, and on boards without bridges, rewards are unchanged.
+- **FR-A9** The bridged world (P19-1): A1 trains and is evaluated in squads joined by bridges once C1's code (Phase 20) exists. `SPEED19`, `PILOT19_PLAN` and `RL19_PLAN` carry `world` (`'bridges'`, from `DECISIONS19['P19_1']`; `'squads'` only if Gate C1 fails), read by `rl19Config`. Until bridged rollouts exist, `rl19Config` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20. The bridged rollouts must log a bridge agent's longest prompt plus reply (`longestBridge`), computed in Phase 19's own code (`rl19_step` / `rl19_bridge`) from the step rollout's prompts and `board.bridgeOf`; `SPEED19` also records `bridgePromptTokens(cfg, seeds, tok=<3B tokenizer>, policy=<warm LocalPolicy>)['bridge']` (the prompt only). `bridge_agents` is at 198 lines and `clue_roll` at 199, so neither takes this code.
+  - **Contest credit and mirror posts (P19-10, the user, 2026-11-10).** Mirror posts are not board shares, so a true mirror post against a mirror lie is not a contest and earns no contest credit. Contest credit stays on the squad's own board, where contesting a relayed lie is paid.
+  - **Relay credit (Phase 20's P20-12, accepted 2026-11-09).** Under `scheme='credit'` or `'contest'`, a relayed clue's credit share is split equally between the bridge and the first true poster of that clue on the mirror. `ContestLog` treats a relayed liar's value as the liar's (it reads `bridge_board.relaySource`), so a contest against a relayed lie earns contest credit. The split is built in Phase 20 (`BridgeBoardEnv._creditTo` and `_reward`); the relay-aware `ContestLog` is built in T5a: it looks up `relaySource` at contest time, since `relayLog` is written after the relay's own `onShare`. At the default schemes, and on boards without bridges, rewards are unchanged.
 
 ### Part B: plans, grid, Colab
 - **FR-B1** `RL19Config(RL17Config)` adds `contestSlots`, `halfLife`, `sharePenalty`, `threat`, `records` and `haltAnswers` (the answer halt, FR-A8) at defaults that reproduce `RL17Config`. `configHash19` leaves them out at their defaults, so the Phase 17-18 hashes are unchanged; `records='a2'` and `'payoffs'` hash differently. `RL19_PLAN` records the format as `recordFormat`.
@@ -82,7 +83,7 @@ Terms are as in Phases 16-18. In addition:
   - the chosen squad size, and the training world: squads with bridges (P19-1), or squads without cross-squad subtasks only if Gate C1 failed; Gate C1's outcome is recorded in `gates`;
   - arm 4 with or without records (P19-5), and with records, A2's record format (P21-11, FR-A7);
   - the arms, seeds and steps, and the projected hours confirmed by the user;
-  - P19-2 to P19-5 as decided;
+  - P19-2 to P19-5 and P19-7 to P19-11 as decided;
   - the evaluation grid (FR-C1), H19-1 to H19-6 with tests and families, and the claim rules.
 - **FR-B5** Claiming as Phase 17 (`claim`, `TAKEOVER`, one evaluation host), so the two Pro+ accounts share one Drive folder.
 - **FR-B6** A section "Phase 19" in `nbs/colab_clue_rl.ipynb` with three cells, each one cell that runs to its end and is resumable, checkpointing every step. The cells assert that the plans are frozen, that Gate C1 is recorded (`RL19_PLAN['gates']['C1']`), and that the plan's world matches it:
@@ -101,7 +102,8 @@ Terms are as in Phases 16-18. In addition:
 
   Held-out tests, as the plan requires of every trained policy:
   - team sizes 8 and 32 (outside training) at 4 liars per 16;
-  - fault types never trained: mistaken members (`MistakenAgent`) and colluding liars (`ColludingLiar`), at 4 of 16;
+  - fault types never trained: mistaken members (`MistakenAgent`) and colluding liars (`ColludingLiar`), at 4 of 16. In the bridged world C1 converts only exact `ClueLiar` members to mirror liars, so the `collude` cell has no mirror lies; it is reported as such (P19-11, the user, 2026-11-10; no new code);
+  - in the bridged world, cells with a single squad (N // S < 2: the held-out 8-agent cells, and the 8-agent sequences `seq8` when S = 8) run without coupling, since C1's `checkBridge` refuses them (P19-9);
   - boards without liars (included above);
   - C4's trained liars, added once they exist.
 
@@ -119,7 +121,7 @@ Terms are as in Phases 16-18. In addition:
     - tokens per solved task;
     - verification: contests per lie, time to contest, and the share of lies on a guarded clue;
     - collaboration (sharing per held clue);
-    - error correlation (repeated wrong values); contamination across squads once bridged rollouts exist;
+    - error correlation (repeated wrong values); contamination across squads, Phase 20's `bridgeColumns['crossContamination']`, already in every bridged row through `coopRows`;
     - welfare per agent-turn and per 1,000 tokens;
   - halts by cause.
 
@@ -149,7 +151,7 @@ Terms are as in Phases 16-18. In addition:
 - **AC-5** The trainer: one `trainRL19` step at the defaults equals `trainRL17`'s (flag `train`, tiny model). Liar slots are never trained.
 - **AC-6** Plans: `PILOT19_PLAN` is frozen before the pilot cell runs. `RL19_PLAN` is frozen, with the user's confirmation of the hours, before the main cell runs. Each cell stops until Gate C1 is recorded and its world matches it; the main cell trains only the first 2 runs until `STABLE19` is set.
 - **AC-7** Analysis: the exact tests and Holm recover known effects on synthetic runs, and every `RL19_PLAN` item is reported.
-- **AC-8** World: `rl19Config`, `speedConfig19`, `pilotConfig19`, `warmCells` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20 until bridged rollouts exist; the 64-agent cells always need them. Once they exist (T5), a hand-built bridged board shows P20-12's split of a relayed clue's credit share, and a contest against a relayed liar's value pays the contester.
+- **AC-8** World: `rl19Config`, `speedConfig19`, `pilotConfig19`, `warmCells` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20 until T5a wires in bridged rollouts; the 64-agent cells always need them. After T5a, a hand-built bridged board shows P20-12's split of a relayed clue's credit share, and a contest against a relayed liar's value pays the contester.
 - **AC-9** Threat: at a given step every arm draws the same board types, and arm 3's lifetimes are arm 2's (FR-A5).
 - **AC-10** `enforceK`: 1 never refuses; 2 refuses a value with one sender and logs a wait; an answer on a coupled subtask is never refused (FR-A6, P19-9).
 - **AC-11** `contestSuite` builds the cells FR-C1 lists, at the stated sizes, liar counts and seeds.

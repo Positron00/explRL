@@ -95,7 +95,7 @@ Terms are as in Phases 14-19. In addition:
 - **NFR-2** Offline tests need no network, key or GPU. Live calls run only with `EXPLRL_LLM_LIVE=1`, the response cache and the spend ledger with its cap.
 - **NFR-3** API spend stays within the cap of $250 per calendar month (P21-10). The user approves the pilot's estimated cost before the pilot and its projection of the main grid before the main run.
 - **NFR-4** Seeds are fixed. A rerun from the cache is byte-identical, and an interrupted sequence resumes from its finished boards.
-- **NFR-5** Each module stays under 200 lines. `clue_text` (193 lines) and `colony_agents` (198) take no new code beyond option passing. New code goes into new modules.
+- **NFR-5** Each module stays under 200 lines. `clue_text` (196 lines after C1, Phase 20) and `colony_agents` (198) take no new code beyond option passing; about 3 lines of option passing leave `clue_text` at 199, and if it would reach 200 the new code moves elsewhere. `clue_colony` is at 150 after C1. New code goes into new modules.
 - **NFR-6** Notebook first: each module is written in its notebook and exported with `nbdev-export`, then `nbdev-clean`. New notebooks are added to `nbs/sidebar.yml` by hand.
 - **NFR-7** Monthly ledger (shared with Phase 20; whichever phase is built first does it, the other reuses it). Today `llm_budget.Budget.spent()` sums every entry ever written to the untracked ledger `results/multiagent/llm/spend.jsonl`: 491,301 entries, $233.18, all from before November 2026, written as `{"cost", "note"}` with no date. A $250 cap would then refuse C1 and A2. The change: **Done 2026-11-10 in Phase 20's T0** (`thisMonth`, `spentAll`, `test_budget_month`).
   - each new ledger entry carries `month`, the UTC `'YYYY-MM'`;
@@ -108,7 +108,7 @@ Terms are as in Phases 14-19. In addition:
 
 - **AC-1** Regression: NFR-1, and the full suite passes.
 - **AC-2** `dropShare`: the rules differ from the original by exactly the sentence and its leading space. The option is refused with `colony` or `confirm`. A `scaleB` cell without it has the same request key as Phase 14's.
-- **AC-3** `slotLines`: a named slot's system text ends with its line; other slots' texts are unchanged.
+- **AC-3** `slotLines`: on boards without bridge keys, a named slot's system text ends with its line; other slots' texts are unchanged.
 - **AC-4** Targeted liars, on recorded and hand-built boards: no lie lands on a clue a failure guard holds. When a clue that a success guard holds and no failure guard holds is open, the lie lands on one. The lying cadence equals `ClueLiar`'s.
 - **AC-5** Seating: the same team gives the same seating, guard identities and success pair in every arm. On boards 1-2 the guard identities sit in slots 4-7.
 - **AC-6** Records, on hand-built boards:

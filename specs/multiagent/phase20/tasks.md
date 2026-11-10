@@ -1,6 +1,6 @@
 # Tasks: Phase 20
 
-Status (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed; nothing live has run). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-16 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
+Status (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed; nothing live has run). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-17 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
 
 Order: T0-T6, then T7 (part b and the bridge check) at any time after T6, and T8 (the pilot) at any time after T6. T9 and T10 wait for B3. T11 follows T10.
 
@@ -40,7 +40,7 @@ Rules are as in Phases 16-19:
 ## T3. Measures (about half a day)
 - **Files:** `nbs/bridge_mech.ipynb` (new: `bridgeColumns`, `isPhase20`, and the core measures of FR-D5 through Phase 19's `contest_eval.contestColumns`, `rl19_measures.ratio` and `lags`, and `rl19_spec.dolIndex`).
 - **Done when:** every measure in design-low-level's table is checked on a hand-built board with known relays, false relays, mirror posts and a contaminated answer, and `test_c1_measures` (AC-11) passes. The bridge columns appear in `coopRows` and in Claude rows only for bridge worlds; `contestColumns` is added to every C1 row, clean and reused rows included.
-- **Status (2026-11-10): done.** `explRL/bridge_mech.py` (162 lines: `isPhase20`, `tokensByRole`, `bridgeColumns`, `c1Columns`, `runC1`, `runC1Cell`, `reusedRows20`, `boardDol`, `tokPerSolved`, `coreMeasures`) and the `coopRows` hook (`clue_roll` 199). `runC1Cell` and `reusedRows20` add the bridge columns (zeros or NaN without bridges) and `contestColumns` to every C1 row; `coopRows` adds bridge columns only for bridge worlds. Tests: `test_c1_measures`, `test_c1_numpy`, `test_c1_rows`. In the numpy simulator honest rule agents never use a relay: a relayed value has one sender, below `Q` = 2, and `RuleBridge` relays a clue only while the board lacks it (seed 1890, 64 agents: 92 relays, 0 honest coupled solves). The user decided on 2026-11-10 to leave this as is: it matches what honest agents see, and B3's fitted `trustOne` decides whether relays are used (Phase 22).
+- **Status (2026-11-10): done.** `explRL/bridge_mech.py` (162 lines: `isPhase20`, `tokensByRole`, `bridgeColumns`, `c1Columns`, `runC1`, `runC1Cell`, `reusedRows20`, `boardDol`, `tokPerSolved`, `coreMeasures`) and the `coopRows` hook (`clue_roll` 199). `runC1Cell` and `reusedRows20` add the bridge columns (zeros or NaN without bridges) and `contestColumns` to every C1 row; `coopRows` adds bridge columns only for bridge worlds. Tests: `test_c1_measures`, `test_c1_numpy`, `test_c1_rows`. In the numpy simulator honest rule agents never use a relay: a relayed value has one sender, below `Q` = 2, and `RuleBridge` relays a clue only while the board lacks it (seed 1890, 64 agents: 92 relays, 0 honest coupled solves). The user decided on 2026-11-10 to leave this as is: it matches what honest agents see, and B3's fitted `trustOne` decides whether relays are used (Phase 22). Scripted `ClueLiar`s trust single posts, so in the unfitted simulator relays feed liars' coupled solves (`bridge1`, seed 1890: 32 coupled solves, all by liars; honest 0; P20-17, P22-20). Mirror posts are counted in `shares` and so in sharing per held clue; `contestColumns`' per-agent shares and Gorelick's index count a mirror post as an idle turn, a small bias against the coupled arms in division of labour, which the report states. Since 2026-11-10 the coupled-solve columns count honest solves only (`coupledSolved`, `coupledSolveShare`, `coupledOfSolves`), and `c1Columns` reads `contestColumns` and `bridgeColumns` with the replay's answers (`rp.answers`).
 
 ## T4. Grid, plans, cost rule and the Colab cell (about 1 day)
 - **Files:**
@@ -93,12 +93,12 @@ Rules are as in Phases 16-19:
 - **Needs:** T9, and the user's approval of the pilot's projection (P20-8).
 - **What:**
   1. Run the 38 new boards (23 with liars, 15 clean) in one or two seed batches, about 3.5-5 hours. Between batches, stop only at 5% invalid replies or the cap.
-  2. Run the full grid, new and reused cells, from the cache at $0.
+  2. Run the full grid, new and reused cells, from the cache at $0: the `main` stage first replays every cell through the cache-only client (a miss raises `CacheMiss` before any paid call), then writes the rows.
   3. `c1Summaries`, `writeC1` and `figC1`.
 - **Done when:**
   - `results/multiagent/colony/c1/report.md` reports Gate C1 (parts i and ii, with robustness), H20-3 to H20-5, H20-7, the inert-bridge flag and H20-8 (cost without liars per arm, with the `coupled` − `squads` and `bridge1` − `squads` clean contrasts), as frozen;
   - it reports the core measures per arm (FR-D5);
-  - the forecast is scored;
+  - the forecast is scored (by B3's code, Phase 22, not C1's);
   - spend is recorded on the ledger.
 
 ## T11. Gate C1 handoff and docs

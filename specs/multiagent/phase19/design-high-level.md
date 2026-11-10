@@ -13,7 +13,7 @@ Part of [README.md](README.md); requirements are in [requirements.md](requiremen
 | `nbs/rl19_step.ipynb` -> `explRL/rl19_step.py` | new | The threat draws, the step's rollouts, arm 4's records across steps (`RecordBook`), the answer halt |
 | `nbs/rl19_suite.ipynb` -> `explRL/rl19_suite.py` | new | `contestSuite`, the sequences, the `WARM_ANSWERS` and pilot cells |
 | `nbs/contest_eval.ipynb` -> `explRL/contest_eval.py` | new | `enforceK`, and the Phase 19 columns of each evaluation board (contests, waiting, gullibility, suppression, repeated errors, per-agent task counts) |
-| Phase 20 (C1) | to come | Bridged rollouts (squads joined by bridges); A1 trains and evaluates in them (FR-A9) |
+| Phase 20 (C1) | built 2026-11-10 | Bridged rollouts (squads joined by bridges); A1 trains and evaluates in them (FR-A9; wired in by T5a) |
 | `nbs/rl17_train.ipynb` -> `explRL/rl17_train.py` | changed | `trainRL17` reads the reward scheme, threat mix, penalty, records and the answer halt from the config (defaults unchanged); `trainRL19` is a thin wrapper |
 | `nbs/rl19_report.ipynb` -> `explRL/rl19_report.py`, with `rl19_measures`, `rl19_spec`, `rl19_synth` | new | `rl19Summaries`, the measures (`waitCurve`, `waitSlope`, `regret`, `cost0`, ...), arm 4's (specialization, division of labour, persistence, recovery), `writeRL19`, `figRL19`, `syntheticRows19`, `powerPrimary` |
 | `nbs/colab_clue_rl.ipynb` | changed | Section "Phase 19": speed check, pilot and main cells, each one cell, resumable and claim-aware |
@@ -27,7 +27,7 @@ Unchanged: `trainRL`, the credit, team and individual schemes, and every Phase 5
 Mac: implement -> offline tests (contest credit on hand-built boards; credit equivalence; squads) -> push
 Phase 20 (C1): bridged rollouts built and tested; B3's simulator refit on C1's pilot (P20-13); Gate C1 run
      -> RL19_PLAN['gates']['C1']; Phase 21 (A2): Gate A2 run -> ['A2']
-Mac: T5, A1 in squads with bridges (FR-A9); freeze SPEED19 (world from Gate C1) -> push
+Mac: T5a, A1 in squads with bridges (FR-A9; can start now); T5b, Gate C1 recorded and the world set; freeze SPEED19 (world from Gate C1) -> push
 Colab A: speed check (arm 2, 3 steps, squads of 4 and 8) -> step times, longest prompt (a bridge agent's too), WARM_ANSWERS
          (with and without guards), units per hour
 Mac: projectHours19 -> user confirms the pilot; freeze PILOT19_PLAN -> push

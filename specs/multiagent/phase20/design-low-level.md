@@ -12,9 +12,10 @@ def dealBridges(N, S, nLiar, guards, perPair=1, guarding=False):
     guards the next `guards` (as dealSquads). Ordinary: the first perPair honest non-guard slots of each squad, by slot order;
     guarding: the first guard slot of each squad (perPair must be 1). ValueError if a squad lacks the slots."""
 
-def checkBridge(world, N=None, nLiar=0):
+def checkBridge(world, N=None, nLiar=0, zeroOk=False):
     """FR-B3's checks (ValueError): any bridge key needs `couple` in the world (no silent default: a world with bridges=0 and no
-    couple used to couple at 0.25); couple needs squads, a value in (0, 1] and two squads or more; bridges need couple > 0;
+    couple used to couple at 0.25); couple needs squads, a value 1/n in (0, 1] (every n-th subtask) and two squads or more;
+    couple=0 only with zeroOk (a directly constructed BridgeBoardEnv: no coupling); bridges need couple > 0;
     bridgeGuard needs bridges = 1 and guards; dealBridges must succeed."""
 
 class BridgeBoardEnv(ColonyBoardEnv):
@@ -23,7 +24,8 @@ class BridgeBoardEnv(ColonyBoardEnv):
     Mirrors: squad s + 1 sees each coupled subtask of s as a mirror; its agents' shares there go to mirrorLog. bridges (0, 1, 2
     per pair) and bridgeGuard: bridge slots from dealBridges; a bridge's share on a coupled subtask of a value in that subtask's
     mirrorLog is a relay (relayLog). Every other behaviour is ColonyBoardEnv's."""
-    def __init__(self, seed, nAgents, couple=0.25, bridges=0, bridgeGuard=False, nLiar=0, **kw): ...
+    def __init__(self, seed, nAgents, couple=0.25, bridges=0, bridgeGuard=False, nLiar=0, **kw): ...   # checkBridge(..., zeroOk=True);
+                                           # ValueError unless the guard slots directly follow the nLiar liar slots
     def reset(self, seed, nAgents):        # mirrorLog, relayLog, coupled {k: (s, s2)}, nAssigned per squad, then super().reset
     def mirrorTally(self, k):              # tally's format, from mirrorLog (mirror posts never reach the channel)
     def _deal(self):                       # called once per subtask (ClueBoardEnv._new) with self._squad and self.serial set: nAssigned[s] += 1;
@@ -35,7 +37,8 @@ class BridgeBoardEnv(ColonyBoardEnv):
     def bridgeOf(self, i):                 # (s, s2) if i is a bridge, else None
     def apply(self, i, action, t):
         # share on a mirror k (k in mirrors(i)): append to mirrorLog, counts['shares'] += 1, ledger row 'shared'; not shareLog
-        # open or submit on a mirror: invalid (ColonyBoardEnv already rejects another squad's subtask)
+        # open, or share without the cross clue, on a mirror: ValueError (ColonyBoardEnv's another-squad check); parseBridge
+        #   turns such a Claude reply into an invalid move; nobody in s + 1 can answer a mirror
         # share by a bridge on its pair's coupled k with r in mirror values of (k, j): ColonyBoardEnv.apply, then relayLog
         #   .append((t, i, k, j, r, source)) with source = the first mirrorLog post of (k, j, r)
     def _creditTo(self, i, k):             # P20-12: [(agent, divisor)]; each paid credit * delta / divisor; a relay's share is split
@@ -102,7 +105,7 @@ BRIDGE_RULE = ("This is the one exception to the squad rule: you are the bridge 
 
 If a hook would take a module past 200 lines, the surrounding logic moves into the new module first, with the existing tests unchanged.
 
-As built (NFR-5): `clue_text` 196 (the hooks plus the mirror-share summary), `clue_roll` 199, `colony_board` 191, `clue_colony` 150, `clue_runs` 107; `clueboard`, `colony_trace` and `clue_agents` unchanged. `clue_roll` is one line from the limit, so A1's bridged step (Phase 19, T5) must put new code elsewhere.
+As built (NFR-5): `clue_text` 196 (the hooks plus the mirror-share summary), `clue_roll` 199, `colony_board` 191, `clue_colony` 150, `clue_runs` 107; `clueboard`, `colony_trace` and `clue_agents` unchanged. `clue_roll` is one line from the limit, so A1's bridged step (Phase 19, T5a) must put new code elsewhere.
 
 ## `bridge_grid.py` and `bridge_plan.py` (new)
 
@@ -156,9 +159,9 @@ def pilotCheck20(rows, plan=None): ...               # FR-C2; then c1Estimate(c1
 | robustness | H20-1 and H20-2 on `welfareHonest`; an estimate of the opposite sign marks the part not robust |
 | H20-3 | win-back = (`bridge1` − `coupled`) / (`squads` − `coupled`), means over seeds 1800-1804, > 0.5; per-board sign-flip p of (`bridge1` − `coupled`) − 0.5 (`squads` − `coupled`). As built, `c1Summaries` marks it supported only when the coupling cost (`squads` − `coupled`) is above 0 and the win-back above 0.5 (implementation note, T5) |
 | H20-4 | (`bridge2` − `bridge1`) < 0.25 × (`squads` − `coupled`), seeds 1800-1804; interval. As built, it also reports a one-sided sign-flip p for the margin (`bridge2` − `bridge1`) − 0.25 (`squads` − `coupled`) below 0 (implementation note, T5) |
-| H20-5 | false-relay share, `bridge1` − `bridgeGuard` > 0, seeds 1800-1804; also `honestPooled`, `bridgeGuard` − `bridge1` |
-| H20-7 | cross-squad contamination per arm, descriptive |
-| H20-8 (P20-14) | cost without liars: `honestPooled` (and `welfareHonest`) per arm on clean boards; `coupled` − `squads` and `bridge1` − `squads`, `colony_report.pairs(rows, arm, m, fault='clean', base='squads')` over seeds 1800-1804, bootstrap interval, uncorrected one-sided sign-flip p < 0 (a cost; smallest p 1/32); descriptive, not part of Gate C1 |
+| H20-5 | false-relay share, `bridge1` − `bridgeGuard` > 0, seeds 1800-1804; also `honestPooled`, `bridgeGuard` − `bridge1` (`pooled`, one-sided 'greater', as built) |
+| H20-7 | cross-squad contamination per arm, descriptive; as built, also `bridge1` − `bridgeGuard` on `crossContamination` (`guarding`) |
+| H20-8 (P20-14) | cost without liars: `honestPooled` (and `welfareHonest`) per arm on clean boards; `coupled` − `squads` and `bridge1` − `squads` (the plan's cost without liars, reference minus design, is their negative, `squads` − `coupled` and `squads` − `bridge1`; the report states both), `colony_report.pairs(rows, arm, m, fault='clean', base='squads')` over seeds 1800-1804, bootstrap interval, uncorrected one-sided sign-flip p < 0 (a cost; smallest p 1/32); descriptive, not part of Gate C1 |
 | core measures | requirements FR-D5: `contestColumns` per board; gullibility, suppression, verification, collaboration and error correlation pooled per arm (`rl19_measures.ratio`, `lags`); welfare per agent-turn and per 1,000 tokens; tokens per solved task; Gorelick's index per board (`rl19_spec.dolIndex`); cross-squad contamination. No role persistence (single boards) |
 | inert-bridge rule | if Gate C1 passes and mean(`bridge1` − `coupled`) ≤ 0 on seeds 1800-1804: stop and ask before A1 adopts bridges |
 | secondary families | no Holm: each secondary has 5 boards, smallest p 1/32, reported uncorrected and labelled exploratory (the plan: families of two or more use 8 boards) |
@@ -175,7 +178,8 @@ def pilotCheck20(rows, plan=None): ...               # FR-C2; then c1Estimate(c1
 def isPhase20(world): ...                            # a bridge key in the world (coopRows adds bridgeColumns only then)
 def tokensByRole(board, logs): ...                   # input tokens per call: bridge, mirror holder, other (NaN without calls)
 def bridgeColumns(cfg, board, logs=None, answers=None): ...   # FR-D1's columns; zero mirror posts and relays without them
-def c1Columns(cfg, rp): ...                          # stage4Columns + bridgeColumns + contestColumns, from a replay
+def c1Columns(cfg, rp): ...                          # stage4Columns + bridgeColumns + contestColumns, from a replay; the latter two
+                                                     # read the replay's answers (rp.answers, numpy members' included)
 def runC1(cfg, seed, client): ...                    # runClue's signature for runLLMCell
 def runC1Cell(cell): ...                             # as runStage4Cell; numpy cells (B3's rows) through replay
 def reusedRows20(client, prior, cells): ...          # as reusedRows4, with C1's columns; every saved column must be unchanged
@@ -189,24 +193,26 @@ def coreMeasures(ix, arm, fault='independent'): ...  # FR-D5's core measures ove
 | Honest pooled share | as Phase 18 (`clueMetrics`), all subtasks |
 | Raw honest welfare | `welfareHonest`, per agent-turn |
 | Coupled and uncoupled welfare | honest value solved minus penalties, split by whether the subtask was coupled, per agent-turn |
-| Coupled solve share | coupled subtasks solved / coupled subtasks that appeared |
-| Mirror posts | posts in `mirrorLog`; false share |
+| Coupled solves (honest only) | `coupledSolved`: honest solves of coupled subtasks; `coupledSolveShare`: `coupledSolved` / coupled subtasks that appeared; `coupledOfSolves`: `coupledSolved` / honest solves |
+| Mirror posts | posts in `mirrorLog`; false share; `mirrorPostsPerHolder`: honest mirror posts / honest cross-clue holdings (holder-subtask pairs) |
 | Relays | `relayLog` entries; per bridge turn; false-relay share; median lag from the source post |
 | Relays used | relays whose value a correct honest answer agreed with |
 | Cross-squad contamination | honest answers on coupled subtasks agreeing with a false relayed value posted before them (so always wrong), over honest answers on coupled subtasks (`crossContamination`) |
 | Bridge load | bridges' opens, solves and relays per turn; guarding bridges' guard posts per turn |
 | Tokens by role | input tokens per call for bridges, mirror holders and others |
 | Phase 18 columns | as Stage 4 (`stage4Columns`: guard-held lies, contest rate and lag, wrong answers per lie, openers per lied subtask, tokens per call) |
-| Phase 19 columns | `contest_eval.contestColumns(cfg, rp.board, [rp.log])`: liar posts, contests (and on guard-held clues), `contestLags`, `misinformedFirst`, `honestTurns`, `liarFirst`, `uncorrected`, `wrongHonest`, `sameWrong`, per-slot `agentTurns`, `agentShares`, `agentContests`, `agentSubmits`, `agentOpens` |
+| Phase 19 columns | `contest_eval.contestColumns`, read by `c1Columns` with the replay's answers (`rp.answers`, numpy members' answers included): liar posts, contests (and on guard-held clues), `contestLags`, `misinformedFirst`, `honestTurns`, `liarFirst`, `uncorrected`, `wrongHonest`, `sameWrong`, per-slot `agentTurns`, `agentShares`, `agentContests`, `agentSubmits`, `agentOpens` |
 | Cost without liars (P20-14) | `honestPooled` on clean boards per arm; `coupled` − `squads` and `bridge1` − `squads` paired on seed; `welfareHonest` beside it |
-| Gullibility, suppression | `rl19_measures.ratio` over an arm's liar boards: `misinformedFirst` / `honestTurns`; `uncorrected` / `liarFirst` |
+| Gullibility, suppression | `rl19_measures.ratio` over an arm's liar boards: `misinformedFirst` / `honestTurns` (first wrong answers made while misinformed per honest agent-turn, Phase 19's named variant; the plan's share of honest answers made while misinformed, right or wrong, is not computed); `uncorrected` / `liarFirst` |
 | Verification | contests per lie (`contests` / `liarPosts`), time to contest (median of `rl19_measures.lags`), share of lies on a guarded clue (`guardLies` / `liarPosts`) |
 | Error correlation | `sameWrong` / `wrongHonest` |
+| Clues others used (B1) | the existing `assisted` column: the share of solves that used a clue another agent posted |
+| Damage won back | does not apply: explRL's cache has no clean `plain` or clean `colonyGuards` board at 64 agents, and C1 adds none |
 | Welfare per 1,000 tokens | as `welfarePerKTok` in `rl19_measures.runMeasures`: `welfare` × N × `tEnd` summed over the arm's boards, over their tokens / 1,000 |
 | Tokens per solved task | (`inputTokens` + `outputTokens`) / `solved`, per board; the arm's mean |
 | Division of labour | Gorelick's index per board, `rl19_spec.dolIndex(rs, nLiar, positions=(0,))` on the board's row with `pos` 0 and `agents` the slot order; the arm's mean; descriptive |
 
-The reused rows have no bridge or Phase 19 columns; they get C1's columns (zero relays and mirrors, and `contestColumns`) from the cached replay, with every earlier column unchanged. Role persistence is not measured: C1 plays single boards. `contestColumns` reads `shareLog` only, so on a bridge board a relayed false value counts as the bridge's post there; relayed lies are in the relay and contamination rows. Mirror posts are not board shares either: `contestColumns`' per-agent shares, `sharePerHeld` (collaboration) and Gorelick's index count a mirror post as an idle turn, and mirror posts are measured by `mirrorPosts` and `mirrorPostsPerHolder`. This slightly biases collaboration and division of labour against the coupled arms, and the report says so (requirements FR-D5).
+The reused rows have no bridge or Phase 19 columns; they get C1's columns (zero relays and mirrors, and `contestColumns`) from the cached replay, with every earlier column unchanged. Role persistence is not measured: C1 plays single boards. `contestColumns` reads `shareLog` only, so on a bridge board a relayed false value counts as the bridge's post there; relayed lies are in the relay and contamination rows. Mirror posts are not in `shareLog`, but `apply` counts them in `counts['shares']`. Mirror posts are counted in `shares` and so in sharing per held clue; `contestColumns`' per-agent shares and Gorelick's index count a mirror post as an idle turn, a small bias against the coupled arms in division of labour, which the report states (requirements FR-D5). Mirror posts are also measured by `mirrorPosts` and `mirrorPostsPerHolder`.
 
 ## Analysis and report (`bridge_report.py`, `bridge_write.py`)
 
@@ -226,7 +232,7 @@ def syntheticRows20(lead=0.171, cost=0.10, back=0.07, ...): ...   # every planne
 def syntheticPartB(gain4=0.05, gain1=0.006, ...): ...             # part b rows with known effects
 ```
 
-`demo_c1` runs quick (the fake client and synthetic rows), then the live stages by `EXPLRL_C1_STAGE`: `pilot` (asserts `C1_PILOT_PLAN['frozen']`, which records the user's approval of the estimate), `main1` and `main2` (the seed batches 1800-1803 and 1804-1807; `main2` needs `main1` with invalid replies under 5%), and `main` (both batches present with invalid replies under 5%, then the full grid from the cache at $0, with `reused.csv`). Every main stage asserts `mainReady()`: both plans frozen, `C1_PLAN['pilotHash']`, B3's forecast with its SHA-256, and `C1_PLAN['projection']['approved']`. Part b is flagged `train`.
+`demo_c1` runs quick (the fake client and synthetic rows), then the live stages by `EXPLRL_C1_STAGE`: `pilot` (asserts `C1_PILOT_PLAN['frozen']`, which records the user's approval of the estimate), `main1` and `main2` (the seed batches 1800-1803 and 1804-1807; `main2` needs `main1` with invalid replies under 5%), and `main` (both batches present with invalid replies under 5%; it first replays every cell of the full grid through the cache-only client, where a miss raises `CacheMiss` before any paid call, then writes the rows, with `reused.csv`, at $0). Every main stage asserts `mainReady()`: both plans frozen, `C1_PLAN['pilotHash']`, B3's forecast with its SHA-256, and `C1_PLAN['projection']['approved']`. Part b is flagged `train`.
 
 ## Statistics
 
@@ -274,7 +280,7 @@ Stage 4 has no clean `squads` cell, at 64 agents or any other size. Its only cle
 | `test_bridge_prompts` | offline | rule sentences and lines appear only with bridge keys; a pre-Phase-20 prompt is byte-identical |
 | `test_rollout_bridges` | offline | AC-7: 16-agent fake-policy `rollout` in squads of 4 with bridges; `bridgePromptTokens`; the adaptive-liar path with the fake client |
 | `test_c1_grid` | offline | 38 new cells (23 with liars, 15 clean), 3 pilot cells, 16 reused cells; calls 1,920 per liar board and 2,560 per clean board; AC-10 (clean cells: `nLiar` 0, 16 guards, bridges dealt, no clean `colonyGuards`); part b's 180 new cells; the plans' freezes asserted; `checkOptions`' errors; `bridgeCheckCells` (10 cells, guards 4, nLiar 4, both squad sizes); `pilotCheck20` and `costRule20` (always 'ask') on synthetic pilot rows |
-| `test_c1_numpy` | offline | `runC1Cell(colonyCell('t', 'bridge1', 64, 1890, 'independent', 'numpy', arms=ARMS20))` runs and shows honest and false mirror posts and relays (B3's handoff) |
+| `test_c1_numpy` | offline | `runC1Cell(colonyCell('t', 'bridge1', 64, 1890, 'independent', 'numpy', arms=ARMS20))` (equivalently `c1Cell('t', 'bridge1', 1890, runner='numpy')`) runs and shows honest and false mirror posts and relays (B3's handoff) |
 | `test_c1_measures` | offline | AC-11: `contestColumns`, the pooled ratios, `dolIndex` on a one-board sequence, welfare per 1,000 tokens and tokens per solved task on a hand-built board |
 | `test_c1_hashes` | offline | Phase 5-19 configuration and plan hashes unchanged |
 | `test_budget_month` | offline | NFR-7, in `nbs/llm_budget.ipynb`: entries carry `month`; `spent()` counts the current month only, across a month boundary; undated legacy entries count as earlier months; `spentAll()` sums everything |
@@ -285,13 +291,13 @@ Stage 4 has no clean `squads` cell, at 64 agents or any other size. Its only cle
 
 ## Handoff to Phase 19 (A1), recorded here so the next step is specified
 
-If Gate C1 passes, Phase 19 adds one engineering step before its speed check (T5):
+Phase 19 adds one engineering step before its speed check: T5a (the wiring and tests, which can start now that C1's code exists) and T5b (recording Gate C1 and setting the world, after the gate):
 
 - **World.** `BASE19`'s world gains `couple=0.25` and `bridges=1` for every arm (Phase 19's P19-8, the user, 2026-11-10; stop and ask if the inert-bridge rule fires). Liars stay uneven across squads (`dealSquads`), and bridges come from `dealBridges`.
 - **Speed check.** `SPEED19` adds `bridgePromptTokens` (the window is refused if any prompt exceeds 3,072 tokens), relays per bridge turn, and `WARM_ANSWERS` measured in the bridged world.
-- **Rewards.** Contest credit reads `relaySource` (P20-12), and relay credit follows FR-A5. Phase 19 recorded both on 2026-11-09 (its FR-A9 and T5).
+- **Rewards.** Contest credit reads `relaySource` (P20-12), and relay credit follows FR-A5. Phase 19 recorded both on 2026-11-09 (its FR-A9 and T5a). The split is built here (`_creditTo`, `_reward`); Phase 19's T5a adds the relay-aware `ContestLog`.
 - **The pilot's two squad sizes** both have bridges: 16 agents in squads of 4 make a ring of 4 pairs, and in squads of 8 a ring of 2.
 - **Results to carry over.** P20-11's check reports whether the warm start relays at all. If it never does, A1's README records that bridges start inert for the 3B model.
-- **Contamination across squads** is `bridge_mech`'s `crossContamination`; Phase 19's T5 reuses it rather than adding it to `contestColumns`.
-- **Prompt length.** `bridgePromptTokens` gives the prompt; Phase 19's `longestBridge` adds the reply.
+- **Contamination across squads** is `bridge_mech`'s `crossContamination`; it is already in every bridged row through `coopRows`, and Phase 19 reuses it; `contestColumns` is unchanged.
+- **Prompt length.** `SPEED19` records `bridgePromptTokens(cfg, seeds, tok=<3B tokenizer>, policy=<warm LocalPolicy>)['bridge']` (the prompt only); Phase 19's `longestBridge` (prompt plus reply, per step) is computed in Phase 19's own code (`rl19_step` / `rl19_bridge`) from the step rollout's prompts and `board.bridgeOf`.
 - **Phase 19's `contestSuite`** adds the best arm in 64-agent squads with bridges, as its FR-C1 says.

@@ -20,7 +20,7 @@ Part of [README.md](README.md); requirements are in [requirements.md](requiremen
 | `nbs/clue_runs.ipynb` -> `explRL/clue_runs.py` | changed | `clueSetup` builds `BridgeBoardEnv` when a bridge key is set; `bridgeMembers` beside `stage4Members` |
 | `nbs/clue_roll.ipynb` -> `explRL/clue_roll.py` | changed (hook) | `boardFactory` builds `BridgeBoardEnv`; `coopRows` adds `bridgeColumns` when `isPhase20` |
 | `nbs/colab_clue_rl.ipynb` | changed | Section "Phase 20": part b and the 3B bridge check, one cell, resumable and claim-aware |
-| `nbs/demo_c1.ipynb` | new | quick (fake client), then the live stages by `EXPLRL_C1_STAGE`: `pilot`, `main1` and `main2` (the two seed batches), `main` (the cached full grid, after both batches with invalid replies under 5%); part b (analysis of the Colab zip) |
+| `nbs/demo_c1.ipynb` | new | quick (fake client), then the live stages by `EXPLRL_C1_STAGE`: `pilot`, `main1` and `main2` (the two seed batches), `main` (after both batches with invalid replies under 5%: every cell of the full grid replays through the cache-only client, a miss raising `CacheMiss` before any paid call, then the rows are written); part b (analysis of the Colab zip) |
 | `nbs/llm_budget.ipynb` -> `explRL/llm_budget.py` | changed (shared with Phase 21, NFR-7) | `Budget` dates new ledger entries by UTC month and counts only the current month; `spentAll()` for reports |
 
 Unchanged: `ClueBoardEnv`'s and `ColonyBoardEnv`'s deals and streams, every earlier rule string, `colony_trace`, the reward schemes at their defaults, and every Phase 5-19 hash.

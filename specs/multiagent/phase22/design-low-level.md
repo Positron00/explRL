@@ -13,12 +13,14 @@ def isDefault(b3, world): ...              # True if world has no 'b3' key, or e
 class TrustOne:                            # mixin for ColonyAgent, GuardAgent, ThresholdGuard, RuleBridge
     "knownFor: super().knownFor(b) (so failFlag's flag-aware _flagKnown is kept), then for each clue absent from it, the leading
     value among values with no failures (failFlag boards) with < q senders, when the draw cached for (k, j, value) < trustOne."
-class Spread:                              # mixin for RuleAgent and ViewAgent (both inline the open step in choose; the mixin re-implements choose)
-    "choose: as the base class; at the open step, with probability spread, the live subtask with the fewest openers among the others
-    (ties: most known clues, then value, then at random on the b3 generator)."
+class Spread:                              # mixin for RuleAgent and ViewAgent; does not re-implement choose (that would bypass
+                                           # RuleBridge.choose's relays and GuardAgent's / ThresholdGuard's choose)
+    "choose: act = super().choose(b, t); if act is an open and the b3 draw < spread, retarget it to the least-crowded live subtask
+    (the fewest openers; ties: most known clues, then value, then at random on the b3 generator)."
 class ShareAll:                            # mixin for RuleAgent and ViewAgent
-    "with probability shareAll on this turn, sets self.share = 'always' before _shareable and restores it after, so it works
-    for RuleAgent (plain arms, Phase 14) and ViewAgent alike."
+    "_shareable(self, b, kn, t, *a) (GuardAgent calls _shareable(b, None, t, ks)): with probability shareAll on this turn, sets
+    self.share = 'always', calls super()._shareable(b, kn, t, *a) and restores it after, so it works for RuleAgent (plain arms,
+    Phase 14) and ViewAgent alike."
 
 def b3Members(world, members, seed):
     """Wrap each honest numpy member (not liars or mistaken members) with the mixins whose knob is non-default, by building a
@@ -81,10 +83,14 @@ COARSE = dict(trustOne=np.arange(0, 1.01, 0.2), spread=..., shareAll=..., guess=
 FINE_STEP = dict(trustOne=0.1, spread=0.1, shareAll=0.1, guess=0.05)
 
 def claudeTargets(rows): ...                         # {cell: (mean, se >= 0.01, n)} over Claude boards
-def simCell(cell, theta, seeds=SIM_SEEDS): ...      # colonyCell(..., 'numpy') or clueCell for Phase 14, world['b3'] = theta, through b3Replay
+def simCell(cell, theta, seeds=SIM_SEEDS): ...      # colonyCell(..., 'numpy'), bridge_grid.c1Cell(study, arm, seed, fault, runner='numpy')
+                                                     # for C1 cells (colonyCell has no bridge arms unless arms=ARMS20), or clueCell
+                                                     # for Phase 14; world['b3'] = theta, through b3Replay
 def b3Replay(cfg, seed): ...                         # colony_trace.replay's numpy branch with members -> stage4Members (which applies
-                                                     # Phase 20's bridgeMembers) -> b3Members; row = stage4Columns (+ bridgeColumns
-                                                     # when isPhase20; Phase 14: runClueNumpy's row). At θ_default it equals replay.
+                                                     # Phase 20's bridgeMembers) -> b3Members; row = stage4Columns, and on bridge
+                                                     # boards bridge_mech.c1Columns(cfg, rp) (as runC1Cell's numpy rows: stage4Columns
+                                                     # + bridgeColumns with the replay's answers + contestColumns; crossContamination
+                                                     # needs rp.answers); Phase 14: runClueNumpy's row. At θ_default it equals replay.
 def gridSim(cells, grid, workers=8): ...            # every (theta, cell, seed) once; cached in results/multiagent/b3/grid/
 def loss(theta, cells, sims, targets):               # sum over cells of ((sim mean - claude mean) / se) ** 2
 def fit(cells, sims, targets, drop=()): ...          # argmin loss over the grid
@@ -230,7 +236,7 @@ For the retrospective, `priorRows` are the Claude cells that had run before each
 |---|---|---|
 | `test_b3_defaults` | offline | AC-2: at θ_default, cells at 8-64 agents equal today's rows and turn logs; no `b3Rng` is made |
 | `test_b3_behaviours` | offline | AC-3: `trustOne`, `spread` and `shareAll` on hand-built boards; only honest members change |
-| `test_b3_mirror` | offline | AC-4 (needs Phase 20's board): an honest holder posts on its mirror and a `RuleBridge` relays it |
+| `test_b3_mirror` | offline | AC-4 (needs Phase 20's board): an honest holder posts on its mirror and a `RuleBridge` relays it; with `spread` = 1 a `RuleBridge` still relays |
 | `test_b3_fit` | offline | AC-5: a planted θ is recovered within one grid step on a tiny grid; folds drop the listed cells; `chooseKnob`'s rule and tie |
 | `test_b3_refit` | offline | AC-6: θ_pilot = θ0 for a pilot equal to θ0's simulation; untouched parameters; the large-τ limit |
 | `test_b3_forecasters` | offline | AC-7 on a fake experiment: the five lines, pilot-only's fallback to every-design-helps' sign for a missing arm, unrepresented effects |
@@ -244,7 +250,8 @@ For the retrospective, `priorRows` are the Claude cells that had run before each
 
 - **Phase 20 (C1).**
   - Honest rule agents post on mirrors (P22-12, in Phase 20's FR-A4): one rule in `bridge_agents`, tested by `test_b3_mirror`.
-  - Bridge cells run with the numpy runner: `stage4Members` applies `bridgeMembers` (Phase 20's hook in `colony_board`), and Phase 20's `runC1Cell` gives numpy rows with `bridgeColumns`; B3's `b3Replay` uses the same pieces (`test_c1_numpy` in Phase 20).
+  - Bridge cells run with the numpy runner: `bridge_grid.c1Cell(study, arm, seed, fault, runner='numpy')` builds them, `stage4Members` applies `bridgeMembers` (Phase 20's hook in `colony_board`), and Phase 20's `runC1Cell` gives numpy rows with `bridge_mech.c1Columns(cfg, rp)`; B3's `b3Replay` uses the same pieces (`test_c1_numpy` in Phase 20).
+  - Relays in the unfitted simulator (P20-17, P22-20): scripted `ClueLiar`s trust single posts, so relays feed liars' coupled solves; honest coupled solves are 0 at θ_default (numpy `bridge1`, seed 1890: 32 coupled solves, all by liars). The B3 report states this beside C1's forecast.
   - Phase 20's `C1_PLAN` forecast row names `C1_EFFECTS`' 8 items and the five lines (done, 2026-11-10).
   - T9 calls `c1Forecast()` with the pilot's rows and commits `c1_predictions.json`.
 - **Phase 21 (A2).** At T5's second freeze, `a2Forecast(pilotRows)` writes `a2_predictions.json`, and its SHA-256 goes into `A2_PLAN`. If B3's code does not exist then, A2 writes the two lines by hand by the rules above, and B3 later checks them with `forecastPilot` and `forecastNaive`. The fitted line reads "not represented" either way, which is not a deviation.

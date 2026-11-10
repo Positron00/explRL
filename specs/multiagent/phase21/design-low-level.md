@@ -16,9 +16,18 @@ def colonyRules(env, text, i=None):
         return text
     ...                                                     # guard, deceiver, volunteer sentences: unchanged
     line = (getattr(env, 'slotLines', None) or {}).get(i)
-    return text + '\n\n' + line if line else text
+    text = text + '\n\n' + line if line else text         # A2: before C1's final return
+    from explRL.bridge_agents import bridgeRules            # Phase 20 (C1), as built: stays last
+    return text + bridgeRules(env, i)
+
+def checkOptions(world, N=None, nLiar=0):
+    ...                                                     # earlier checks: unchanged
+    if world.get('dropShare') and (world.get('colony') or world.get('confirm')):
+        raise ValueError(...)                               # A2: before C1's final return
+    return checkBridge(world, N, nLiar)                     # Phase 20 (C1), as built: stays last
 ```
 
+- **After C1.** C1 (Phase 20, built 2026-11-10) ends `colonyRules` with `return text + bridgeRules(env, i)` and `checkOptions` with `return checkBridge(world, N, nLiar)`. A2's `slotLines` text is added before that final return, so `bridgeRules` stays last, and the `dropShare` check goes before `return checkBridge(...)`. `clue_colony` is at 150 lines.
 - **`checkOptions`** raises if `dropShare` is set with `colony` or `confirm`.
 - **`slotLines`** is stored in `cfg.world` as a tuple of `(slot, text)` pairs, so it serializes and hashes. `TextClueEnv` turns it into a dict.
 - In `SHARE_AGAIN`'s paragraph the sentence follows "...; or nowhere." after one space. Removing `' ' + SHARE_AGAIN` leaves "...; or nowhere." followed by the paragraph break, which is what E4 calls the drop-only prompt.
@@ -29,7 +38,7 @@ def colonyRules(env, text, i=None):
 - `self.slotRules` also turns true when `slotLines` is set.
 - `checkOptions` receives both.
 
-That adds about 3 lines to a 193-line module. If an export goes over 200 lines, `_rules` moves to `clue_fix`'s pattern (`fixRules`) instead.
+`clue_text` is at 196 lines after C1 (Phase 20), so about 3 lines leave it at 199. If it would reach 200, the new code moves elsewhere (`_rules` to `clue_fix`'s pattern, `fixRules`).
 
 ## `liar_trace.py` (changed, one guard)
 

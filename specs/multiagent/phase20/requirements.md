@@ -27,8 +27,10 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 - **Lead:** `squads` − `colonyGuards` at 64 agents in honest pooled share, per board (0.171 on seeds 1800-1807, per-board SD 0.023, measured from Stage 4 and the 64-agent run).
 - **Cross-squad contamination:** the share of squad s's honest answers on coupled subtasks that agree with a false value relayed from s + 1 before them (so always wrong), over honest answers on coupled subtasks (as `colony_trace`'s outcome-based contamination, restricted to relayed values).
 - **Clean board:** a board without liars (fault `clean`, `nLiar=0`): all 64 agents are honest Claude agents, and the 16 guards stay (P20-14).
-- **Cost without liars:** the plan's core measure, the honest pooled share on clean boards. C1 reports it per arm, and as the paired contrasts `coupled` − `squads` and `bridge1` − `squads` on seeds 1800-1804; a negative contrast is a cost of coupling or bridges. Phase 19's `rl19_measures.cost0` has the same reference-minus-arm idea but is tied to Phase 19's test names, so C1 computes the contrasts with `colony_report.pairs(..., fault='clean', base='squads')`.
-- **Honest pooled share, damage won back, made while misinformed, contamination:** as the research plan's Terms. Coupling and mirrors do not change the pooled bound, which uses only the board's open subtasks.
+- **Cost without liars:** the plan's core measure, the honest pooled share on clean boards. C1 reports it per arm, and as the paired contrasts `coupled` − `squads` and `bridge1` − `squads` on seeds 1800-1804; a negative contrast is a cost of coupling or bridges. The plan's cost without liars (reference minus design) is the negative of these: `squads` − `coupled` and `squads` − `bridge1`; the report states both. Phase 19's `rl19_measures.cost0` has the same reference-minus-arm idea but is tied to Phase 19's test names, so C1 computes the contrasts with `colony_report.pairs(..., fault='clean', base='squads')`.
+- **Honest pooled share, contamination:** as the research plan's Terms. Coupling and mirrors do not change the pooled bound, which uses only the board's open subtasks.
+- **Made while misinformed:** C1 reports Phase 19's named variant, first wrong answers made while misinformed per honest agent-turn (`misinformedFirst` / `honestTurns`, FR-D5). The plan's share of honest answers made while misinformed (right or wrong) is not computed.
+- **Damage won back** does not apply: explRL's cache has no clean `plain` or clean `colonyGuards` board at 64 agents, and C1 adds none.
 
 ## Functional requirements
 
@@ -36,8 +38,9 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 
 - **FR-A1** `BridgeBoardEnv(ColonyBoardEnv)`, built only when a bridge key (`couple`, `bridges`, `bridgeGuard`) is set. It adds:
   - `couple=0.25`: every fourth subtask assigned to each squad is coupled (P20-1). The count is kept per squad, and no random draw is added to the board's streams. Clue 0 is dealt within s and clue 1 within s + 1, each to two slots, by `ColonyBoardEnv._pick` on `rngDeal`.
-  - mirrors in squad s + 1's view of the board. A share by an agent of s + 1 on a mirror goes to `mirrorLog` (same tuple layout as `shareLog`), not to `shareLog`. Opening or answering a mirror is an invalid move.
+  - mirrors in squad s + 1's view of the board. A share by an agent of s + 1 on a mirror goes to `mirrorLog` (same tuple layout as `shareLog`), not to `shareLog`. At board level, opening or sharing on a mirror without holding the cross clue raises `ValueError` (`ColonyBoardEnv`'s another-squad check); `parseBridge` turns such a Claude reply into an invalid move. Nobody in s + 1 can answer a mirror.
   - `bridges` in {0, 1, 2} per pair and `bridgeGuard`. The bridge slots come from `dealBridges` (FR-A2). A bridge's share on a coupled subtask of a value in that subtask's `mirrorLog` is a relay, logged in `relayLog` with its source post.
+  - Guard slots must directly follow the liar slots: `BridgeBoardEnv` refuses a deal where they do not (`ValueError`).
   - Without a bridge key, nothing changes: `ColonyBoardEnv` and `ClueBoardEnv` boards, their deal streams and their outputs are unchanged.
 - **FR-A2** `dealBridges(N, S, nLiar, guards, perPair, guarding)`: the bridge slots of each squad, in `squadOf`'s placement.
   - Ordinary bridges are the first `perPair` honest non-guard slots of each squad. Guarding bridges are the first guard slot of each squad.
@@ -68,7 +71,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
   - every other prompt and parse is unchanged (pre-Phase-20 prompts hashed before and after, T2).
 - **FR-B3** `clueSetup` and `clue_roll.boardFactory` build `BridgeBoardEnv` when a bridge key is in the world, so Claude cells and 3B rollouts (training and evaluation) use the same board. `checkOptions` checks:
   - any bridge key needs `couple` in the world: `checkBridge` refuses it otherwise, with no silent default (before this check, a world with `bridges=0` and no `couple` was built with `BridgeBoardEnv`'s default and coupled at 0.25);
-  - `couple` needs `squads`, a value in (0, 1] and at least two squads;
+  - `couple` needs `squads`, a value 1/n in (0, 1] (every n-th subtask is coupled) and at least two squads; `couple=0` is allowed only for a directly constructed `BridgeBoardEnv` (no coupling), never through `checkOptions`;
   - `bridges` needs `couple` > 0;
   - `bridgeGuard` needs `bridges=1` and guards;
   - `dealBridges` must succeed.
@@ -104,7 +107,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
   Nothing in the hypotheses or the gate may change between the two freezes.
 - **FR-C5** The main run follows Stage 4's pattern:
   - the 38 new boards (23 with liars, 15 clean) play live, in one or two seed batches, with a stop only at 5% invalid replies or the cap;
-  - the full grid, new and reused, then replays from the cache at $0 for the frozen analysis;
+  - the full grid, new and reused, then replays from the cache at $0 for the frozen analysis: the `main` stage first replays every cell of the full grid through the cache-only client (a miss raises `CacheMiss` before any paid call), then writes the rows;
   - the reused rows gain C1's columns, and every earlier column must be unchanged (`reusedRows4`'s check, as `reusedRows20`).
 
   In `demo_c1` the live stages are chosen by `EXPLRL_C1_STAGE`: `pilot`, then `main1` and `main2` (the two seed batches, 1800-1803 and 1804-1807), then `main` (the full grid from the cache). The pilot stage asserts `C1_PILOT_PLAN['frozen']`; freezing it after the user approves the estimate is how that approval is recorded (P20-8). The main stages assert `C1_PLAN` frozen on the pilot plan's hash, B3's forecast with its SHA-256, and the user's approval of the projection in `C1_PLAN['projection']['approved']`. `main2` needs `main1`'s rows with invalid replies under 5%, and `main` needs both batches' rows (`c1main1`, `c1main2`) with invalid replies under 5% before it replays the full grid, and asserts that the replay spends $0.
@@ -115,9 +118,9 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 ### Part D: measures and analysis
 
 - **FR-D1** `bridgeColumns(cfg, board, logs=None, answers=None)`, the row columns of a bridge board, added to every C1 row by `runC1Cell` (as `colony_mech.runStage4Cell`, for the LLM and numpy runners alike; B3's forecast runs numpy cells through it). Names: `mirrorPosts`, `mirrorPostsPerHolder`, `mirrorFalse`, `bridgeRelays`, `relaysPerBridgeTurn`, `falseRelayShare`, `relayLag`, `relaysUsed`, `crossContamination` (not `relay`, which `traceBoard` already emits):
-  - mirror posts, mirror posts per cross-clue holder, and their false share;
+  - mirror posts, their false share, and `mirrorPostsPerHolder`: honest mirror posts over honest cross-clue holdings (holder-subtask pairs);
   - relays, relays per bridge turn, the false-relay share, relay lag (the source post's time to the relay's), and relays used in a correct answer;
-  - coupled subtasks opened, solved, and their share of solves;
+  - coupled subtasks dealt and opened (`coupledTasks`, `coupledOpened`), and honest-only solves: `coupledSolved` (honest solves of coupled subtasks), `coupledSolveShare` (`coupledSolved` / coupled subtasks) and `coupledOfSolves` (`coupledSolved` / honest solves);
   - honest pooled share and raw honest welfare on coupled and uncoupled subtasks;
   - cross-squad contamination;
   - bridges' own opens and solves;
@@ -126,7 +129,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
   Added to `coopRows` and to the Claude rows when the world has a bridge key (`isPhase20`).
 - **FR-D2** `c1Summaries(rows, plan)` reports:
   - Gate C1, parts (i) and (ii), each on honest pooled share and on raw honest welfare;
-  - H20-3 to H20-5 and H20-7 with estimates, bootstrap intervals and uncorrected sign-flip p;
+  - H20-3 to H20-5 and H20-7 with estimates, bootstrap intervals and uncorrected sign-flip p; as built, H20-5's `pooled` contrast (`bridgeGuard` − `bridge1` on `honestPooled`) is one-sided ('greater'), and H20-7 also reports `bridge1` − `bridgeGuard` on `crossContamination` (`guarding`) beside each arm's contamination;
   - H20-8, cost without liars (P20-14): each arm's honest pooled share and raw honest welfare on clean boards, and the contrasts `coupled` − `squads` and `bridge1` − `squads` over seeds 1800-1804, with bootstrap intervals and uncorrected one-sided sign-flip p (smallest 1/32); descriptive, outside Gate C1;
   - the inert-bridge flag;
   - each arm's honest pooled share, advantage over `colonyGuards`, the Phase 18 mechanism columns and the core measures (FR-D5).
@@ -135,21 +138,22 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 - **FR-D3** `partBSummaries(rows)`, per run: welfare gain over the warm start in squads of 4 and on one board, at 32 agents on clean boards, and their difference, with a sign-flip p over the 8 runs. Phase 17's 4-agent gain (+0.078) is shown beside it. Honest loss with liars is reported beside each. All descriptive (H20-6).
 - **FR-D4** `writeC1`, `figC1` (`c1.png`: honest pooled share per arm, with the lead and the half-lead bar), (both in `bridge_write`, with `syntheticRows20` and `syntheticPartB`), and `demo_c1` with four modes: quick (fake client, synthetic rows), pilot, main (stages `main1`, `main2`, `main`; FR-C5) and part b.
 - **FR-D5** The plan's core measures, per arm, on boards with liars unless stated, reusing Phase 19's functions by name:
-  - **per-board columns:** `contest_eval.contestColumns(cfg, rp.board, [rp.log])` on every C1 row, new and reused (from the cached replay; earlier columns unchanged). It gives `misinformedFirst`, `honestTurns`, `liarFirst`, `uncorrected`, `wrongHonest`, `sameWrong`, `liarPosts`, `contests`, `guardLies`, `contestLags` and the per-slot counts `agentTurns`, `agentShares`, `agentContests`, `agentSubmits`, `agentOpens`;
+  - **per-board columns:** `bridge_mech.c1Columns(cfg, rp)` reads `contest_eval.contestColumns` (and `bridgeColumns`) with the replay's answers (`rp.answers`, numpy members' answers included), not `[rp.log]`, on every C1 row, new and reused (from the cached replay; earlier columns unchanged). It gives `misinformedFirst`, `honestTurns`, `liarFirst`, `uncorrected`, `wrongHonest`, `sameWrong`, `liarPosts`, `contests`, `guardLies`, `contestLags` and the per-slot counts `agentTurns`, `agentShares`, `agentContests`, `agentSubmits`, `agentOpens`;
   - **pooled per arm** with `rl19_measures.index` and `ratio` (C1's levels are `<arm>|independent` and `<arm>|clean`, the `'<model>|<test>'` layout these functions read):
-    - gullibility, `ratio(..., 'misinformedFirst', 'honestTurns')`, and suppression, `ratio(..., 'uncorrected', 'liarFirst')`;
+    - gullibility, `ratio(..., 'misinformedFirst', 'honestTurns')`: first wrong answers made while misinformed per honest agent-turn (Phase 19's named variant; the plan's share of honest answers made while misinformed, right or wrong, is not computed); and suppression, `ratio(..., 'uncorrected', 'liarFirst')`;
     - verification: contests per lie, `ratio(..., 'contests', 'liarPosts')`; time to contest, the median of `rl19_measures.lags`; the share of lies on a guarded clue, `ratio(..., 'guardLies', 'liarPosts')`;
-    - collaboration: `sharePerHeld`, as Phase 18;
+    - collaboration: `sharePerHeld`, as Phase 18; B1's "clues others used" is the existing `assisted` column (the share of solves that used a clue another agent posted), already in every row;
     - error correlation, `ratio(..., 'sameWrong', 'wrongHonest')`;
   - **welfare per agent-turn** (`welfare`, `welfareHonest`) and **per 1,000 tokens** (as `welfarePerKTok` in `rl19_measures.runMeasures`, with the board's N in place of 16), and **tokens per solved task**: (`inputTokens` + `outputTokens`) / `solved`, per board, then the arm's mean; on boards with liars and on clean boards;
   - **cost without liars:** H20-8 (P20-14);
+  - **damage won back** does not apply: explRL's cache has no clean `plain` or clean `colonyGuards` board at 64 agents, and C1 adds none;
   - **division of labour:** Gorelick's index per board, `rl19_spec.dolIndex(rs, nLiar, positions=(0,))` on a one-board sequence (`pos` 0, `agents` the slot order), the arm's mean over boards; descriptive;
   - **contamination across squads:** FR-D1's cross-squad contamination;
   - **role persistence does not apply:** C1 plays single boards, not sequences.
 
   `contestColumns` reads `shareLog` only. On a bridge board a relayed false value is therefore the bridge's post, not a liar's, in these columns. Relayed lies are measured by FR-D1's relay and contamination columns instead.
 
-  Mirror posts are not board shares (they go to `mirrorLog`, not `shareLog`). So `contestColumns`' per-agent shares, `sharePerHeld` (collaboration) and Gorelick's index count a mirror post as an idle turn. Mirror posts are measured by FR-D1's `mirrorPosts` and `mirrorPostsPerHolder` instead. This slightly biases collaboration and division of labour against the coupled arms, and the report says so.
+  Mirror posts go to `mirrorLog`, not `shareLog`, but `BridgeBoardEnv.apply` counts them in `counts['shares']`. Mirror posts are counted in `shares` and so in sharing per held clue; `contestColumns`' per-agent shares and Gorelick's index count a mirror post as an idle turn, a small bias against the coupled arms in division of labour, which the report states. Mirror posts are also measured by FR-D1's `mirrorPosts` and `mirrorPostsPerHolder`.
 
 ## Quality requirements
 
@@ -157,7 +161,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 - **NFR-2** Offline tests need no network, key or GPU. `torch` is used only in tests flagged `train`.
 - **NFR-3** API spend goes through `llm_budget.Budget` on the shared ledger, under the cap of $250 per calendar month (P20-9), and only after the frozen plans and the user's approval of each estimate (P20-8). No paid call runs before T8.
 - **NFR-4** Seeds are fixed, cached replies replay exactly, and two hosts never evaluate the same model (`claim`).
-- **NFR-5** Each module stays under 200 lines. `clue_text` (193), `clue_roll` (195) and `colony_board` (190) take hooks of at most 3 lines each, `clueboard` (197) at most 2 (otherwise the weighted relay split overrides `_reward` in `BridgeBoardEnv`), and `colony_trace` (199) and `clue_agents` (199) none; the logic goes in new modules. As built: `clue_text` 196, `clue_roll` 199, `colony_board` 191, `clue_colony` 150, `clue_runs` 107; `clueboard`, `colony_trace` and `clue_agents` unchanged (relay credit overrides `_reward` in `BridgeBoardEnv`). `clue_roll` is one line from the limit, so A1's bridged step (Phase 19, T5) must put new code elsewhere.
+- **NFR-5** Each module stays under 200 lines. `clue_text` (193), `clue_roll` (195) and `colony_board` (190) take hooks of at most 3 lines each, `clueboard` (197) at most 2 (otherwise the weighted relay split overrides `_reward` in `BridgeBoardEnv`), and `colony_trace` (199) and `clue_agents` (199) none; the logic goes in new modules. As built: `clue_text` 196, `clue_roll` 199, `colony_board` 191, `clue_colony` 150, `clue_runs` 107; `clueboard`, `colony_trace` and `clue_agents` unchanged (relay credit overrides `_reward` in `BridgeBoardEnv`). `clue_roll` is one line from the limit, so A1's bridged step (Phase 19, T5a) must put new code elsewhere.
 - **NFR-6** Every new notebook is added to `nbs/sidebar.yml`. After a notebook is created or edited, `nbdev-clean` runs, then `nbdev-export`.
 - **NFR-7** Monthly ledger (shared with Phase 21; whichever phase is built first does it, the other reuses it). Today `llm_budget.Budget.spent()` sums every entry ever written to the untracked ledger `results/multiagent/llm/spend.jsonl`: 491,301 entries, $233.18, all from before November 2026, written as `{"cost", "note"}` with no date. A $250 cap would then refuse C1 and A2. The change:
   - each new ledger entry carries `month`, the UTC `'YYYY-MM'`;
