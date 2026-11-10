@@ -33,8 +33,8 @@ def checkBridge(world, N=None, nLiar=0):
     S, b = world.get('squads'), world.get('bridges', 0)
     if world.get('couple') and not (S and 0 < world['couple'] <= 1):
         raise ValueError('couple needs squads and a value in (0, 1]')
-    if b and not world.get('couple') or world.get('bridgeGuard') and (b != 1 or not world.get('guards', 0)):
-        raise ValueError('bridges need couple; bridgeGuard needs bridges = 1 and guards')
+    if 'couple' not in world or b and not world.get('couple') or world.get('bridgeGuard') and (b != 1 or not world.get('guards', 0)):
+        raise ValueError('a bridge key needs couple (no silent default); bridges need couple > 0; bridgeGuard needs bridges = 1 and guards')
     if N is not None and S:
         if N // S < 2:
             raise ValueError('couple needs at least two squads')

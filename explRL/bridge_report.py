@@ -23,7 +23,8 @@ from .rl19_measures import index
 IND, CLEAN, N20 = 'independent', 'clean', 64
 BRIDGE_COLS = ('mirrorPosts', 'mirrorFalse', 'bridgeRelays', 'relaysPerBridgeTurn', 'falseRelayShare', 'relayLag', 'relaysUsed',
                'crossContamination', 'coupledSolveShare', 'honestPooledCoupled', 'honestPooledUncoupled', 'bridgeOpens', 'bridgeSolves',
-               'bridgeGuardPostsPerTurn', 'inTokPerCallBridge', 'inTokPerCallHolder', 'inTokPerCallOther')
+               'bridgeGuardPostsPerTurn', 'inTokPerCallBridge', 'inTokPerCallHolder', 'inTokPerCallOther',
+               'mirrorPostsPerHolder', 'welfareHonestCoupled', 'welfareHonestUncoupled', 'coupledOpened', 'coupledOfSolves', 'bridgeTurns')
 
 
 def _m(v):
