@@ -112,6 +112,7 @@ All fifteen were accepted as proposed by the user on 2026-11-10. In P22-6 the us
 | P22-17 | Pilot-only's missing arms | **Decided by the user, 2026-11-10.** Where pilot-only cannot compute an effect (an arm in neither the pilot nor the prior rows), it takes every-design-helps' sign, marked `fallback`, instead of a 0 that would always score wrong. Beside the gate: fitted against pilot-only on the items pilot-only computes. |
 | P22-18 | Knob selection and H22-3 | **Decided by the user, 2026-11-10.** Keep `chooseKnob` on the three folds; state that H22-3 and the retrospective are scored on the folds that chose the knob, and report both for all three candidates (no new simulation). |
 | P22-19 | Every-design-helps on C1-7 and the margins | **Decided by the user, 2026-11-10.** Keep + on all 8 C1 effects (P22-8) and state both conventions in the forecast file's `note`: C1-7 combines a handicap and a design; the margins' + is a size claim. |
+| P22-20 | Relays in the simulator (Phase 20's P20-17) | **Decided by the user, 2026-11-10.** At θ_default honest rule agents never build on a relay (one sender, below `Q` = 2), so the unfitted simulator calls no bridge benefit for honest agents on C1-1 to C1-5. `trustOne` applies to relayed values like any other value with fewer than `Q` senders, so the fitted simulator's bridge effects come from the fit. The report states this. |
 
 ## Relation to the other experiments
 

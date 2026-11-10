@@ -1,6 +1,6 @@
 # Requirements: Phase 22, a better cheap screen
 
-Part of [README.md](README.md) (plan and decisions P22-1 to P22-19, decided by the user on 2026-11-10). It builds on these modules:
+Part of [README.md](README.md) (plan and decisions P22-1 to P22-20, decided by the user on 2026-11-10). It builds on these modules:
 
 - `clue_agents` (`RuleAgent`, `ClueLiar`, `known`, `candidates`) and `colony_agents` (`ViewAgent`, `ConfirmAgent`, `ColonyAgent`, `GuardAgent`, `memberClass`, `faultMembers`);
 - `clue_colony` (`Q`, `tally`, `leading`), `colony_grid` (`colonyCell`, `part0Grid`, `PART0_SEEDS`, `COLONY_PLAN`), `colony4` (`ARMS4`), `colony4b` (`HYP4B`), `clue_grid` (`CLUE_SETTINGS`, `clueCell`);

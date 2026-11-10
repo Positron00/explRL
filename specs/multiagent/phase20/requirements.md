@@ -1,6 +1,6 @@
 # Requirements: Phase 20, squads with coupled work and bridges
 
-Part of [README.md](README.md) (plan and decisions P20-1 to P20-16). It builds on these modules:
+Part of [README.md](README.md) (plan and decisions P20-1 to P20-17). It builds on these modules:
 
 - `colony_board` (`ColonyBoardEnv`, `squadOf`, `dealSquads`, `squadView`, `SquadView`, `InSquad`, `stage4Members`) and `clueboard` (`ClueBoardEnv`, `_creditTo`, `_reward`);
 - `clue_colony` (`tally`, `knownColony`, `colonyRules`, `SQUAD_RULE`, `GUARD_RULE`, `DECEIVER_RULE`, `checkOptions`) and `clue_text` (`TextClueEnv.observe`, `parse`);
