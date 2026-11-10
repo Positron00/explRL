@@ -20,6 +20,7 @@ Rules are as in Phases 16-19:
 - **Files:** `nbs/llm_budget.ipynb` -> `explRL/llm_budget.py` (`Budget`).
 - **What:** each new ledger entry carries `month` (UTC `'YYYY-MM'`). `spent()` counts only the current month's entries; undated legacy entries count as earlier months. `spentAll()` gives the all-time total, for reports.
 - **Done when:** NFR-7's tests pass (a month boundary and legacy entries), the full suite passes, and on the real ledger (491,301 undated entries, $233.18) `spent()` is $0 in November 2026 and `spentAll()` is $233.18.
+- **Status (2026-11-10): done.** `Budget(cap, ledger, month=thisMonth)`; new entries carry `month`; `spent()` counts the current UTC month (legacy lines without `"month"` are skipped before parsing), `spentAll()` every entry; `test_budget_month` in `nbs/llm_budget.ipynb`. On the real ledger: `spent()` $0.00 for 2026-11, `spentAll()` $233.18, `remaining()` $250.00. Full suite passes. Phase 21 reuses it.
 
 ## T1. The bridge board (about 1.5 days)
 - **Files:** `nbs/bridge_board.ipynb` (new: `dealBridges`, `BridgeBoardEnv`, `BridgeView`, `relaySource`), the hook in `nbs/colony_board.ipynb` (`squadView`).

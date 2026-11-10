@@ -97,7 +97,7 @@ Terms are as in Phases 14-19. In addition:
 - **NFR-4** Seeds are fixed. A rerun from the cache is byte-identical, and an interrupted sequence resumes from its finished boards.
 - **NFR-5** Each module stays under 200 lines. `clue_text` (193 lines) and `colony_agents` (198) take no new code beyond option passing. New code goes into new modules.
 - **NFR-6** Notebook first: each module is written in its notebook and exported with `nbdev-export`, then `nbdev-clean`. New notebooks are added to `nbs/sidebar.yml` by hand.
-- **NFR-7** Monthly ledger (shared with Phase 20; whichever phase is built first does it, the other reuses it). Today `llm_budget.Budget.spent()` sums every entry ever written to the untracked ledger `results/multiagent/llm/spend.jsonl`: 491,301 entries, $233.18, all from before November 2026, written as `{"cost", "note"}` with no date. A $250 cap would then refuse C1 and A2. The change:
+- **NFR-7** Monthly ledger (shared with Phase 20; whichever phase is built first does it, the other reuses it). Today `llm_budget.Budget.spent()` sums every entry ever written to the untracked ledger `results/multiagent/llm/spend.jsonl`: 491,301 entries, $233.18, all from before November 2026, written as `{"cost", "note"}` with no date. A $250 cap would then refuse C1 and A2. The change: **Done 2026-11-10 in Phase 20's T0** (`thisMonth`, `spentAll`, `test_budget_month`).
   - each new ledger entry carries `month`, the UTC `'YYYY-MM'`;
   - `spent()` counts only entries of the current month, and undated legacy entries count as earlier months;
   - `spentAll()` returns the all-time total, used in reports;
