@@ -63,6 +63,7 @@ Rules are as in Phases 16-19:
   2. Only then run the live-flag cached reruns.
   3. Run the full suite and Phase 19's tests.
 - **Done when:** every saved column is equal, the cached reruns are byte-identical, and the full suite passes (AC-1). The reused cells (`reusedCells20`) replay with C1's columns added and every earlier column unchanged.
+- **Status (2026-11-10): done, step 2 replaced.** `tools/c1_regression.py` (without `EXPLRL_LLM_LIVE`): 413 earlier live boards (Phase 18's pilot 4, Stage 1 176, 32 agents 64, Stage 3 pilot 2 and run 40, 64 agents pilot 1 and run 16, Stage 4 pilot 3 and run 80, Stage 4b pilot 3 and run 24) replayed through the cache-only client with no miss and every saved column equal, in 166 s; the 16 reused cells replay through `reusedRows20` with every earlier column equal and C1's columns added. Full suite passes. Step 2 (the live-flag cached reruns) was not run: with no cache miss and every column equal, it would only rewrite the saved `metrics.json` and `timing.jsonl`; it can run before T8 if wanted.
 
 ## T7. Part b and the 3B bridge check (Colab, one account, about 5.5 A100 hours)
 - **What:**
