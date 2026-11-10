@@ -90,8 +90,8 @@ def needWorld19(world):
 SPEED19 = dict(
     version=1, frozen=None, arm='a19contest', seed=1, steps=3, squads=(4, 8), maxLen=4096, window=3072, dir='speed_p19',
     world=DECISIONS19['P19_1']['value'], warmSeeds=list(range(960, 965)), warmGuards=(4, 0),
-    measures='seconds per step (step 1 excluded), the longest prompt plus reply, a bridge agent\'s reported apart (it reads two '
-    'squads\' boards; the 3,072 window is refused if either exceeds it), invalid replies, WARM_ANSWERS (warm-start rollouts on '
+    measures='seconds per step (step 1 excluded), the longest prompt plus reply, a bridge agent\'s reported apart (it reads its own '
+    'squad\'s board and its pair\'s mirror lines, P20-3; the 3,072 window is refused if either exceeds it), invalid replies, WARM_ANSWERS (warm-start rollouts on '
     'every training board type, per squad size, with 4 guards and without guards), Colab compute units per A100 hour (read on '
     'the account)', note='no penalty and no answer halt: WARM_ANSWERS is unknown')
 PILOT19_PLAN = dict(

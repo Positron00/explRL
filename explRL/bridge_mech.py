@@ -76,14 +76,14 @@ def bridgeColumns(cfg, board, logs=None, answers=None):
             val[k in cp] -= b.penalty
     wh, bound = {c: _div(v, (N - nl) * T) for c, v in val.items()}, b.pooledBound()
     hp = {c: v * N / bound if bound > 0 else NAN for c, v in wh.items()}
-    bt, solved = sum(row[0] in bs for row in b.ledger), sum(b.tasks[k].solvedBy >= 0 for k in cp)
+    bt, solved = sum(row[0] in bs for row in b.ledger), sum(b.tasks[k].solvedBy >= nl for k in cp)   # honest solves only
     return dict(mirrorPosts=len(ml), mirrorFalse=_div(sum(m[6] for m in ml), len(ml)),
                 mirrorPostsPerHolder=_div(sum(m[1] >= nl for m in ml), sum(a >= nl for k in cp for a in b.tasks[k].holders[1])),
                 bridgeRelays=len(rl), relaysPerBridgeTurn=_div(len(rl), bt), falseRelayShare=_div(sum(false(*r[2:5]) for r in rl), len(rl)),
                 relayLag=float(np.median([r[0] - r[5][0] for r in rl])) if rl else NAN, relaysUsed=len(used),
                 crossContamination=_mean([bool(contaminatedBy(b, s, answers.get((float(s[0]), s[1])), fv)) for s in subs]),
                 coupledTasks=len(cp), coupledOpened=len({row[4] for row in b.ledger if row[3] == 'travel' and row[4] in cp}),
-                coupledSolved=solved, coupledSolveShare=_div(solved, len(cp)), coupledOfSolves=_div(solved, b.counts['solved']),
+                coupledSolved=solved, coupledSolveShare=_div(solved, len(cp)), coupledOfSolves=_div(solved, sum(s[1] >= nl for s in b.solveLog)),
                 welfareHonestCoupled=wh[True], welfareHonestUncoupled=wh[False],
                 honestPooledCoupled=hp[True], honestPooledUncoupled=hp[False],
                 bridgeTurns=bt, bridgeOpens=sum(row[0] in bs and row[3] == 'travel' for row in b.ledger),

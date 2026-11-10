@@ -26,13 +26,14 @@ def dealBridges(N, S, nLiar, guards, perPair=1, guarding=False):
     return out
 
 
-def checkBridge(world, N=None, nLiar=0):
+def checkBridge(world, N=None, nLiar=0, zeroOk=False):
     "The bridge keys' checks: couple needs squads, bridges couple, bridgeGuard bridges = 1 and guards; dealBridges must succeed."
     if not any(k in world for k in BRIDGE_KEYS):
         return True
     S, b = world.get('squads'), world.get('bridges', 0)
-    if world.get('couple') and not (S and 0 < world['couple'] <= 1):
-        raise ValueError('couple needs squads and a value in (0, 1]')
+    c = world.get('couple')
+    if 'couple' in world and not (zeroOk and c == 0) and not (S and isinstance(c, (int, float)) and 0 < c <= 1 and abs(1 / c - round(1 / c)) < 1e-9):
+        raise ValueError('couple needs squads and a value 1/n in (0, 1] (every n-th subtask)')
     if 'couple' not in world or b and not world.get('couple') or world.get('bridgeGuard') and (b != 1 or not world.get('guards', 0)):
         raise ValueError('a bridge key needs couple (no silent default); bridges need couple > 0; bridgeGuard needs bridges = 1 and guards')
     if N is not None and S:
@@ -51,7 +52,7 @@ class BridgeBoardEnv(ColonyBoardEnv):
     def __init__(self, seed, nAgents, couple=0.25, bridges=0, bridgeGuard=False, nLiar=0, **kw):
         self.couple, self.nLiar, S = float(couple or 0), int(nLiar), kw.get('squads')
         g = len(frozenset(kw.get('guardSlots', ())))
-        checkBridge(dict(couple=self.couple, bridges=bridges, bridgeGuard=bridgeGuard, squads=S, guards=g), nAgents, self.nLiar)
+        checkBridge(dict(couple=self.couple, bridges=bridges, bridgeGuard=bridgeGuard, squads=S, guards=g), nAgents, self.nLiar, zeroOk=True)
         if frozenset(kw.get('guardSlots', ())) != frozenset(range(self.nLiar, self.nLiar + g)):
             raise ValueError('bridges: guard slots must follow the nLiar liar slots')
         self.bridges = dealBridges(int(nAgents), int(S), self.nLiar, g, int(bridges), bool(bridgeGuard)) if S else []
