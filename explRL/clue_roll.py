@@ -22,6 +22,7 @@ from .clue_agents import ClueLiar
 from .colony_agents import scriptedFaults
 from .colony_board import STAGE4_KEYS, ColonyBoardEnv, stage4Members
 from .bridge_board import BRIDGE_KEYS, BridgeBoardEnv
+from .bridge_mech import bridgeColumns, isPhase20
 from .contest import applySharePenalty, contestOptions
 from .contest_eval import contestColumns, enforceBoard, isPhase19
 from .colony_trace import isPhase18, rolloutColumns
@@ -135,7 +136,7 @@ def coopMetrics(board, logs):
 
 
 def coopRows(cfg, ro, honest=None):
-    "One row per board: the Phase 11 columns (clueMetrics, llmStats over the text slots) plus coopMetrics (Phase 18 cells: plus colony_trace.rolloutColumns)."
+    "One row per board: the Phase 11 columns (clueMetrics, llmStats over the text slots) plus coopMetrics (Phase 18 cells: plus colony_trace.rolloutColumns; Phase 20: bridge_mech.bridgeColumns)."
     honest = range(cfg.nLiar, cfg.N) if honest is None else honest
     out = []
     for b, bd in enumerate(ro.boards):
@@ -143,7 +144,8 @@ def coopRows(cfg, ro, honest=None):
         out.append(dict(episode=0, **clueMetrics(cfg, bd, None, honest, cfg.turnsPerAgent()), **llmStats(members),
                         **coopMetrics(bd, ro.logs[b]),
                         **(rolloutColumns(cfg, bd, ro.logs[b], ro.seeds[b]) if isPhase18(cfg.world) else {}),
-                        **(contestColumns(cfg, bd, ro.logs[b]) if isPhase19(cfg.world) else {})))
+                        **(contestColumns(cfg, bd, ro.logs[b]) if isPhase19(cfg.world) else {}),
+                        **(bridgeColumns(cfg, bd, ro.logs[b]) if isPhase20(cfg.world) else {})))   # Phase 20
     return out
 
 

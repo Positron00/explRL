@@ -40,6 +40,7 @@ Rules are as in Phases 16-19:
 ## T3. Measures (about half a day)
 - **Files:** `nbs/bridge_mech.ipynb` (new: `bridgeColumns`, `isPhase20`, and the core measures of FR-D5 through Phase 19's `contest_eval.contestColumns`, `rl19_measures.ratio` and `lags`, and `rl19_spec.dolIndex`).
 - **Done when:** every measure in design-low-level's table is checked on a hand-built board with known relays, false relays, mirror posts and a contaminated answer, and `test_c1_measures` (AC-11) passes. The bridge columns appear in `coopRows` and in Claude rows only for bridge worlds; `contestColumns` is added to every C1 row, clean and reused rows included.
+- **Status (2026-11-10): done.** `explRL/bridge_mech.py` (162 lines: `isPhase20`, `tokensByRole`, `bridgeColumns`, `c1Columns`, `runC1`, `runC1Cell`, `reusedRows20`, `boardDol`, `tokPerSolved`, `coreMeasures`) and the `coopRows` hook (`clue_roll` 199). `runC1Cell` and `reusedRows20` add the bridge columns (zeros or NaN without bridges) and `contestColumns` to every C1 row; `coopRows` adds bridge columns only for bridge worlds. Tests: `test_c1_measures`, `test_c1_numpy`, `test_c1_rows`. Open (asked of the user): in the numpy simulator honest rule agents never use a relay (a relayed value has one sender, below `Q` = 2).
 
 ## T4. Grid, plans, cost rule and the Colab cell (about 1 day)
 - **Files:**
@@ -49,6 +50,7 @@ Rules are as in Phases 16-19:
   - `test_c1_grid` (38 new cells, 15 of them clean; AC-10) and `test_c1_hashes` pass;
   - `reusedPartB` finds 180 one-board rows (9 models × 20) whose configuration matches the new cells apart from `squads`;
   - the Colab cell compiles with Drive paths and claims models.
+- **Status (2026-11-10): done.** Split to stay under 200 lines: `explRL/bridge_grid.py` (158: arms, grids, `C1_CLEAN`, `reusedCells20`, `c1Estimate`, `squadEvalSuite`, `reusedPartB`, `bridgeCheckCells`, `projectHours20`) and `explRL/bridge_plan.py` (95: `C1_PILOT_PLAN`, `C1_PLAN` unfrozen with a B3 forecast placeholder, `costRule20` always 'ask', `pilotCheck20`). 38 new cells (15 clean), 3 pilot, 16 reused; main $25.28-30.63, pilot $1.76-2.21, total $27.05-32.83; part b 5.04 + check 0.52 A100 h. `reusedPartB` finds the 180 rows. `test_c1_hashes`: 26 plan, 5 grid and 2 RL config hashes unchanged. The Colab "Phase 20" cell (part b and the bridge check, levels `warm|bridge8` and `warm|bridge4`, prompt lengths to `check_c1/prompts.json`) compiles and dry-runs with stubs. `c1Estimate` prices arms the pilot lacks at the pilot's highest cost per call.
 
 ## T5. Report and demo (about half a day)
 - **Files:** `nbs/bridge_report.ipynb` (new: `c1Summaries`, `gateC1`, `partBSummaries`, `writeC1`, `figC1`, `syntheticRows20`), `nbs/demo_c1.ipynb` (new: quick, pilot, main, part b).
