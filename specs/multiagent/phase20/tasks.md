@@ -1,6 +1,6 @@
 # Tasks: Phase 20
 
-Status (2026-11-10): specified, decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10, not built. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-16 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
+Status (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed; nothing live has run). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-16 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
 
 Order: T0-T6, then T7 (part b and the bridge check) at any time after T6, and T8 (the pilot) at any time after T6. T9 and T10 wait for B3. T11 follows T10.
 
@@ -44,7 +44,8 @@ Rules are as in Phases 16-19:
 
 ## T4. Grid, plans, cost rule and the Colab cell (about 1 day)
 - **Files:**
-  - `nbs/bridge_grid.ipynb` (new: `ARMS20`, the grids with `C1_CLEAN` (P20-14), `reusedCells20`, `c1Estimate`, `costRule20`, `pilotCheck20`, `C1_PILOT_PLAN` and `C1_PLAN` unfrozen, `squadEvalSuite`, `reusedPartB`, `bridgeCheckCells`, `projectHours20`);
+  - `nbs/bridge_grid.ipynb` (new: `ARMS20`, the grids with `C1_CLEAN` (P20-14), `reusedCells20`, `c1Estimate`, `c1Range`, `squadEvalSuite`, `reusedPartB`, `bridgeCheckCells`, `projectHours20`);
+  - `nbs/bridge_plan.ipynb` (new: `C1_PILOT_PLAN` and `C1_PLAN` unfrozen, `costRule20`, `pilotCheck20`);
   - the "Phase 20" section of `nbs/colab_clue_rl.ipynb`.
 - **Done when:**
   - `test_c1_grid` (38 new cells, 15 of them clean; AC-10) and `test_c1_hashes` pass;
@@ -53,16 +54,16 @@ Rules are as in Phases 16-19:
 - **Status (2026-11-10): done.** Split to stay under 200 lines: `explRL/bridge_grid.py` (158: arms, grids, `C1_CLEAN`, `reusedCells20`, `c1Estimate`, `squadEvalSuite`, `reusedPartB`, `bridgeCheckCells`, `projectHours20`) and `explRL/bridge_plan.py` (95: `C1_PILOT_PLAN`, `C1_PLAN` unfrozen with a B3 forecast placeholder, `costRule20` always 'ask', `pilotCheck20`). 38 new cells (15 clean), 3 pilot, 16 reused; main $25.28-30.63, pilot $1.76-2.21, total $27.05-32.83; part b 5.04 + check 0.52 A100 h. `reusedPartB` finds the 180 rows. `test_c1_hashes`: 26 plan, 5 grid and 2 RL config hashes unchanged. The Colab "Phase 20" cell (part b and the bridge check, levels `warm|bridge8` and `warm|bridge4`, prompt lengths to `check_c1/prompts.json`) compiles and dry-runs with stubs. `c1Estimate` prices arms the pilot lacks at the pilot's highest cost per call.
 
 ## T5. Report and demo (about half a day)
-- **Files:** `nbs/bridge_report.ipynb` (new: `c1Summaries`, `gateC1`, `partBSummaries`, `writeC1`, `figC1`, `syntheticRows20`), `nbs/demo_c1.ipynb` (new: quick, pilot, main, part b).
+- **Files:** `nbs/bridge_report.ipynb` (new: `planned20`, `gateC1`, `c1Summaries`, `partBSummaries`), `nbs/bridge_write.ipynb` (new: `writeC1`, `figC1`, `syntheticRows20`, `syntheticPartB`), `nbs/demo_c1.ipynb` (new: quick, then the live stages by `EXPLRL_C1_STAGE`: `pilot`, `main1`, `main2`, `main`; and part b).
 - **Done when:** `test_c1_report` (AC-9) passes, and `demo_c1` quick runs end to end with the fake client and writes a report and `c1.png` from synthetic rows.
 - **Status (2026-11-10): done.** Split to stay under 200 lines: `explRL/bridge_report.py` (156: `planned20`, `gateC1`, `c1Summaries`, `partBSummaries`) and `explRL/bridge_write.py` (165: `writeC1`, `figC1`, `syntheticRows20`, `syntheticPartB`); `nbs/demo_c1.ipynb` (stages by `EXPLRL_C1_STAGE`: `pilot`, `main1`, `main2`, `main`; live cells flagged `llm`; part b flagged `train`). `test_c1_report` recovers every planted effect. Judgement calls: H20-3 needs a positive coupling cost as well as win-back above 0.5; H20-4 also reports a one-sided p. The live stages have not run.
 
 ## T6. Regression gate ($0)
 - **What:**
-  1. Replay every earlier live board through the cache-only client, so a miss raises and nothing is spent: Phase 18's pilot, Stage 1, 32 agents, Stage 3 and its pilot, 64 agents and its pilot, Stage 4 and its pilot, Stage 4b.
-  2. Only then run the live-flag cached reruns.
+  1. `tools/c1_regression.py` (without `EXPLRL_LLM_LIVE`): replay every earlier live board through the cache-only client, so a miss raises and nothing is spent: Phase 18's pilot, Stage 1, 32 agents, Stage 3 and its pilot, 64 agents and its pilot, Stage 4 and its pilot, Stage 4b. Then replay the 16 reused cells (`reusedCells20`) through `reusedRows20`.
+  2. Optional, before T8: the live-flag cached reruns. With no cache miss and every column equal, they would only rewrite the saved `metrics.json` and `timing.jsonl`.
   3. Run the full suite and Phase 19's tests.
-- **Done when:** every saved column is equal, the cached reruns are byte-identical, and the full suite passes (AC-1). The reused cells (`reusedCells20`) replay with C1's columns added and every earlier column unchanged.
+- **Done when:** every saved column is equal with no cache miss, the reused cells replay with C1's columns added and every earlier column unchanged, and the full suite passes (AC-1). This replay is the regression gate; step 2 is not required.
 - **Status (2026-11-10): done, step 2 replaced.** `tools/c1_regression.py` (without `EXPLRL_LLM_LIVE`): 413 earlier live boards (Phase 18's pilot 4, Stage 1 176, 32 agents 64, Stage 3 pilot 2 and run 40, 64 agents pilot 1 and run 16, Stage 4 pilot 3 and run 80, Stage 4b pilot 3 and run 24) replayed through the cache-only client with no miss and every saved column equal, in 166 s; the 16 reused cells replay through `reusedRows20` with every earlier column equal and C1's columns added. Full suite passes. Step 2 (the live-flag cached reruns) was not run: with no cache miss and every column equal, it would only rewrite the saved `metrics.json` and `timing.jsonl`; it can run before T8 if wanted.
 
 ## T7. Part b and the 3B bridge check (Colab, one account, about 5.5 A100 hours)

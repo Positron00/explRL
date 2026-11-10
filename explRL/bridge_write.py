@@ -78,6 +78,9 @@ def writeC1(path, S, meta, plan=C1_PLAN, partB=None):
             ks = list(next(v[k] for v in A.values() if v[k]))
             L += ['', f'## {title}', '', '| arm | ' + ' | '.join(ks) + ' |', '|---|' + '---|' * len(ks)]
             L += [f'| {a} | ' + ' | '.join(_g(v[k][c]) for c in ks) + ' |' for a, v in A.items() if v[k]]
+        L += ['', 'Note (FR-D5): a mirror post is not a board share, so the per-agent shares, sharing per held clue and Gorelick\'s index '
+              'count it as an idle turn; this biases collaboration and division of labour slightly against the coupled arms. '
+              'Mirror posts are in `mirrorPosts` and `mirrorPostsPerHolder`.']
         L += ['']
     L += _partB(partB) if partB else []
     L += ['## C1_PLAN', ''] + [f'- {k}: {json.dumps(v, default=str)}' for k, v in plan.items()]

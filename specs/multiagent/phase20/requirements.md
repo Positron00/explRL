@@ -45,33 +45,36 @@ Terms are as in Phases 18-19 and the research plan. In addition:
   - It raises `ValueError` if a squad has too few honest non-guard slots or guards. A1's 16 agents in squads of 4 with 6 liars leave some squads one such slot, which is enough for one bridge.
 - **FR-A3** `BridgeView`: one agent's view of a bridge board.
   - The squad's open subtasks, as `SquadView`.
-  - For the agents of squad s + 1 that hold a cross clue, the mirrors of s's coupled subtasks whose clue they hold (P20-16); other agents of s + 1 see no mirror line.
+  - For the agents of squad s + 1 that hold a cross clue, the mirrors of s's coupled subtasks whose clue they hold (P20-16); other honest agents of s + 1 see no mirror line. Liar slots of s + 1 see every mirror of their squad (`mirrors(i, every=None)`: every defaults to "i is a liar slot"; P20-5), beyond P20-16's holders-only rule for honest agents, so an adaptive liar's prompt shows them all.
+  - `crossClues()`: the cross clue agent i holds on each of its mirrors.
   - For a bridge, its pair's mirror lines: each coupled subtask's posted values with sender counts, from `mirrorLog` (P20-3).
   - `squadView(board, i)` returns it when the board has a `viewFor` method, so `TextClueEnv`, `InSquad` and scripted liars need no other change.
-- **FR-A4** Scripted liars (`ClueLiar` through `InSquad`) in squad s + 1 count mirrors among their candidate subtasks, and on a mirror post a false residue of the cross clue (P20-5). Honest rule agents of squad s + 1 that hold a cross clue post it on its mirror when the mirror's leading value is missing, different from theirs or unconfirmed (`ColonyAgent`'s sharing rule, applied to mirrors; P22-12, the user, 2026-11-10). So honest posts reach the mirrors in the simulator, as Claude's do, and a `RuleBridge` relay is not always a lie. This is structure, not a fitted behaviour: B3's fitted and unfitted simulators and C3's imitation data all get it.
+- **FR-A4** Scripted liars (`ClueLiar` through `InSquad`) in squad s + 1 count mirrors among their candidate subtasks, and on a mirror post a false residue of the cross clue (P20-5). `bridgeMembers` makes them `MirrorLiar`; it replaces exact `ClueLiar` members only, not subclasses. Honest rule agents of squad s + 1 that hold a cross clue post it on its mirror when the mirror's leading value is missing, different from theirs or unconfirmed (`ColonyAgent`'s sharing rule, applied to mirrors; P22-12, the user, 2026-11-10). So honest posts reach the mirrors in the simulator, as Claude's do, and a `RuleBridge` relay is not always a lie. This is structure, not a fitted behaviour: B3's fitted and unfitted simulators and C3's imitation data all get it.
 - **FR-A5** Relay credit for RL (P20-12). Under `scheme='credit'` or `'contest'`, when a solve's credited first true post of a clue is a relay, the credit share for that clue is split equally between the bridge and the first true poster of that clue on the mirror. `relaySource(board, share)` returns the source post, so `ContestLog` can treat a relayed liar's value as the liar's. Default schemes and every earlier board are unchanged.
 
 ### Part B: prompts, rule agents and rollouts
 
 - **FR-B1** Rule text (P20-4), added by `colonyRules` only when a bridge key is set:
   - `COUPLE_RULE` for every agent of a coupled board;
-  - `MIRROR_RULE` for the agents who see mirrors;
+  - `MIRROR_RULE` for every agent of a coupled board (on the ring every squad holds cross clues for the one before it, so any agent may come to hold one; the rules are cached once per agent);
   - `BRIDGE_RULE` for bridges;
   - a guarding bridge gets `GUARD_RULE` and `BRIDGE_RULE`.
 
   No earlier rule string changes.
 - **FR-B2** `TextClueEnv` with a bridge board:
-  - `observe` adds the view's mirror lines and, for a bridge, its pair's mirror board, as at most 3 new lines that call `bridge_agents.bridgeLines`;
+  - `observe` adds the view's mirror lines and, for a bridge, its pair's mirror board, as at most 3 new lines that call `bridge_agents.bridgeLines`. Mirror lines go to holders of the cross clue (P20-16) and to every liar slot of s + 1, which sees all its squad's mirrors (P20-5, FR-A3);
   - `parse` accepts a share on a mirror from an agent who holds its cross clue, and a relay from a bridge of any value posted on the mirror;
-  - every other prompt and parse is unchanged.
+  - `summary` (the agent's own last-turn line) shows the clue for a mirror share, e.g. `shared T41: x mod 5 = 2`, because a mirror share has no report; the summary of every other move is unchanged;
+  - every other prompt and parse is unchanged (pre-Phase-20 prompts hashed before and after, T2).
 - **FR-B3** `clueSetup` and `clue_roll.boardFactory` build `BridgeBoardEnv` when a bridge key is in the world, so Claude cells and 3B rollouts (training and evaluation) use the same board. `checkOptions` checks:
-  - `couple` needs `squads`;
-  - `bridges` needs `couple`;
-  - `bridgeGuard` needs `bridges=1` and at least one guard per squad;
+  - any bridge key needs `couple` in the world: `checkBridge` refuses it otherwise, with no silent default (before this check, a world with `bridges=0` and no `couple` was built with `BridgeBoardEnv`'s default and coupled at 0.25);
+  - `couple` needs `squads`, a value in (0, 1] and at least two squads;
+  - `bridges` needs `couple` > 0;
+  - `bridgeGuard` needs `bridges=1` and guards;
   - `dealBridges` must succeed.
-- **FR-B4** `RuleBridge`, a numpy rule agent that relays the leading mirror value of a coupled subtask its squad has open, if no true-or-false value of that clue is on its board yet; otherwise it acts as its base rule agent. `bridgeMembers(world, members)` applies it and the bridge view, as `stage4Members` does. B3's fitted simulator uses it to model bridges in C1's forecast (P20-13), and C3 uses it later for imitation data.
+- **FR-B4** `RuleBridge`, a mixin for numpy rule agents. `bridgeMembers(world, members)` applies it to every honest numpy member (its class becomes `Bridge<class>`, so `knownFor` and the rest stay the base agent's) and turns exact `ClueLiar`s into `MirrorLiar`, as a hook at the end of `stage4Members`. Roles are read at act time: only bridges relay, relaying the leading mirror value of a coupled subtask its squad has open if no true-or-false value of that clue is on its board yet; every honest member makes P22-12's mirror posts (FR-A4); otherwise each acts as its base rule agent. B3's fitted simulator uses it to model bridges in C1's forecast (P20-13), and C3 uses it later for imitation data.
 - **FR-B5** Adaptive (Claude) liars (`fault='adaptive'`, `DECEIVER_RULE`) work on bridge boards and may post on mirrors, for C4 part b. They are covered by an offline test with the fake client; C1 itself runs scripted liars only.
-- **FR-B6** Prompt length: `bridgePromptTokens(cfg, seeds)` reports the longest rendered prompt per role (bridge, mirror holder, other) for 3B rollouts. A1's speed check uses it against the 3,072-token window.
+- **FR-B6** Prompt length: `bridgePromptTokens(cfg, seeds, tok=None, policy=None)` reports the longest rendered prompt per role (bridge, mirror holder, other) for 3B rollouts. A1's speed check uses it against the 3,072-token window.
 
 ### Part C: grids, plans and runs
 
@@ -80,13 +83,13 @@ Terms are as in Phases 18-19 and the research plan. In addition:
   - clean (15, P20-14): `squads`, `coupled` and `bridge1` on seeds 1800-1804, no liars, 16 guards.
 
   `c1PilotGrid()` is the 3 pilot cells (P20-8), all with liars. `reusedCells20()` is the 16 reference cells, from `stage4Grid` and `stage64Grid`, all with liars. `colonyGuards` has no clean cell.
-- **FR-C2** `c1Estimate(cells, perCall)` returns calls and cost per arm (`cellCalls`: 1,920 per liar board, 2,560 per clean board). `costRule20(projected)` reports the projection beside the expected ceiling ($35, P20-8 as updated with P20-14) and always waits for the user's approval; it never runs on its own (P20-8). The pilot's estimated cost is reported the same way before the pilot. `pilotCheck20(rows)` checks:
+- **FR-C2** `c1Estimate(cells, perCall)` returns calls and cost per arm (`cellCalls`: 1,920 per liar board, 2,560 per clean board). `perCall` is one number or a dict by arm; an arm the pilot does not cover (clean `squads`, `bridge2`) is priced at the pilot's highest cost per call, which is conservative. `c1Range()` gives the README's range before the pilot. These are in `bridge_grid`; `costRule20`, `pilotCheck20` and the plans are in `bridge_plan`. `costRule20(projected, plan=None)` reports the projection beside the expected ceiling ($35, P20-8 as updated with P20-14) and always waits for the user's approval; it never runs on its own (P20-8). The pilot's estimated cost is reported the same way before the pilot. `pilotCheck20(rows)` checks:
   - invalid replies under 5%;
   - mirror posts above 0;
   - relays above 0 on each bridge board;
   - a bridge's input tokens per call at most 2 × 780.
 
-  It returns the verdict and the projection.
+  `pilotCheck20(rows, plan=None)` returns the verdict and the projection.
 - **FR-C3** `C1_PILOT_PLAN`, frozen and committed before the pilot. It holds:
   - the arms, cells, seeds and reused cells;
   - H20-1 to H20-8 with tests, families and claim rules (P20-7, P20-14);
@@ -102,14 +105,16 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 - **FR-C5** The main run follows Stage 4's pattern:
   - the 38 new boards (23 with liars, 15 clean) play live, in one or two seed batches, with a stop only at 5% invalid replies or the cap;
   - the full grid, new and reused, then replays from the cache at $0 for the frozen analysis;
-  - the reused rows gain C1's columns, and every earlier column must be unchanged (`reusedRows4`'s check).
+  - the reused rows gain C1's columns, and every earlier column must be unchanged (`reusedRows4`'s check, as `reusedRows20`).
+
+  In `demo_c1` the live stages are chosen by `EXPLRL_C1_STAGE`: `pilot`, then `main1` and `main2` (the two seed batches, 1800-1803 and 1804-1807), then `main` (the full grid from the cache). The pilot stage asserts `C1_PILOT_PLAN['frozen']`; freezing it after the user approves the estimate is how that approval is recorded (P20-8). The main stages assert `C1_PLAN` frozen on the pilot plan's hash, B3's forecast with its SHA-256, and the user's approval of the projection in `C1_PLAN['projection']['approved']`. `main2` needs `main1`'s rows with invalid replies under 5%, and `main` needs both batches' rows (`c1main1`, `c1main2`) with invalid replies under 5% before it replays the full grid, and asserts that the replay spends $0.
 - **FR-C6** Part b (P20-10): `squadEvalSuite(models)`, with the warm start and the final `r17mix` adapters as published (the user, 2026-11-09), per model, 32 agents in squads of 4 on Phase 17's plain board (`evalCell`'s settings with `cell['cfg']['world']['squads'] = 4` set after it builds the cell, since `evalCell` fixes `world` itself), seeds 900-909, clean and with 8 liars, 40 turns, levels `<model>|n32sq4` and `<model>|n32sq4liar`. `reusedPartB()` reads the one-board rows (`|n32`, `|n32liar`) from `eval_p17` and `eval_p17s0/warm.csv`, after a check that every configuration field but `squads` equals the new cells'.
 - **FR-C7** The 3B bridge check (P20-11): `bridgeCheckCells()`, the warm start at 16 agents in A1's world (`rl19_suite.world19e` plus `couple=0.25`, `bridges=1`), in squads of 8 and of 4, seeds 900-904.
 - **FR-C8** A section "Phase 20" in `nbs/colab_clue_rl.ipynb`: one cell, resumable and claim-aware (`evalModels` writes each model's rows as soon as it is done). It runs `squadEvalSuite` and `bridgeCheckCells` and packs `explRL_c1b.zip`.
 
 ### Part D: measures and analysis
 
-- **FR-D1** `bridgeColumns(cfg, board, logs)`, the row columns of a bridge board, added to every C1 row by `runC1Cell` (as `colony_mech.runStage4Cell`, for the LLM and numpy runners alike; B3's forecast runs numpy cells through it). Names: `mirrorPosts`, `mirrorPostsPerHolder`, `mirrorFalse`, `bridgeRelays`, `relaysPerBridgeTurn`, `falseRelayShare`, `relayLag`, `relaysUsed`, `crossContamination` (not `relay`, which `traceBoard` already emits):
+- **FR-D1** `bridgeColumns(cfg, board, logs=None, answers=None)`, the row columns of a bridge board, added to every C1 row by `runC1Cell` (as `colony_mech.runStage4Cell`, for the LLM and numpy runners alike; B3's forecast runs numpy cells through it). Names: `mirrorPosts`, `mirrorPostsPerHolder`, `mirrorFalse`, `bridgeRelays`, `relaysPerBridgeTurn`, `falseRelayShare`, `relayLag`, `relaysUsed`, `crossContamination` (not `relay`, which `traceBoard` already emits):
   - mirror posts, mirror posts per cross-clue holder, and their false share;
   - relays, relays per bridge turn, the false-relay share, relay lag (the source post's time to the relay's), and relays used in a correct answer;
   - coupled subtasks opened, solved, and their share of solves;
@@ -128,7 +133,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 
   It refuses to report unless every planned cell, clean cells included, is present.
 - **FR-D3** `partBSummaries(rows)`, per run: welfare gain over the warm start in squads of 4 and on one board, at 32 agents on clean boards, and their difference, with a sign-flip p over the 8 runs. Phase 17's 4-agent gain (+0.078) is shown beside it. Honest loss with liars is reported beside each. All descriptive (H20-6).
-- **FR-D4** `writeC1`, `figC1` (`c1.png`: honest pooled share per arm, with the lead and the half-lead bar), and `demo_c1` with four modes: quick (fake client, synthetic rows), pilot, main and part b.
+- **FR-D4** `writeC1`, `figC1` (`c1.png`: honest pooled share per arm, with the lead and the half-lead bar), (both in `bridge_write`, with `syntheticRows20` and `syntheticPartB`), and `demo_c1` with four modes: quick (fake client, synthetic rows), pilot, main (stages `main1`, `main2`, `main`; FR-C5) and part b.
 - **FR-D5** The plan's core measures, per arm, on boards with liars unless stated, reusing Phase 19's functions by name:
   - **per-board columns:** `contest_eval.contestColumns(cfg, rp.board, [rp.log])` on every C1 row, new and reused (from the cached replay; earlier columns unchanged). It gives `misinformedFirst`, `honestTurns`, `liarFirst`, `uncorrected`, `wrongHonest`, `sameWrong`, `liarPosts`, `contests`, `guardLies`, `contestLags` and the per-slot counts `agentTurns`, `agentShares`, `agentContests`, `agentSubmits`, `agentOpens`;
   - **pooled per arm** with `rl19_measures.index` and `ratio` (C1's levels are `<arm>|independent` and `<arm>|clean`, the `'<model>|<test>'` layout these functions read):
@@ -144,13 +149,15 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 
   `contestColumns` reads `shareLog` only. On a bridge board a relayed false value is therefore the bridge's post, not a liar's, in these columns. Relayed lies are measured by FR-D1's relay and contamination columns instead.
 
+  Mirror posts are not board shares (they go to `mirrorLog`, not `shareLog`). So `contestColumns`' per-agent shares, `sharePerHeld` (collaboration) and Gorelick's index count a mirror post as an idle turn. Mirror posts are measured by FR-D1's `mirrorPosts` and `mirrorPostsPerHolder` instead. This slightly biases collaboration and division of labour against the coupled arms, and the report says so.
+
 ## Quality requirements
 
-- **NFR-1** Phase 5-19 reference outputs and configuration hashes are unchanged. Every earlier live board replays through the cache-only client with every saved column equal, and the cached reruns stay byte-identical (Stage 4's regression gate). Phase 19's tests pass.
+- **NFR-1** Phase 5-19 reference outputs and configuration hashes are unchanged. The regression gate is `tools/c1_regression.py`: every earlier live board (413) replays through the cache-only client with every saved column equal, and a cache miss raises; the 16 reused cells replay with C1's columns added and every earlier column equal. Phase 19's tests pass. The live-flag cached reruns of Stage 4's gate are optional before T8: with no miss and every column equal, they would only rewrite the saved `metrics.json` and `timing.jsonl`.
 - **NFR-2** Offline tests need no network, key or GPU. `torch` is used only in tests flagged `train`.
 - **NFR-3** API spend goes through `llm_budget.Budget` on the shared ledger, under the cap of $250 per calendar month (P20-9), and only after the frozen plans and the user's approval of each estimate (P20-8). No paid call runs before T8.
 - **NFR-4** Seeds are fixed, cached replies replay exactly, and two hosts never evaluate the same model (`claim`).
-- **NFR-5** Each module stays under 200 lines. `clue_text` (193), `clue_roll` (195) and `colony_board` (190) take hooks of at most 3 lines each, `clueboard` (197) at most 2 (otherwise the weighted relay split overrides `_reward` in `BridgeBoardEnv`), and `colony_trace` (199) and `clue_agents` (199) none; the logic goes in new modules.
+- **NFR-5** Each module stays under 200 lines. `clue_text` (193), `clue_roll` (195) and `colony_board` (190) take hooks of at most 3 lines each, `clueboard` (197) at most 2 (otherwise the weighted relay split overrides `_reward` in `BridgeBoardEnv`), and `colony_trace` (199) and `clue_agents` (199) none; the logic goes in new modules. As built: `clue_text` 196, `clue_roll` 199, `colony_board` 191, `clue_colony` 150, `clue_runs` 107; `clueboard`, `colony_trace` and `clue_agents` unchanged (relay credit overrides `_reward` in `BridgeBoardEnv`). `clue_roll` is one line from the limit, so A1's bridged step (Phase 19, T5) must put new code elsewhere.
 - **NFR-6** Every new notebook is added to `nbs/sidebar.yml`. After a notebook is created or edited, `nbdev-clean` runs, then `nbdev-export`.
 - **NFR-7** Monthly ledger (shared with Phase 21; whichever phase is built first does it, the other reuses it). Today `llm_budget.Budget.spent()` sums every entry ever written to the untracked ledger `results/multiagent/llm/spend.jsonl`: 491,301 entries, $233.18, all from before November 2026, written as `{"cost", "note"}` with no date. A $250 cap would then refuse C1 and A2. The change:
   - each new ledger entry carries `month`, the UTC `'YYYY-MM'`;
@@ -161,7 +168,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
 
 ## Acceptance criteria
 
-- **AC-1** Regression: NFR-1, and the full suite passes.
+- **AC-1** Regression: NFR-1 (the replay of every earlier live board with every saved column equal, and the reused cells with C1's columns), and the full suite passes. The live-flag cached reruns are not required.
 - **AC-2** Coupling, on a seeded 64-agent board in squads of 8:
   - exactly every fourth subtask per squad is coupled;
   - each coupled subtask's clue 0 holders are in s and its clue 1 holders in s + 1;
