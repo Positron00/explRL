@@ -1,6 +1,6 @@
 # Requirements: Phase 19, contest credit
 
-Part of [README.md](README.md) (plan and decisions P19-1 to P19-7). It builds on these modules:
+Part of [README.md](README.md) (plan and decisions P19-1 to P19-9). It builds on these modules:
 
 - `clue_rl` (`RLConfig`, `trainRL`) and `rl17_grid`, `rl17_update`, `rl17_train` (`RL17Config`, `trainRL17`, `FIX17`, claiming);
 - `rl18_grid` (`FIX18`, `evalAdapter`, `colonySuite`);
@@ -28,11 +28,12 @@ Terms are as in Phases 16-18. In addition:
 - **Board type:** team size, liar count and subtask lifetime.
 - **Varied threat:** each training board draws its liar count from {0, 4, 6} of 16 and its subtask lifetime from {15, 30} turns (P19-7). Arm 3 fixes 4 liars and draws the same two lifetimes.
 - **Per-agent record (arm 4):** each agent's prompt carries its own past payoffs from contests and solves over earlier boards in a sequence of 6 boards. Records are reset between sequences; training rollouts play sequences, one per board slot (team size, liar count, board, GRPO copy), so a sequence's liar slots never change.
-- **Training world (P19-1):** 16 agents in squads joined by bridges (C1, Phase 20): a bridge agent reads two squads' boards and relays values between them. Squads without cross-squad subtasks are used only if Gate C1 fails.
+- **Training world (P19-1):** 16 agents in squads joined by bridges (C1, Phase 20): a bridge agent reads its own squad's board and its pair's mirror lines on the next squad's board (P20-3), and relays values posted there onto its own squad's coupled subtasks. Squads without cross-squad subtasks are used only if Gate C1 fails.
 - **Waiting rate (the plan's Terms):** the share of a non-guard's answers that used a posted value only after a second sender had posted it.
   - An answer *uses a posted value* when it agrees, mod p_j, with a value posted before it for a clue j of the subtask that the agent does not hold. Guesses that agree with no posted value are not counted, and a refused submission (`enforceK`) is no answer.
   - It *waited* when every posted value it used had at least two distinct senders by then.
-- **Damage won back:** 1 − (honest loss of the arm) / (honest loss of the reference), as in Phase 18, on the same boards. The reference is the warm start without guards (the plan's Terms for 3B teams): the plain board (no counting, no guards) in the same squads and world and on the same seeds, common to every arm. Honest loss is clean welfare minus welfare with liars.
+  - In the bridged world, answers on coupled subtasks are left out of the waiting rate and reported apart (P19-9): their cross clue reaches the squad's board only through the bridge's relay, so they could never wait.
+- **Damage won back:** 1 − (honest loss of the arm) / (honest loss of the reference), as in Phase 18, on the same boards. The reference is the warm start without guards (the plan's Terms for 3B teams): the plain board (no counting, no guards) in the same squads and world, with the same coupling and bridges in the bridged world (P19-9), and on the same seeds, common to every arm. Honest loss is clean welfare minus welfare with liars.
 - **Cost without liars:** honest pooled share on boards without liars, the reference's (the warm start without guards, as above) minus the arm's; raw welfare the same way.
 - **Regret:** welfare lost against the best fixed waiting threshold at the same liar share: for each liar count and lifetime, the warm start's best `enforceK` there, minus the arm's welfare; averaged over the grid.
 - **Specialization:** Part B's variance-ratio index (the variance across agents of their share of turns spent sharing, over its binomial expectation) across boards, minus its shuffled-turns null.
@@ -58,15 +59,17 @@ Terms are as in Phases 16-18. In addition:
   - At `scheme='credit'` the rewards equal `clueboard`'s exactly.
 - **FR-A4** The all-sharing penalty is applied at a board's end from a frozen reference table (`WARM_ANSWERS`, measured in the speed check), as `sharePenalty` on every honest slot. The table is kept per squad size and per guard count: with 4 guards (arms 1-3) and without guards (arm 4, whose penalty and answer halt use the guard-free table).
 - **FR-A5** The varied-threat mix: `threat=((0, 4, 6), lifetimes)` draws each step's board types from seeded RNGs; every configuration sees the same board seeds at a given step.
-- **FR-A6** The enforced waiting threshold, for evaluation only: `enforceK` in {1, 2, 3} refuses a submission using a posted value supported by fewer than `enforceK` senders, and counts the refusal as a wait. Swept with the warm start, it gives the best fixed threshold for the regret measure.
-- **FR-A7** Per-agent records for 3B agents (the plan's engineering row): an option `records=True` that adds each agent's own past payoffs to its prompt across a sequence of 6 boards, for training and evaluation. In training, records are keyed by board slot (team size, liar count, board, GRPO copy), so the liar slots stay fixed within a sequence. Built in this phase whatever P19-5 decides; arm 4 uses it only if Gate A2 has passed.
+- **FR-A6** The enforced waiting threshold, for evaluation only: `enforceK` in {1, 2, 3} refuses a submission using a posted value supported by fewer than `enforceK` senders, and counts the refusal as a wait. Answers on coupled subtasks are exempt (P19-9). Swept with the warm start, it gives the best fixed threshold for the regret measure.
+- **FR-A7** Per-agent records for 3B agents (the plan's engineering row): an option `records` in {False, 'payoffs', 'a2'}; `'payoffs'` (today's `True`) adds each agent's own past payoffs to its prompt across a sequence of 6 boards, for training and evaluation. In training, records are keyed by board slot (team size, liar count, board, GRPO copy), so the liar slots stay fixed within a sequence. Built in this phase whatever P19-5 decides; arm 4 uses it only if Gate A2 has passed, and then in the `'a2'` format (P21-11): beside the payoffs, per board, the contests the agent made and the correct answers that followed them (at most one per subtask, Phase 21's rule). If Gate A2 is not read (too few calls or not run), arm 4 runs without records, recorded as a deviation (Phase 21).
+  - **Record format (A2's P21-11, accepted 2026-11-09).** If Gate A2 passes, the record line (`contest.Records.line`) also lists, per earlier board, the contests the agent made and the correct answers that followed (correct answers to the contested subtask by other honest agents after the contest), beside the payoffs. So A1 tests the format that passed in A2. `RL19_PLAN` records the format at the freeze (T8 step 1).
 - **FR-A8** The answer halt (the plan's training hygiene): a run halts when answers per board stay below a third of the warm start's (`WARM_ANSWERS`) for 3 steps in a row. This joins `FIX18`'s KL rule and the invalid-reply halt. A halted run is evaluated with the last checkpoint whose policy produced no step of its halting streak (`evalAdapter19`: step m's rollouts and logged KL come from the policy before step m's update, ckpt-(m-1), so a streak of n steps ending at step h is evaluated at ckpt-(h-n-1)), and reported.
 - **FR-A9** The bridged world (P19-1): A1 trains and is evaluated in squads joined by bridges once C1's code (Phase 20) exists. `SPEED19`, `PILOT19_PLAN` and `RL19_PLAN` carry `world` (`'bridges'`, from `DECISIONS19['P19_1']`; `'squads'` only if Gate C1 fails), read by `rl19Config`. Until bridged rollouts exist, `rl19Config` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20. The bridged rollouts must log a bridge agent's longest prompt plus reply (`longestBridge`).
+  - **Relay credit (Phase 20's P20-12, accepted 2026-11-09).** Under `scheme='credit'` or `'contest'`, a relayed clue's credit share is split equally between the bridge and the first true poster of that clue on the mirror. `ContestLog` treats a relayed liar's value as the liar's (it reads `bridge_board.relaySource`), so a contest against a relayed lie earns contest credit. At the default schemes, and on boards without bridges, rewards are unchanged.
 
 ### Part B: plans, grid, Colab
-- **FR-B1** `RL19Config(RL17Config)` adds `contestSlots`, `halfLife`, `sharePenalty`, `threat`, `records` and `haltAnswers` (the answer halt, FR-A8) at defaults that reproduce `RL17Config`. `configHash19` leaves them out at their defaults, so the Phase 17-18 hashes are unchanged.
+- **FR-B1** `RL19Config(RL17Config)` adds `contestSlots`, `halfLife`, `sharePenalty`, `threat`, `records` and `haltAnswers` (the answer halt, FR-A8) at defaults that reproduce `RL17Config`. `configHash19` leaves them out at their defaults, so the Phase 17-18 hashes are unchanged; `records='a2'` and `'payoffs'` hash differently. `RL19_PLAN` records the format as `recordFormat`.
 - **FR-B2** `SPEED19`: a 3-step speed check of arm 2 at 16 agents in squads of 4 and squads of 8, in its `world`. It records:
-  - seconds per step and the longest prompt plus reply, a bridge agent's reported apart (it reads two squads' boards; the 3,072 window is refused if either exceeds it);
+  - seconds per step and the longest prompt plus reply, a bridge agent's reported apart (it reads its own squad's board and its pair's mirror lines, P20-3; the 3,072 window is refused if either exceeds it);
   - invalid replies;
   - `WARM_ANSWERS`, from warm-start rollouts on every training board type, with 4 guards and without guards;
   - Colab compute units per A100 hour.
@@ -77,7 +80,7 @@ Terms are as in Phases 16-18. In addition:
   - the selection rule: honest welfare at 4 liars of 16 minus the warm start's, on 5 held-out boards (seeds 950-954) per adapter; the larger gain wins, and squads of 4 win ties.
 - **FR-B4** `RL19_PLAN`, frozen after the pilot and before the main runs:
   - the chosen squad size, and the training world: squads with bridges (P19-1), or squads without cross-squad subtasks only if Gate C1 failed; Gate C1's outcome is recorded in `gates`;
-  - arm 4 with or without records (P19-5);
+  - arm 4 with or without records (P19-5), and with records, A2's record format (P21-11, FR-A7);
   - the arms, seeds and steps, and the projected hours confirmed by the user;
   - P19-2 to P19-5 as decided;
   - the evaluation grid (FR-C1), H19-1 to H19-6 with tests and families, and the claim rules.
@@ -112,7 +115,8 @@ Terms are as in Phases 16-18. In addition:
   - waiting rate by liar count × lifetime, by liar count, and its slope and regret;
   - specialization (Part B's variance ratio) at 8, 16 and 32 agents and its slope over log2 of team size, the division of labour (Gorelick's index) at the same sizes, role persistence, and how they recover after the removal and the return (arm 4);
   - the plan's core measures, as the team-scaling eval (B1) defines them:
-    - gullibility, as first wrong answers made while misinformed per honest agent-turn, with suppression (liar-first clues left uncorrected);
+    - gullibility, as the plan's Terms define it: the share of honest answers made while misinformed (right or wrong), contamination (honest answers built on a false clue, `colony_trace`'s column), and suppression (liar-first clues left uncorrected); first wrong answers made while misinformed per honest agent-turn (`misinformedFirst`) is kept as a named variant;
+    - tokens per solved task;
     - verification: contests per lie, time to contest, and the share of lies on a guarded clue;
     - collaboration (sharing per held clue);
     - error correlation (repeated wrong values); contamination across squads once bridged rollouts exist;
@@ -141,11 +145,14 @@ Terms are as in Phases 16-18. In addition:
   - an agent that held the clue does not qualify.
 - **AC-3b** A watcher shown a true value of the clue before the lie does not qualify, and a contest that is not the first true post earns the bonus but not the credit share.
 - **AC-4** The penalty fires exactly when answers fall below a third of the reference, and on every honest slot. The answer halt fires after exactly 3 such steps in a row.
-- **AC-4b** Records: an agent's record lists only its own payoffs, and resets between sequences.
+- **AC-4b** Records: an agent's record lists only its own payoffs, and resets between sequences. With A2's format (P21-11), it also lists, per board, the agent's own contests and the correct answers that followed, counted on a hand-built board.
 - **AC-5** The trainer: one `trainRL19` step at the defaults equals `trainRL17`'s (flag `train`, tiny model). Liar slots are never trained.
 - **AC-6** Plans: `PILOT19_PLAN` is frozen before the pilot cell runs. `RL19_PLAN` is frozen, with the user's confirmation of the hours, before the main cell runs. Each cell stops until Gate C1 is recorded and its world matches it; the main cell trains only the first 2 runs until `STABLE19` is set.
-- **AC-8** World: `rl19Config`, `speedConfig19`, `pilotConfig19` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20 until bridged rollouts exist; the 64-agent cells always need them.
 - **AC-7** Analysis: the exact tests and Holm recover known effects on synthetic runs, and every `RL19_PLAN` item is reported.
+- **AC-8** World: `rl19Config`, `speedConfig19`, `pilotConfig19`, `warmCells` and `contestSuite` refuse `'bridges'` with a `NotImplementedError` naming Phase 20 until bridged rollouts exist; the 64-agent cells always need them. Once they exist (T5), a hand-built bridged board shows P20-12's split of a relayed clue's credit share, and a contest against a relayed liar's value pays the contester.
+- **AC-9** Threat: at a given step every arm draws the same board types, and arm 3's lifetimes are arm 2's (FR-A5).
+- **AC-10** `enforceK`: 1 never refuses; 2 refuses a value with one sender and logs a wait; an answer on a coupled subtask is never refused (FR-A6, P19-9).
+- **AC-11** `contestSuite` builds the cells FR-C1 lists, at the stated sizes, liar counts and seeds.
 
 ## Out of scope
 

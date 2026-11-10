@@ -1,13 +1,13 @@
 # Plan: Phase 19, training the guard role with RL (contest credit)
 
-Status: **engineering done except the bridged world, not run** (2026-11-08). T1-T4 are implemented and tested, not committed; nothing has run on a GPU. A1 waits for C1 (squads joined by bridges, specified as Phase 20) and A2 (prompted screens), per the user's decisions below; once C1's code exists, T5 adds training in squads with bridges. This phase is experiment A1 of the Stage 1 research plan: the main RL experiment of project A, "train agents into the verification role with RL". It tests the plan's hypotheses P2 (caution that tracks the threat; arms 1-3) and P1 (roles from experience; arm 4). The user decided P19-1 to P19-5 and P19-7; only P19-6 (the GPU budget) is open, until the speed check.
+Status: **engineering done except the bridged world, not run** (2026-11-08). T1-T4 are implemented and tested, committed in bfe5e5b (2026-11-08); nothing has run on a GPU. A1 waits for Gate C1 (squads joined by bridges, specified as Phase 20) and Gate A2 (prompted screens), per the user's decisions below. C1's main run waits for B3's fitted simulator (Phase 20, P20-13), so A1 waits for B3 too; once C1's code exists, T5 adds training in squads with bridges. This phase is experiment A1 of the Stage 1 research plan: the main RL experiment of project A, "train agents into the verification role with RL". It tests the plan's hypotheses P2 (caution that tracks the threat; arms 1-3) and P1 (roles from experience; arm 4). The user decided P19-1 to P19-5 and P19-7 (2026-11-08) and P19-8 to P19-9 (2026-11-10); only P19-6 (the GPU budget) is open, until the speed check.
 
 **Order relative to the plan.** The plan runs A1 in weeks 4-10, after its cheap screens:
 
 - Gate C1 sets A1's training world (squads with bridges);
 - Gate A2 decides whether arm 4 keeps per-agent records.
 
-This phase was specified first, by the user's choice of the simpler task, but it runs in the plan's order: C1 and A2 run first. The plan's fallback world (squads without cross-squad subtasks) applies only if Gate C1 fails; if Gate A2 fails, arm 4 runs without records, as the plan says.
+This phase was specified first, by the user's choice of the simpler task, but it runs in the plan's order: C1 and A2 run first. C1's main run waits for B3's fitted simulator (Phase 20, P20-13, the user, 2026-11-09), so B3 (Phase 22, specified with the user's decisions on 2026-11-10, not built) must be built and refit on C1's pilot before Gate C1 can be read, and A1 waits for B3 too. The plan's fallback world (squads without cross-squad subtasks) applies only if Gate C1 fails; if Gate A2 fails, arm 4 runs without records, as the plan says.
 
 ## Files in this spec
 
@@ -60,7 +60,7 @@ Each prediction can fail. H19-1 fails if contests add nothing over shared clues.
   4. No assignment; contest credit open to every agent (the emergence arm). As in the plan, each agent has its own record of past payoffs, played over sequences of boards. It runs without records if Gate A2 fails (P19-5).
 
   "Varied threat" means each board draws 0, 4 or 6 liars of 16 and one of two subtask lifetimes, 15 or 30 turns (the board's default is 30; P19-7). Arms 1-3 get 8 seeds each, arm 4 gets 5.
-- **Reference for damage won back and cost without liars.** The warm start without guards, as the plan's Terms define it for 3B teams: the plain board (no counting, no guards) in the same squads, the same world and on the same seeds. It is common to every arm, so H19-1 compares honest losses and H19-3 prices guarding against the same team.
+- **Reference for damage won back and cost without liars.** The warm start without guards, as the plan's Terms define it for 3B teams: the plain board (no counting, no guards) in the same squads, the same world (with the same coupling and bridges in the bridged world, P19-9) and on the same seeds. It is common to every arm, so H19-1 compares honest losses and H19-3 prices guarding against the same team.
 - **Pilot of the squad size.** Two 10-step runs of arm 2, with squads of 4 and squads of 8, in the training world. The main runs use the size with the larger gain. Phase 17 gained at 4 agents but barely at 8.
 - **Gate A1 (after the main runs).**
   - Two one-sided exact permutation tests over 8 runs per arm, with Holm across the two: H19-1 and H19-2.
@@ -79,7 +79,7 @@ Each prediction can fail. H19-1 fails if contests add nothing over shared clues.
   - about 6.5 hours for the squad-size pilot (2 runs of 10 steps, plus about 0.5 hours of evaluation);
   - about 28 hours of evaluation.
 
-  No API spend. The speed check replaces these estimates before the main runs; it also reports the longest prompt, a bridge agent's included (it reads two squads' boards). The user decides the GPU budget after the speed check (P19-6).
+  No API spend. The speed check replaces these estimates before the main runs; it also reports the longest prompt, a bridge agent's included (it reads its own squad's board and its pair's mirror lines, P20-3). The user decides the GPU budget after the speed check (P19-6).
 
 ## Decisions
 
@@ -89,24 +89,32 @@ Each prediction can fail. H19-1 fails if contests add nothing over shared clues.
 | P19-2 | Contest bonus decay | The bonus halves every 4 turns after the lie (half-life `H` = 4), so a contest within a turn or two pays nearly in full and delay does not pay. |
 | P19-3 | All-sharing penalty | On a training board where the team's honest answers fall below a third of the warm start's mean for that board type (in the arm's own world: with guards for arms 1-3, without for arm 4), every honest agent loses 0.5 at the board's end. No agent is penalized for its own mix of posts and answers. |
 | P19-4 | Held-out liar shares for H19-2 | 2 and 8 of 16, added to the trained 0, 4 and 6 at evaluation. |
-| P19-5 | Arm 4's records | The records are built either way (the plan's engineering row puts them in A1's code). A2 runs first; arm 4 keeps records if Gate A2 passes and drops them if it fails, set when `RL19_PLAN` is frozen. |
-| P19-6 | GPU budget (open) | About 295 A100 hours across the two Pro+ accounts, or a lever: arm 3 down to 5 seeds (saves about 27 hours), arm 4 dropped (about 45), or 20 steps per run (about a third). Arm 3 is needed for H19-2, so dropping it removes a primary test. Decided after the speed check. |
+| P19-5 | Arm 4's records | The records are built either way (the plan's engineering row puts them in A1's code). A2 runs first; arm 4 keeps records if Gate A2 passes and drops them if it fails, set when `RL19_PLAN` is frozen. **Format (A2's P21-11, accepted 2026-11-09):** if Gate A2 passes, the record line (`Records.line`) also lists, per board, the contests made and the correct answers that followed, beside the payoffs, so A1 tests the format that passed. Set at the freeze (T8 step 1). |
+| P19-6 | GPU budget (open) | About 295 A100 hours across the two Pro+ accounts, or a lever, in the plan's order (its risk table: "Cut arm 4 and C4's secondary runs first … primary arms keep 8 seeds"): arm 4 dropped (saves about 45 hours), then 20 steps per run (about a third of the roughly 261 training hours). Arm 3 down to 5 seeds (about 27 hours) would be a stated deviation, because arm 3 is in H19-2, a primary test. The speed check (T6, about 3 A100 hours) is outside the 295. Decided after the speed check. |
 | P19-7 | Subtask lifetimes | 15 and 30 turns. The plan names two lifetimes without values; 30 is the board's default and 15 makes subtasks urgent. |
+| P19-8 | Bridge configuration | `bridge1` for every arm (arm 4 has no guard slot for `bridgeGuard`). If Gate C1's inert-bridge rule fires, or P20-11 finds the 3B warm start never relays, stop and ask before the speed check whether A1 keeps bridges; a decline means squads without cross-squad subtasks, recorded with Gate C1 as {passed, inertFired, userAcceptsBridges}. A late C1 delays A1; there is no fallback for lateness. |
+| P19-9 | Measures and cells in the bridged world | Answers on coupled subtasks are left out of the waiting rate, exempt from `enforceK` and reported apart. The damage and cost reference is the plain board with the same coupling and bridges. Held-out cells with a single squad (8 agents in squads of 8) run without coupling, as stated. The 64-agent cells use squads of 8, C1's board. |
 
 **Decided by the user (2026-11-08):**
 
 - **P19-1, training world.** Wait for C1: A1 trains in squads joined by bridges, as the plan intends. C1 is built and Gate C1 runs before A1, so A1 runs in the plan's order; the fallback (squads without cross-squad subtasks) applies only if Gate C1 fails. `SPEED19`, `PILOT19_PLAN` and `RL19_PLAN` carry this `world`; `rl19Config` refuses 'bridges' (naming Phase 20) until bridged rollouts exist, and the three Colab cells assert that Gate C1 is recorded and that the world matches it.
 - **P19-5, arm 4's records.** A2 runs first, alongside C1. Arm 4 keeps records if Gate A2 passes and drops them if it fails; this is set at the freeze.
 - **P19-2, P19-3, P19-4 and P19-7.** Accepted as proposed: a half-life of 4 turns, a penalty of 0.5, held-out shares of 2 and 8 of 16, and lifetimes of 15 and 30 turns.
+- **P19-8 and P19-9 (the user, 2026-11-10).** Accepted as proposed after the spec review: `bridge1` with stop-and-ask on an inert result, waiting for Gate C1 however late (the plan's risk row was corrected to match), coupled answers left out of the waiting rate and `enforceK`, a coupled reference, unbridged single-squad cells and 64-agent cells in squads of 8.
 - **P19-6, GPU budget.** Decided after the speed check, which reports the projection in A100 hours, compute units and months of the two Pro+ plans.
 - **Power.** The primary tests are powered for a 1.5-SD effect with 8 seeds per arm, about 0.87 under Holm at Phase 17's spread. A 1-SD effect would likely read as "not shown", and the report will say so.
-- **Order of API spend.** C1 and A2 (about $65-90) run before the capability plan's month 1, on the $100-a-month API credit.
+- **Order of API spend.** C1 and A2 run before the capability plan's month 1, on the $100-a-month API credit: the plan put them at about $65-90, and Phases 20 and 21 project about $61-72 together (C1 $27-33 with its clean boards, Phase 20 P20-14; A2 $34-39). The cap is $250 of total spend per calendar month (the user, 2026-11-09); the user sees each cost estimate before a run and may raise the cap then (Phase 20, P20-9; Phase 21, P21-10). This holds once `Budget` counts by month (Phase 20, T0): the ledger still counts all-time spend, $233.18 before November.
 
 These values are recorded in `DECISIONS19` (`explRL/rl19_grid.py`).
 
+**Handoffs accepted by the user (2026-11-09), from Phases 20 and 21:**
+
+- **Record format (Phase 21, P21-11).** If Gate A2 passes, arm 4's record line also lists, per board, the contests made and the correct answers that followed (other honest agents' correct answers to the contested subtask after the contest), beside the payoffs. Set at the `RL19_PLAN` freeze (T8 step 1). If Gate A2 fails or is not read, arm 4 has no records, so the format does not arise.
+- **Relay credit (Phase 20, P20-12).** In the bridged world, under scheme `'credit'` or `'contest'`, a relayed clue's credit share is split equally between the bridge and the first true poster of that clue on the mirror. `ContestLog` treats a relayed liar's value as the liar's (through `relaySource`), so contesting a relayed lie can pay. Built in T5 (FR-A9).
+
 ## Relation to the other experiments
 
-- **A2 (prompted screens):** its rule-text screen and experience screen set arm 4's records (P19-5). A2 is specified as Phase 21. Its rule-text screen (8 and 32 agents, suppression) and the capability plan's E4 drop-only arm (16 agents, first wrong answers) share one implementation of the drop-only prompt and complement each other; E4 does not replace A2's screen.
-- **C1 (squads and bridges, Phase 20):** runs before A1. If Gate C1 passes, A1 trains in squads with bridges; if it fails, in squads without cross-squad subtasks. Either way, A1's best arm is evaluated, descriptively, in 64-agent squads with bridges, and cross-squad contamination is measured once bridged rollouts exist.
+- **A2 (prompted screens):** its experience screen (Gate A2) sets arm 4's records (P19-5). If Gate A2 passes, arm 4's record line also takes A2's format, the contests made and the correct answers that followed per board, beside the payoffs (P21-11, accepted 2026-11-09). Its rule-text screen does not change Phase 19, whose counting board already replaces the re-sharing sentence. A2 is specified as Phase 21. Its rule-text screen (8 and 32 agents, suppression) and the capability plan's E4 drop-only arm (16 agents, first wrong answers) share one implementation of the drop-only prompt and complement each other; E4 does not replace A2's screen.
+- **C1 (squads and bridges, Phase 20):** runs before A1, and A1 waits for Gate C1. C1's main run waits for B3's fitted simulator (P20-13), so A1 waits for B3 too. If Gate C1 passes, A1 trains in squads with bridges, with relay credit as P20-12 (accepted 2026-11-09); if it fails, in squads without cross-squad subtasks. Either way, A1's best arm is evaluated, descriptively, in 64-agent squads with bridges, and cross-squad contamination is measured once bridged rollouts exist. C1's clean boards (P20-14) report the cost without liars of squads, coupled squads and squads with one bridge per pair: the worlds A1 may train in, whose varied threat includes boards without liars.
 - **C3 (emergent structure):** runs only if Gate C1 passes and either Gate A1 passes or arm 4's specialization exceeds the warm start's.
 - **C4 (trained liars):** trains liars against A1's best team, or arm 1's if Gate A1 fails.

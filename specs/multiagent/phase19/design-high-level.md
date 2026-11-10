@@ -25,7 +25,8 @@ Unchanged: `trainRL`, the credit, team and individual schemes, and every Phase 5
 
 ```text
 Mac: implement -> offline tests (contest credit on hand-built boards; credit equivalence; squads) -> push
-Phase 20 (C1): bridged rollouts built and tested; Gate C1 run -> RL19_PLAN['gates']['C1']; Gate A2 run -> ['A2']
+Phase 20 (C1): bridged rollouts built and tested; B3's simulator refit on C1's pilot (P20-13); Gate C1 run
+     -> RL19_PLAN['gates']['C1']; Phase 21 (A2): Gate A2 run -> ['A2']
 Mac: T5, A1 in squads with bridges (FR-A9); freeze SPEED19 (world from Gate C1) -> push
 Colab A: speed check (arm 2, 3 steps, squads of 4 and 8) -> step times, longest prompt (a bridge agent's too), WARM_ANSWERS
          (with and without guards), units per hour

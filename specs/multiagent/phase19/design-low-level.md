@@ -27,6 +27,8 @@ class Records:
     def add(self, i, kind, payoff): ...
 ```
 
+- **Record format (A2's P21-11, accepted 2026-11-09).** Today `line` gives, per earlier board, "your answers earned ..., your contests earned ...". If Gate A2 passes, it also gives, per board, the contests the agent made and the correct answers that followed: correct answers to the contested subtask by other honest agents after the contest, as A2 counts them (`a2_seq.followed`). For example: "board 1: you contested 2 false values, and teammates then answered those subtasks correctly 1 time; your answers earned 1.50, your contests earned 0.75". `addBoard` counts them on the finished board, from its `ContestLog` and its submissions. The format is set at the `RL19_PLAN` freeze (T8 step 1). If Gate A2 fails, arm 4 has no records.
+
 - **A contest is judged at the moment of posting.** The slot's tally must show a value whose first poster is a liar and which differs from the true residue. The contester must be honest and post the true residue.
 - **A contester may not be a watcher of its own contest,** and the same watcher pays a contest at most once.
 - **The credit share is not new code.** `_creditTo` already credits the first true post of each clue a solver lacked, which a contest normally is.
@@ -61,7 +63,7 @@ class RL19Config(RL17Config):
     halfLife: float = 4.0
     sharePenalty: float = 0.0
     threat: tuple | None = None       # VARIED or FIXED4
-    records: bool = False             # arm 4, if Gate A2 passed (P19-5)
+    records: object = False           # False, 'payoffs' or 'a2' (P21-11); arm 4, if Gate A2 passed (P19-5)
     haltAnswers: int | None = None    # 3: halt after 3 steps with answers below a third of WARM_ANSWERS
 
 ARMS19 = dict(
@@ -71,7 +73,7 @@ ARMS19 = dict(
     a19open=dict(scheme='contest', contestSlots='all', threat=VARIED, guards=0, records=None))   # None: set by P19-5 at freeze
 SEEDS19 = dict(a19credit=8, a19contest=8, a19fixed=8, a19open=5)
 BASE19 = dict(**BASE17, **FIX18, steps=30, world=(('colony', True), ('r', 2)), N=16, haltAnswers=3)   # squads set by the pilot
-WORLDS19 = ('bridges', 'squads')       # P19-1: 'bridges' (DECISIONS19['P19_1']); 'squads' only if Gate C1 fails
+WORLDS19 = ('bridges', 'squads')       # P19-1: 'bridges' (DECISIONS19['P19_1']); 'squads' only if Gate C1 fails or the user declines inert bridges (P19-8)
 BRIDGES_READY = False                  # True once Phase 20's bridged rollouts exist
 def worldFor19(c1): ...                # Gate C1 passed -> 'bridges', failed -> 'squads', unrecorded -> refused
 def needWorld19(world): ...            # 'bridges' -> NotImplementedError naming Phase 20 until BRIDGES_READY
@@ -82,12 +84,14 @@ SPEED19, PILOT19_PLAN, RL19_PLAN       # each carries world=DECISIONS19['P19_1']
 
 **The bridged world (FR-A9, task T5).** Once Phase 20 has built bridged rollouts, T5 wires them in: `rollout` takes the bridge options from the world, the step metrics add `longestBridge` (a bridge agent's longest prompt plus reply), `BRIDGES_READY` becomes True, and the 64-agent cells of `contestSuite` gain the bridge options. Contamination across squads (an honest answer in one squad agreeing with a false value first posted in another and relayed by a bridge) is added to `contestColumns` then.
 
+**Relay credit in the bridged world (Phase 20's P20-12, accepted 2026-11-09).** Under `scheme='credit'` or `'contest'`, a relayed clue's credit share is split equally between the bridge and the first true poster of that clue on the mirror (`BridgeBoardEnv._creditTo`, Phase 20). `ContestLog.onShare` treats a relayed liar's value as the liar's: when the tally's value for (k, j) was first posted by a bridge as a relay, it asks `bridge_board.relaySource` for the source post, and if that poster is a liar, a true post against it is a contest with t_l the relay's time. At the default schemes and on boards without bridges, nothing changes.
+
 ## `rl17_train.py` (changed)
 
-- Each step draws its board types from `threat` with `default_rng(step)`, so every arm sees the same board seeds and draws at a given step.
+- Each step draws its board types from `threat` with `default_rng([step, 0])` (and lifetimes with `default_rng([step, 1])`, see the implementation notes below), so every arm sees the same board seeds and draws at a given step.
 - `ContestLog` hooks are passed into `rollout`.
 - The penalty is applied after `rollout` and before advantages.
-- With `records`, a step's rollouts play sequences of 6 boards, and `Records` adds each agent's line to its prompt.
+- With `records`, a step's rollouts play sequences of 6 boards, and `Records` adds each agent's line to its prompt; records carry across steps as the implementation notes below describe.
 - With `haltAnswers`, the run halts after that many steps in a row whose honest answers fall below a third of `WARM_ANSWERS`, beside `FIX18`'s KL rule and the invalid-reply halt.
 - At the defaults, all of these are skipped.
 
@@ -95,7 +99,7 @@ SPEED19, PILOT19_PLAN, RL19_PLAN       # each carries world=DECISIONS19['P19_1']
 
 | Measure | Definition |
 |---|---|
-| Damage won back | 1 − (clean − liar welfare of the arm) / (clean − liar welfare of the reference), per seed, at each liar count; honest agents only. The reference is the warm start on the plain board in the same squads and seeds |
+| Damage won back | 1 − (clean − liar welfare of the arm) / (clean − liar welfare of the reference), pooled over seeds and both lifetimes (as the analysis section below), at each liar count; honest agents only. The reference is the warm start on the plain board in the same squads and seeds |
 | Contests per lie | contests / liar posts; also per lie on a clue a guard holds |
 | Time to contest | t_c − t_l, the median over every contest of the run's boards with liars (`contestLags`), not a median of per-board medians |
 | Share of lies on a guarded clue | liar posts on a clue a guard holds / liar posts |
@@ -117,7 +121,7 @@ SPEED19, PILOT19_PLAN, RL19_PLAN       # each carries world=DECISIONS19['P19_1']
 - Holm runs across H19-1 and H19-2 at α = 0.05. H19-3 is a margin check on arm 2's mean cost without liars (at most 0.05 against the warm start without guards), with a hierarchical bootstrap interval reported.
 - **H19-4:** one-sided sign-flip test of arm 4's specialization at 16 agents minus the warm start's over 5 runs; this is the plan's kill-criterion test. Growth with team size is the per-run least-squares slope over log2 of 8, 16 and 32 agents, reported with an interval. The smallest p is 1/32, so this test stands alone and gets no Holm family.
 - **H19-5 and H19-6** are secondary, as in the plan, and reported with intervals (H19-6 also with a sign-flip p).
-- **Power** is checked before `RL19_PLAN` is frozen, by simulating the two primary tests with the per-run spread of Phase 17's 8 runs (welfare gain, standard deviation per run). If the power for the plan's predicted effects is under 0.5, the README says so, and the levers are stated: more seeds for arms 1-2, or fewer for arms 3-4.
+- **Power** is checked before `RL19_PLAN` is frozen, by simulating the two primary tests with the per-run spread of Phase 17's 8 runs (welfare gain, standard deviation per run). If the power for the plan's predicted effects is under 0.5, the README says so, and the levers are stated: more seeds for arms 1-2 (arms 1-3 are primary and keep at least 8 seeds, as the plan requires; arm 4 is the first cut).
 
 ## Tests
 
@@ -127,9 +131,12 @@ SPEED19, PILOT19_PLAN, RL19_PLAN       # each carries world=DECISIONS19['P19_1']
 | `test_credit_equal` | offline | `'credit'` rewards on recorded Phase 17 games are unchanged |
 | `test_squads` | offline | `dealSquads` counts, and squad views in rollouts |
 | `test_penalty` | offline | AC-4, including the answer halt after exactly 3 steps |
-| `test_records` | offline | AC-4b |
+| `test_records` | offline | AC-4b, with A2's format (P21-11) once it is added at T8 |
 | `test_watchers` | offline | AC-3b: a watcher shown the true value first does not qualify; a later contest earns the bonus but no credit share |
 | `test_rl19_hash` | offline | Phase 17-18 configuration hashes unchanged; the world refused at 'bridges' (AC-8); `evalAdapter19`'s checkpoints |
+| `test_enforce` | offline | AC-10 (`contest_eval`) |
+| threat and records tests (`rl19_step`) | offline | AC-9; records carried across steps |
+| cell tests (`rl19_suite`) | offline | AC-11 |
 | `test_contest_columns` | offline | the waiting rate, gullibility, suppression, repeated errors and per-agent task counts on hand-built boards |
 | AC-6 | offline | the three Colab cells stop at their freezes and at Gate C1; the main cell trains only the first 2 runs until `STABLE19` |
 | `test_rl19_step` | `train` | One step at the defaults equals `trainRL17` (tiny Qwen2) |
@@ -202,7 +209,7 @@ Recorded on 2026-11-08, when T1-T4 were implemented. These are judgment calls wh
   - Persistence correlates each agent's share of contesting turns between consecutive boards (the plan's Terms), averaged over board pairs with spread.
   - Take-up is the remaining agents' contests per turn on boards 4-5 minus on boards 1-3.
 - **Collapse (H19-5):** an arm counts as collapsed when more than half of its gate-grid boards have honest answers below a third of the warm start's on the same test.
-- **H19-6** (secondary) reports, beside its interval, a sign-flip p over arm 2's runs for the waiting rate at lifetime 30 minus 15.
+- **H19-6** (secondary) reports, beside its interval, the waiting rate at lifetime 15 minus 30 over arm 2's runs (predicted negative, as `lifeGap`), with a sign-flip p testing 30 minus 15 > 0.
 - **Cost without liars and H19-3 (review, 2026-11-08)** use the warm start without guards (the plain board) as the reference, as the plan's Terms do: cost = reference minus arm, and H19-3 holds when arm 2's mean cost is at most 0.05.
 - **Regret** chooses the warm start's best `enforceK` separately at each liar count and lifetime, then averages the gaps (the plan: "at the same liar share").
 - **The power check (`rl19_synth.powerPrimary`)** takes effects and per-run standard deviations.
