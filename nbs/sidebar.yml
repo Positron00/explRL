@@ -8,6 +8,7 @@ website:
           - colab_clue_rl.ipynb
           - demo.ipynb
           - demo_bench.ipynb
+          - demo_c1.ipynb
           - demo_circuit.ipynb
           - demo_clue.ipynb
           - demo_colony.ipynb
@@ -45,6 +46,8 @@ website:
           - bridge_agents.ipynb
           - bridge_grid.ipynb
           - bridge_plan.ipynb
+          - bridge_report.ipynb
+          - bridge_write.ipynb
           - bridge_mech.ipynb
           - circuit.ipynb
           - circuit_agent.ipynb

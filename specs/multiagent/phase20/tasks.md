@@ -55,6 +55,7 @@ Rules are as in Phases 16-19:
 ## T5. Report and demo (about half a day)
 - **Files:** `nbs/bridge_report.ipynb` (new: `c1Summaries`, `gateC1`, `partBSummaries`, `writeC1`, `figC1`, `syntheticRows20`), `nbs/demo_c1.ipynb` (new: quick, pilot, main, part b).
 - **Done when:** `test_c1_report` (AC-9) passes, and `demo_c1` quick runs end to end with the fake client and writes a report and `c1.png` from synthetic rows.
+- **Status (2026-11-10): done.** Split to stay under 200 lines: `explRL/bridge_report.py` (156: `planned20`, `gateC1`, `c1Summaries`, `partBSummaries`) and `explRL/bridge_write.py` (165: `writeC1`, `figC1`, `syntheticRows20`, `syntheticPartB`); `nbs/demo_c1.ipynb` (stages by `EXPLRL_C1_STAGE`: `pilot`, `main1`, `main2`, `main`; live cells flagged `llm`; part b flagged `train`). `test_c1_report` recovers every planted effect. Judgement calls: H20-3 needs a positive coupling cost as well as win-back above 0.5; H20-4 also reports a one-sided p. The live stages have not run.
 
 ## T6. Regression gate ($0)
 - **What:**
@@ -83,7 +84,7 @@ Rules are as in Phases 16-19:
 - **Needs:** B3's fitted simulator, specified and built (P20-13). It models bridges with `RuleBridge` (T2). If B3 is not ready, C1 waits here; there is no fallback.
 - **What:**
   1. B3's T6 (`tools/b3_run.py forecast C1`, `c1Forecast()`) refits on the pilot, writes, commits and pushes `c1_predictions.json` (P20-13).
-  2. Freeze `C1_PLAN` with its SHA-256, the pilot's verdict and projection, and push.
+  2. Freeze `C1_PLAN` with its SHA-256, the pilot's verdict and projection (with the user's approval in `C1_PLAN['projection']['approved']`, which `demo_c1`'s main stage asserts), and push.
 - **Done when:** `C1_PLAN['frozen']` is true and its content is `C1_PILOT_PLAN`'s plus the forecast, the verdict and the projection.
 
 ## T10. Main run and Gate C1 (Mac, live, about $25-31; then $0)

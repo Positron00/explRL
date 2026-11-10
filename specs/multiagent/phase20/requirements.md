@@ -95,7 +95,7 @@ Terms are as in Phases 18-19 and the research plan. In addition:
   - the plan hash (`coopHash`, as Stage 4).
 - **FR-C4** `C1_PLAN`, frozen after the pilot and before the main run. It holds:
   - `C1_PILOT_PLAN`'s hash, unchanged in content;
-  - the pilot's verdict and projection;
+  - the pilot's verdict and projection, with the user's approval of the projection recorded as `projection['approved']` (P20-8);
   - the forecast file and its SHA-256 (P20-13), from B3's fitted simulator refit on the pilot, with signs for 8 effects: H20-1 to H20-4, H20-5 on both measures, and H20-8's two clean contrasts (P22-8). `C1_PLAN` cannot be frozen without it.
 
   Nothing in the hypotheses or the gate may change between the two freezes.
