@@ -25,6 +25,7 @@ Rules are as in Phases 16-19:
 ## T1. The bridge board (about 1.5 days)
 - **Files:** `nbs/bridge_board.ipynb` (new: `dealBridges`, `BridgeBoardEnv`, `BridgeView`, `relaySource`), the hook in `nbs/colony_board.ipynb` (`squadView`).
 - **Done when:** AC-2, AC-3, AC-4 (the board's half) and AC-6 pass: `test_couple`, `test_mirror_isolation`, `test_deal_bridges`, `test_relay_credit`. Phase 18's and 19's `colony_board`, `clueboard` and `contest` tests still pass.
+- **Status (2026-11-10): done.** `explRL/bridge_board.py` (187 lines: `BRIDGE_KEYS`, `dealBridges`, `checkBridge`, `BridgeBoardEnv`, `BridgeView`, `relaySource`) and the `squadView` hook (`colony_board` stays at 190). Notes: relay credit overrides `_reward` in `BridgeBoardEnv` (`_creditTo` returns `(agent, divisor)` pairs; equal to `clueboard`'s without relays), since `clueboard` is at 197 lines; `mirrors(i, every=None)` gives liar slots all mirrors (P20-5) and holders only theirs (P20-16); `BridgeView.crossClues()`. Prompt-level AC-3, parsing and numpy posters are T2's.
 
 ## T2. Prompts, parsing, rule agents and rollouts (about 1.5 days)
 - **Files:**

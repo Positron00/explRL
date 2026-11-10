@@ -135,8 +135,8 @@ class SquadView:
 
 
 def squadView(board, i):
-    "The squad view of `board` for agent i, or the board itself when it has no squads."
-    return SquadView(board, i) if getattr(board, 'S', None) else board
+    "The squad view of `board` for agent i (Phase 20: `board.viewFor(i)` if it has one), or the board itself without squads."
+    return board.viewFor(i) if hasattr(board, 'viewFor') else SquadView(board, i) if getattr(board, 'S', None) else board
 
 
 class InSquad:
