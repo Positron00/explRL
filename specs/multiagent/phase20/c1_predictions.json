@@ -1,0 +1,568 @@
+{
+ "b3Plan": "3490efe9aa41",
+ "commit": "52fc9e7ab9abcad41022c392553341671744b782",
+ "dirty": false,
+ "exp": "C1",
+ "items": {
+  "C1-1": {
+   "N": 64,
+   "fault": "independent",
+   "hyp": "H20-1",
+   "lines": {
+    "fitted": {
+     "ci": [
+      0.02653100085222271,
+      0.06959860765582936
+     ],
+     "estimate": 0.04728694610897249,
+     "sign": "+"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": 0.10323800935702858,
+     "fallback": false,
+     "sign": "+"
+    },
+    "priorOnly": {
+     "ci": [
+      0.006007646853979331,
+      0.0409871188674128
+     ],
+     "estimate": 0.02330600890833422,
+     "sign": "+"
+    },
+    "unfitted": {
+     "ci": [
+      0.0048547963927365574,
+      0.03013693728165667
+     ],
+     "estimate": 0.016836862510218622,
+     "sign": "+"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1807; Gate C1 (i)",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridge1"
+    ],
+    [
+     -1,
+     "colonyGuards"
+    ]
+   ]
+  },
+  "C1-2": {
+   "N": 64,
+   "fault": "independent",
+   "hyp": "H20-2",
+   "lines": {
+    "fitted": {
+     "ci": [
+      -0.027164386919309436,
+      -0.0021294915319288103
+     ],
+     "estimate": -0.015091554476131367,
+     "sign": "-"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": 0.017950610565837806,
+     "fallback": false,
+     "sign": "+"
+    },
+    "priorOnly": {
+     "ci": [
+      -0.05150929615769771,
+      -0.024403807620343314
+     ],
+     "estimate": -0.037820735966575564,
+     "sign": "-"
+    },
+    "unfitted": {
+     "ci": [
+      -0.019539444034476133,
+      -0.00367726715663575
+     ],
+     "estimate": -0.011716497290092788,
+     "sign": "-"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1807; Gate C1 (ii), a margin: > 0 when bridge1 keeps at least half the lead",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridge1"
+    ],
+    [
+     -0.5,
+     "colonyGuards"
+    ],
+    [
+     -0.5,
+     "squads"
+    ]
+   ]
+  },
+  "C1-3": {
+   "N": 64,
+   "fault": "independent",
+   "hyp": "H20-3",
+   "lines": {
+    "fitted": {
+     "ci": [
+      -0.03061097193122129,
+      -0.014414977168128375
+     ],
+     "estimate": -0.022881989076967892,
+     "sign": "-"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": -0.024225535245671503,
+     "fallback": false,
+     "sign": "-"
+    },
+    "priorOnly": {
+     "ci": [
+      -0.040921138326655886,
+      -0.020077495861009268
+     ],
+     "estimate": -0.03064215759924517,
+     "sign": "-"
+    },
+    "unfitted": {
+     "ci": [
+      -0.01944511531303404,
+      -0.010626550510993642
+     ],
+     "estimate": -0.015081370558104752,
+     "sign": "-"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1804; > 0 when the win-back is above 0.5",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridge1"
+    ],
+    [
+     -0.5,
+     "coupled"
+    ],
+    [
+     -0.5,
+     "squads"
+    ]
+   ]
+  },
+  "C1-4": {
+   "N": 64,
+   "fault": "independent",
+   "hyp": "H20-4",
+   "lines": {
+    "fitted": {
+     "ci": [
+      -0.03922473371887269,
+      -0.018237598069806578
+     ],
+     "estimate": -0.029021603703832652,
+     "sign": "-"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": null,
+     "fallback": true,
+     "sign": "+"
+    },
+    "priorOnly": {
+     "ci": [
+      -0.044229743957672325,
+      -0.016121626099872003
+     ],
+     "estimate": -0.030613908899802294,
+     "sign": "-"
+    },
+    "unfitted": {
+     "ci": [
+      -0.015436587807896479,
+      -0.0054844360012469675
+     ],
+     "estimate": -0.010559318993646904,
+     "sign": "-"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1804; a margin; the hypothesis expects -, every-design-helps says + (P22-8)",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridge2"
+    ],
+    [
+     -1,
+     "bridge1"
+    ],
+    [
+     -0.25,
+     "squads"
+    ],
+    [
+     0.25,
+     "coupled"
+    ]
+   ]
+  },
+  "C1-5": {
+   "N": 64,
+   "fault": "independent",
+   "hyp": "H20-5",
+   "lines": {
+    "fitted": {
+     "ci": [
+      -0.019581793168082284,
+      0.003148521702438907
+     ],
+     "estimate": -0.008007049124856344,
+     "sign": "0"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": 0.22413793103448276,
+     "fallback": false,
+     "sign": "+"
+    },
+    "priorOnly": {
+     "ci": [
+      -0.0174521410673399,
+      0.0073801101306422675
+     ],
+     "estimate": -0.00480437602632677,
+     "sign": "0"
+    },
+    "unfitted": {
+     "ci": [
+      -0.016970664113722504,
+      0.0041215934711204836
+     ],
+     "estimate": -0.006205123470679628,
+     "sign": "0"
+    }
+   },
+   "measure": "falseRelayShare",
+   "naive": "+",
+   "note": "boards 1800-1804; false-relay share (FR-D1)",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridge1"
+    ],
+    [
+     -1,
+     "bridgeGuard"
+    ]
+   ]
+  },
+  "C1-6": {
+   "N": 64,
+   "fault": "independent",
+   "hyp": "H20-5",
+   "lines": {
+    "fitted": {
+     "ci": [
+      -0.017473669278873654,
+      0.009734152549538053
+     ],
+     "estimate": -0.0032307817208072796,
+     "sign": "0"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": -0.031397834293699495,
+     "fallback": false,
+     "sign": "-"
+    },
+    "priorOnly": {
+     "ci": [
+      -0.017092638783237992,
+      0.005952435334983397
+     ],
+     "estimate": -0.005318168207339816,
+     "sign": "0"
+    },
+    "unfitted": {
+     "ci": [
+      -0.006205766065466802,
+      0.0021027310345585887
+     ],
+     "estimate": -0.0020143864516275357,
+     "sign": "0"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1804; H20-5's second measure",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridgeGuard"
+    ],
+    [
+     -1,
+     "bridge1"
+    ]
+   ]
+  },
+  "C1-7": {
+   "N": 64,
+   "fault": "clean",
+   "hyp": "H20-8",
+   "lines": {
+    "fitted": {
+     "ci": [
+      -0.054216248099073605,
+      -0.047609290530189405
+     ],
+     "estimate": -0.051038130075949734,
+     "sign": "-"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": null,
+     "fallback": true,
+     "sign": "+"
+    },
+    "priorOnly": {
+     "ci": [
+      -0.039811503212623875,
+      -0.033952654600964104
+     ],
+     "estimate": -0.03685041916128031,
+     "sign": "-"
+    },
+    "unfitted": {
+     "ci": [
+      -0.21559686631652822,
+      -0.20518279441078258
+     ],
+     "estimate": -0.21033851249061764,
+     "sign": "-"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1804; clean boards; + is a convention (C1_NOTE)",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "bridge1"
+    ],
+    [
+     -1,
+     "squads"
+    ]
+   ]
+  },
+  "C1-8": {
+   "N": 64,
+   "fault": "clean",
+   "hyp": "H20-8",
+   "lines": {
+    "fitted": {
+     "ci": [
+      0.16073199515035605,
+      0.1718507845100084
+     ],
+     "estimate": 0.16614200671598897,
+     "sign": "+"
+    },
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": null,
+     "fallback": true,
+     "sign": "+"
+    },
+    "priorOnly": {
+     "ci": [
+      0.14395205484916468,
+      0.151434878694319
+     ],
+     "estimate": 0.1477935547461347,
+     "sign": "+"
+    },
+    "unfitted": {
+     "ci": [
+      0.19879286670889681,
+      0.20816599881224335
+     ],
+     "estimate": 0.20349320095564397,
+     "sign": "+"
+    }
+   },
+   "measure": "honestPooled",
+   "naive": "+",
+   "note": "boards 1800-1804; clean boards",
+   "represented": true,
+   "terms": [
+    [
+     1,
+     "squads"
+    ],
+    [
+     -1,
+     "coupled"
+    ]
+   ]
+  }
+ },
+ "lines": [
+  "fitted",
+  "priorOnly",
+  "unfitted",
+  "pilotOnly",
+  "naive"
+ ],
+ "note": "Every-design-helps says + on all 8 C1 effects, as decided (P22-8, P22-19). Two sign conventions: (1) for C1-7 (clean bridge1 - squads) + is a convention, since bridge1 combines a handicap (coupling) with a design (the bridge); (2) for the margins C1-2 to C1-4, + is a size claim (\"keeps more than half\"), not \"beats its reference\". In the unfitted simulator relays feed scripted liars' coupled solves (liars trust single posts); honest coupled solves are 0 at theta_default (P22-20).",
+ "pilot": {
+  "boards": 3,
+  "measures": [
+   {
+    "boards": 1,
+    "cell": "c1:bridge1|independent:64",
+    "measure": "contamination",
+    "s": 0.06659748718977944,
+    "value": 0.3413566739606127
+   },
+   {
+    "boards": 1,
+    "cell": "c1:bridgeGuard|independent:64",
+    "measure": "contamination",
+    "s": 0.06659748718977944,
+    "value": 0.42701525054466233
+   },
+   {
+    "boards": 1,
+    "cell": "c1:coupled|independent:64",
+    "measure": "contamination",
+    "s": 0.06659748718977944,
+    "value": 0.3584905660377358
+   }
+  ]
+ },
+ "pilotBridge": {
+  "observed": {
+   "mirrorPostsPerHolder": {
+    "bridge1|independent": 0.8152173913043478,
+    "bridgeGuard|independent": 0.8265895953757225,
+    "coupled|independent": 0.7595628415300546
+   },
+   "relaysPerBridgeTurn": {
+    "bridge1|independent": 0.00625,
+    "bridgeGuard|independent": 0.090625,
+    "coupled|independent": null
+   }
+  }
+ },
+ "pilotSim": {
+  "cells": {
+   "bridge1|independent": {
+    "contamination": 0.456517468048866,
+    "mirrorPostsPerHolder": 1.1369153161008445,
+    "relaysPerBridgeTurn": 0.30947916666666675
+   },
+   "bridgeGuard|independent": {
+    "contamination": 0.4796294248342691,
+    "mirrorPostsPerHolder": 1.1305857959595957,
+    "relaysPerBridgeTurn": 0.2966666666666667
+   },
+   "coupled|independent": {
+    "contamination": 0.5212515926605419,
+    "mirrorPostsPerHolder": 1.2850545289495403,
+    "relaysPerBridgeTurn": null
+   }
+  },
+  "theta": {
+   "trustOne": 0.4
+  }
+ },
+ "reused": [
+  "colony/stage4:squads|independent:64",
+  "colony/stage64:colonyGuards|independent:64"
+ ],
+ "rule": "simulators: + or - when the 95% bootSeeds interval over seeds (2,000 resamples) excludes 0, else 0; pilot-only: the point estimate's sign, or naive's marked fallback when an arm is in neither pilot nor prior rows (P22-17); naive: e.naive (P22-8)",
+ "seeds": [
+  3000,
+  3001,
+  3002,
+  3003,
+  3004,
+  3005,
+  3006,
+  3007,
+  3008,
+  3009,
+  3010,
+  3011,
+  3012,
+  3013,
+  3014,
+  3015,
+  3016,
+  3017,
+  3018,
+  3019,
+  3020,
+  3021,
+  3022,
+  3023,
+  3024,
+  3025,
+  3026,
+  3027,
+  3028,
+  3029
+ ],
+ "tau": {
+  "spread": 0.1,
+  "trustOne": 0.1
+ },
+ "theta": {
+  "default": {},
+  "pilot": {
+   "trustOne": 0.4
+  },
+  "prior": {
+   "trustOne": 0.6
+  }
+ }
+}
