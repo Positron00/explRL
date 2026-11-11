@@ -30,13 +30,21 @@ B3_PLAN = dict(
              coarse={k: list(v) for k, v in COARSE.items()}, fineStep=dict(FINE_STEP), simSeeds=[SIM_SEEDS[0], SIM_SEEDS[-1]],
              ties='the first grid key in sorted order'),
     folds={k: list(v) for k, v in FOLDS.items()}, reused={k: list(v) for k, v in REUSED.items()},
-    fitHealth='stop and ask (P22-11) on a fitted knob at either end of its range in any fit, or on H22-3 failing for the '
-              'chosen knob; H22-3 and the retrospective reported for all three candidates, with the caveat that the knob '
-              'was chosen on the same folds (P22-18)',
+    fitHealth='stop and ask (P22-11) on a fitted knob at either end of its range (0 included, which is also θ_default) in the '
+              "fits 'all', 'allC1', S1, S4 and S4b, or on H22-3 failing for the chosen knob; H22-3 is judged on the coarse-grid "
+              'held-out fits for all three candidates (the chosen knob on its fine grid reported beside); H22-3 and the '
+              'retrospective reported for all three candidates, with the caveat that the knob was chosen on the same folds (P22-18)',
     refit=dict(J='sum over pilot measures ((sim - pilot) / s) ** 2 + sum over refit parameters ((theta - theta0) / tau) ** 2',
-               tau='bootTau: SD of the fit over 200 resamples of Claude boards within cells, floor 0.1',
-               s='the cached Claude per-board SD of the measure, pooled over its fit cells, over sqrt(pilot boards)',
-               params='only parameters with a pilot measure; the others keep theta0 (C1: trustOne on contamination)'),
+               tau='bootTau: SD of the fit over 200 resamples (seed 0) of Claude boards within cells, floor 0.1; over the cells '
+                   "the forecast's theta0 was fit on (C1: all but its reused cells; the retrospective: all but the fold's cells)",
+               s='the cached Claude per-board SD of the measure, pooled over the same cells as tau, over sqrt(pilot boards)',
+               params='only parameters with a pilot measure, contamination -> trustOne and clean pooledShare -> the knob; the '
+                      'others keep theta0 (C1: trustOne only)',
+               retro=dict(pilots='seed 1890: colony/pilot (4 boards at 16), colony/stage4pilot (3), colony/stage4bpilot (3); '
+                                 "Phase 14's scale/pilot (seed 900, its clean board)",
+                          prior='S1 none; S4 stage1, stage32, stage3, stage64; S4b those and stage4; P14 none',
+                          faults='the error and collude cells of Stage 1 and the 32-agent run, contamination at theta_default '
+                                 'and the fit on all cells, as held-out checks (P22-3)')),
     forecasters=dict(lines=['fitted', 'priorOnly', 'unfitted', 'pilotOnly', 'naive'], gate=['fitted', 'unfitted', 'pilotOnly', 'naive'],
                      simulators='sign + or - when the 95% bootSeeds interval (2,000 resamples) over seeds 3000-3029 excludes 0, '
                                 'else 0', pilotOnly="the sign of the point estimate from the pilot plus the cached rows that "
@@ -56,4 +64,7 @@ B3_PLAN = dict(
     experiments=dict(simulated=['C1', 'C2', 'C4b'], twoLines=['A2']),
     files=dict(grid='results/multiagent/b3/grid/', fit='results/multiagent/b3/fit.json', retro='results/multiagent/b3/retro.json',
                report='results/multiagent/b3/report.md'),
-    runner='tools/b3_run.py (check, probe, grid, fit, retro, forecast <exp>, score <exp>, gate); grid refuses an unfrozen plan')
+    cache='results/multiagent/b3/grid/<codeHash()>/: per-seed values per theta, in a folder named by the hash of the modules '
+          'that play a board, so changed code never reuses stale boards (NFR-3)',
+    runner='tools/b3_run.py (check, probe, grid, fit, retro, forecast <exp>, score <exp>, gate); grid, fit, retro and forecast '
+           'refuse an unfrozen plan; fit reads the cache only')

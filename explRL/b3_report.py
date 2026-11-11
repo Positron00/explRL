@@ -17,7 +17,7 @@ from .b3_forecast import LINES, writeForecast
 from .b3_plan import B3_PLAN
 
 ALTS = ('unfitted', 'pilotOnly', 'naive')                    # Gate B3's alternatives (H22-1)
-FORECASTS = dict(C1='specs/multiagent/phase20/c1_predictions.json')   # C2 and C4 part b add theirs (P22-15)
+FORECASTS = dict(C1='specs/multiagent/phase20/c1_predictions.json', A2='specs/multiagent/phase21/a2_predictions.json')   # C2, C4b: P22-15
 P22_20 = ('In the unfitted simulator, relays feed scripted liars\' coupled solves (liars trust single posts), and honest coupled '
           'solves are 0 at θ_default (P20-17, P22-20).')
 P22_16 = ('Pilot-only reads the pilot plus the Claude rows that existed before the experiment, including the reused reference '
@@ -57,9 +57,12 @@ def forecastStatus(root='.', forecasts=FORECASTS):
 
 def gateB3(pooled, plan=None, status=None):
     """FR-D3, H22-1 by P22-10's counting rule on the pooled common set; McNemar beside it; H22-4 descriptive. Refuses while an
-    experiment of plan['experiments'] has a frozen forecast but no score; 'too few calls to read' below plan's minimum."""
-    plan, status = plan or B3_PLAN, status or {}
-    missing = [e for e, s in sorted(status.items()) if e in plan['experiments']['simulated'] and s['forecast'] and not s['score']]
+    experiment of plan['experiments'] (simulated or two-line) has a frozen forecast but no score (status: forecastStatus() by
+    default); 'too few calls to read' below plan's minimum."""
+    plan = plan or B3_PLAN
+    status = forecastStatus() if status is None else status
+    exps = plan['experiments']['simulated'] + plan['experiments']['twoLines']
+    missing = [e for e, s in sorted(status.items()) if e in exps and s['forecast'] and not s['score']]
     if missing:
         return dict(verdict='refused', missing=missing, note='every frozen forecast must be scored before the gate (FR-D3)')
     concl = [i for i in pooled['items'] if i['represented'] and i['observed'] != '0']
@@ -84,7 +87,7 @@ def retroMarkdown(r):
     out = [f"# B3 retrospective check (week 1)\n\nChosen knob: `{r['knob']}`. {r['caveat']}.\n"]
     for k, s in r['summary'].items():
         out.append(f"\n## Candidate `{k}`{' (chosen)' if k == r['knob'] else ''}\n\n{s['conclusive']} conclusive calls. H22-2 "
-                   f"(fitted right > the unfitted 9): {'holds' if s['H22_2'] else 'does not hold'}.\n\n" + _table(s['counts'], LINES))
+                   f"(fitted right > the unfitted line's, 9 in paper2): {'holds' if s['H22_2'] else 'does not hold'}.\n\n" + _table(s['counts'], LINES))
         if s['P14']:
             out.append("\nPhase 14's two team-size calls (simulators only):\n\n" + _table(s['P14'], ('fitted', 'priorOnly', 'unfitted')))
         if s['unfittedMismatch']:
@@ -94,7 +97,12 @@ def retroMarkdown(r):
         for i, v in d['items'].items():
             out.append(f"| {f} | {i} | [{v['ci'][0]:.3f}, {v['ci'][1]:.3f}] | " +
                        ' | '.join(f"{v['lines'].get(k, '')} {v['calls'].get(k, '')}" for k in LINES) + ' |\n')
-    out.append('\nThe error and collude faults and the plain-board liar cells are not fit (P22-3): rule agents take the newest value on '
+    F = r.get('faults')
+    if F:
+        out.append(f"\n## Held-out faults (P22-3)\n\nContamination, Claude against θ_default and the fit on all cells {F['theta']}: loss "
+                   f"{F['loss']['default']:.1f} at θ_default, {F['loss']['fitted']:.1f} fitted.\n\n| Cell | Claude | θ_default | fitted |\n|---|---|---|---|\n" +
+                   ''.join(f"| {c} | {v['claude']:.3f} | {v['default']:.3f} | {v['fitted']:.3f} |\n" for c, v in F['cells'].items()))
+    out.append('\nThe plain-board liar cells are not fit (P22-3): rule agents take the newest value on '
                "the plain board (contamination 0.94-0.99 against Claude's 0.72-0.85), and no knob changes it.\n")
     return ''.join(out)
 

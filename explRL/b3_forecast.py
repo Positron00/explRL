@@ -53,16 +53,15 @@ def armCells(e):
 
 def estimate(rows, e, seeds=None, paired=True):
     """(dp, mean) from rows levelled '<arm>|<fault>'. Paired: dp {(seed, N): sum coef x value} on seeds with every term (sorted, as
-    `colony_report.pairs`). Unpaired (pilot-only): dp {}, mean = sum coef x arm mean, over sizes. nan when an arm is missing."""
+    `colony_report.pairs`). Unpaired (pilot-only): dp {}, mean = sum coef x arm mean, averaged over the sizes where every arm has rows; nan when none."""
     T, ix = _terms(e), {}
     const, A = sum(c for c, lv, _ in T if lv is None), [t for t in T if t[1] is not None]
     for r in rows:
         if 'level' in r and np.isfinite(v := _f(r.get(e.measure))) and (seeds is None or int(_f(r['seed'])) in seeds):
             ix[(r['level'], int(_f(r['N'])), int(_f(r['seed'])))] = v
     if not paired:
-        m = [[[v for (l, n2, _), v in ix.items() if (l, n2) == (lv, n or N)] for _, lv, n in A] for N in _sizes(e)]
-        return {}, (float(np.mean([const + sum(c * float(np.mean(v)) for (c, _, _), v in zip(A, mN)) for mN in m]))
-                    if all(all(mN) for mN in m) else NAN)
+        m = [mN for mN in [[[v for (l, n2, _), v in ix.items() if (l, n2) == (lv, n or N)] for _, lv, n in A] for N in _sizes(e)] if all(mN)]
+        return {}, float(np.mean([const + sum(c * float(np.mean(v)) for (c, _, _), v in zip(A, mN)) for mN in m])) if m else NAN
     ks = {(s, N): [(lv, n or N, s) for _, lv, n in A] for N in _sizes(e) for s in sorted({k[2] for k in ix})}
     dp = dict(sorted((k, const + sum(c * ix[x] for (c, _, _), x in zip(A, xs))) for k, xs in ks.items() if all(x in ix for x in xs)))
     return dp, float(np.mean(list(dp.values()))) if dp else NAN
@@ -109,14 +108,12 @@ def forecastNaive(effects):
 
 # %% ../nbs/b3_forecast.ipynb #89a2a6d7
 def header():
-    "The code commit (git HEAD) and B3_PLAN's coopHash (b3_plan; None while it does not exist)."
-    c = subprocess.run(['git', 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip() or None
-    try:
-        from explRL.b3_plan import B3_PLAN
-        from explRL.coop_grid import coopHash
-        return dict(commit=c, b3Plan=coopHash(B3_PLAN))
-    except ImportError:
-        return dict(commit=c, b3Plan=None)
+    "The code commit (git HEAD), whether explRL/ or tools/ had uncommitted changes, and B3_PLAN's coopHash."
+    import explRL
+    from explRL.b3_plan import B3_PLAN
+    from explRL.coop_grid import coopHash
+    g = lambda *a: subprocess.run(['git', *a], capture_output=True, text=True, cwd=Path(explRL.__file__).parents[1]).stdout.strip()
+    return dict(commit=g('rev-parse', 'HEAD') or None, dirty=bool(g('status', '--porcelain', '--', 'explRL', 'tools')), b3Plan=coopHash(B3_PLAN))
 
 
 def items(effects, lines):
@@ -132,7 +129,8 @@ def forecastExperiment(exp, effects, cellFn, pilotRows, priorRows, pilotMap, reu
     """FR-C4: theta0 fit on FIT_CELLS minus `reused`; tau; the refit on the pilot via `pilotMap` (a callable of the pilot rows, or
     refit's pilot targets); the five lines per effect, with thetas, tau, seeds, commit and B3_PLAN's hash; `extra` goes in the file.
     Injectable: `fitFn(reused)`, `tauFn(theta0, reused)`, `refitFn(theta0, tau, pilot)`; by default b3_fit's `fit(ids, sims, targets,
-    drop=reused)` (ids: FIT_CELLS' ids; `reused` too), `bootTau(ids minus reused, sims, bootRows)`, `refit(theta0, tau, pilot, sims)`."""
+    drop=reused)` (ids: FIT_CELLS' ids; `reused` too), `bootTau(ids minus reused, sims, bootRows)`, `refit(theta0, tau, pilot, sims)`
+    (then `sims` must hold the pilot's cells on the refit grid; tools/b3_run.py injects its refit)."""
     if None in (fitFn, tauFn, refitFn):
         from explRL.b3_fit import FIT_CELLS, bootTau, fit, refit
         ids = [c['id'] for c in FIT_CELLS]

@@ -78,8 +78,9 @@ def c1Forecast(pilotRows, priorRows=None, cellFn=None, root='.', path='specs/mul
     Writes the file under `root`; returns (forecast, SHA-256)."""
     obs = {c: {lv: float(np.nanmean([float(r[c]) for r in pilotRows if r['level'] == lv])) for lv in sorted({r['level'] for r in pilotRows})}
            for c in ('relaysPerBridgeTurn', 'mirrorPostsPerHolder') if all(c in r for r in pilotRows)}
-    pm = c1PilotMap
-    if kw.get('bootRows') is not None:                                # s_t from the cached Claude boards (P22-6)
+    scale = kw.pop('scale', None)                                     # s_t(boards); tools/b3_run.py passes it without the reused cells
+    pm = (lambda rs: c1PilotMap(rs, scale)) if scale else c1PilotMap
+    if scale is None and kw.get('bootRows') is not None:                                # s_t from the cached Claude boards (P22-6)
         from explRL.b3_fit import pilotScale
         pm = lambda rs: c1PilotMap(rs, lambda n: pilotScale(kw['bootRows'], 'contamination', n))
     f = forecastExperiment('C1', C1_EFFECTS, cellFn or c1CellFn, pilotRows, c1PriorRows(root) if priorRows is None else priorRows,

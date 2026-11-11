@@ -9,6 +9,7 @@
     python tools/b3_run.py retro              the retrospective check, every candidate -> b3/retro.json, retro.md
     python tools/b3_run.py forecast C1        C1's forecast after its pilot -> specs/multiagent/phase20/c1_predictions.json
     python tools/b3_run.py score C1           C1's score after its report -> c1_score.json beside the forecast
+    python tools/b3_run.py gate               pool the score files, Gate B3, report.md, score.json and b3.png
 """
 import json
 import multiprocessing as mp
@@ -94,24 +95,31 @@ def gridRun(workers=8):
     print(f'chose {k} {tot}; fine: {gridSim.new} new boards, {time.time() - t0:.0f} s')
 
 
+def _frozen():
+    from explRL.b3_plan import B3_PLAN
+    assert B3_PLAN['frozen'], 'freeze and push B3_PLAN before the week-1 fit (FR-D5, NFR-7)'
+
+
 def fitRun(workers=8):
-    "T4 step 5: heldOut per fold (all three candidates on the coarse grid; the winner on its fine grid too), the fit on all"
-    "cells and on all minus C1's reused cells, bootTau and fitHealth -> results/multiagent/b3/fit.json."
-    from explRL.b3_cells import CANDIDATES, FIT_CELLS, REUSED, claudeRows, claudeTargets, grid
+    """T4 step 5, from the grid cache only (nothing is played): heldOut per fold (all three candidates on the coarse grid; the
+    winner on its fine grid too), the fit on all cells and on all minus C1's reused cells, τ (for the forecast: without C1's
+    reused cells; per candidate and fold for the retrospective: without the fold's cells, NFR-6) and fitHealth -> fit.json."""
+    from explRL.b3_cells import CANDIDATES, FIT_CELLS, FOLDS, REUSED, claudeRows, claudeTargets, grid
     from explRL.b3_fit import bootTau, fit, fitHealth, gridSim, heldOut, loss, onKnobs
+    _frozen()
     k = json.loads((OUT / 'choose.json').read_text())['knob']
     rows = claudeRows()
     T = claudeTargets(rows)
-    coarse = gridSim(FIT_CELLS, _coarse(), workers)
-    sims = {**coarse, **gridSim(FIT_CELLS, grid(('trustOne', k), 'fine'), workers)}
-    assert gridSim.new == 0, 'run grid first'
-    held = {c: {f: heldOut(f, onKnobs(coarse, ('trustOne', c)), T) for f in ('S1', 'S4', 'S4b', 'P14')} for c in CANDIDATES}
+    coarse = gridSim(FIT_CELLS, _coarse(), workers, play=False)
+    sims = {**coarse, **gridSim(FIT_CELLS, grid(('trustOne', k), 'fine'), workers, play=False)}
+    folds = ('S1', 'S4', 'S4b', 'P14')
+    held = {c: {f: heldOut(f, onKnobs(coarse, ('trustOne', c)), T) for f in folds} for c in CANDIDATES}
     sub, ids = onKnobs(sims, ('trustOne', k)), list(T)
-    fine = {f: heldOut(f, sub, T) for f in ('S1', 'S4', 'S4b', 'P14')}
+    fine = {f: heldOut(f, sub, T) for f in folds}
     fits = {'all': fit(ids, sub, T), 'allC1': fit(ids, sub, T, REUSED['C1']), **{f: fine[f]['theta'] for f in fine}}
-    keep = [c for c in ids if c not in REUSED['C1']]
-    tau = bootTau(keep, sub, rows, knobs=('trustOne', k))
-    tauBy = {c: tau if c == k else bootTau(keep, onKnobs(coarse, ('trustOne', c)), rows, knobs=('trustOne', c)) for c in CANDIDATES}
+    tau = bootTau([c for c in ids if c not in REUSED['C1']], sub, rows, knobs=('trustOne', k))
+    tauBy = {c: {f: bootTau([x for x in ids if x not in FOLDS[f]], sub if c == k else onKnobs(coarse, ('trustOne', c)), rows,
+                            knobs=('trustOne', c)) for f in folds} for c in CANDIDATES}
     health = fitHealth({n: th for n, th in fits.items() if n != 'P14'}, held, ('trustOne', k), k)
     res = dict(knob=k, fits=fits, tau=tau, tauBy=tauBy, heldOut=dict(coarse=held, fine=fine), health=health,
                loss=dict(all=loss(fits['all'], ids, sub, T), default=loss({}, ids, sub, T)))
@@ -120,9 +128,10 @@ def fitRun(workers=8):
 
 
 def retroRun(workers=8):
-    "T5: the retrospective check for every candidate -> results/multiagent/b3/retro.json and retro.md."
-    from explRL.b3_retro import retrospective
+    "T5: the retrospective check for every candidate, with the held-out faults -> results/multiagent/b3/retro.json and retro.md."
     from explRL.b3_report import retroMarkdown
+    from explRL.b3_retro import retrospective
+    _frozen()
     t0, fitRes = time.time(), json.loads((OUT / 'fit.json').read_text())
     r = retrospective(fitRes, workers)
     (OUT / 'retro.json').write_text(json.dumps(r, indent=1, sort_keys=True, default=float) + '\n')
@@ -131,32 +140,33 @@ def retroRun(workers=8):
 
 
 def forecastRun(exp, workers=8):
-    """T6 (C1): θ0 fit without C1's reused cells (fit.json 'allC1'), τ, the trustOne refit on the pilot's contamination (the
-    pilot cells simulated on the trustOne grid, the knob at θ0), the five lines and the simulated relays and mirror posts beside
-    the pilot's -> specs/multiagent/phase20/c1_predictions.json (commit and push it; its SHA-256 goes into C1_PLAN)."""
+    """T6 (C1): θ0 fit without C1's reused cells (fit.json 'allC1'), τ, the trustOne refit on the pilot's contamination (s_t from
+    the fit cells other than the reused ones; the pilot cells simulated on the trustOne grid, the knob at θ0), the five lines,
+    and the simulated contamination, relays and mirror posts at θ_pilot beside the pilot's -> specs/multiagent/phase20/
+    c1_predictions.json (commit and push it; its SHA-256 goes into C1_PLAN)."""
     import numpy as np
-    from explRL.b3_cells import FIT_CELLS, claudeRows, claudeTargets, grid
+    from explRL.b3_cells import FIT_CELLS, REUSED, claudeRows
     from explRL.b3_effects import c1Forecast, c1PilotMap
-    from explRL.b3_fit import gridSim, onKnobs, pilotScale, refit, simRow
+    from explRL.b3_fit import gridSim, pilotScale, refit, simRow
     from explRL.bench_grid import readCSV
     assert exp == 'C1', 'C2 and C4 part b: their specs add effects, cellFn, pilotMap and reused first (P22-15)'
+    _frozen()
     fitRes = json.loads((OUT / 'fit.json').read_text())
     assert fitRes['health']['ok'] or (OUT / 'health_decision.txt').exists(), 'fit health failed: stop and ask (P22-11)'
-    k, th0, tau, t0 = fitRes['knob'], fitRes['fits']['allC1'], fitRes['tau'], time.time()
+    th0, tau, t0 = fitRes['fits']['allC1'], fitRes['tau'], time.time()
     rows, pilotRows = claudeRows(), readCSV(REPO / 'results/multiagent/colony/c1pilot/runs.csv')
-    T = claudeTargets(rows)
-    sims = onKnobs(gridSim(FIT_CELLS, grid(('trustOne', k), 'fine'), workers), ('trustOne', k))
-    pilot = c1PilotMap(pilotRows, lambda n: pilotScale(rows, 'contamination', n))
+    keep = [c for c in FIT_CELLS if c['id'] not in REUSED['C1']]
+    scale = lambda n: pilotScale(rows, 'contamination', n, keep)
+    pilot = c1PilotMap(pilotRows, scale)
     pc = [dict(id=p['cell'], kind='c1', arm=p['cell'].split(':')[1].split('|')[0], fault='independent', N=64,
                target='contamination') for p in pilot]
-    ths = [dict(th0, trustOne=v) for v in np.round(np.arange(0, 1.01, 0.1), 2)]
-    psims = gridSim(pc, ths, workers)
+    psims = gridSim(pc, [dict(th0, trustOne=v) for v in np.round(np.arange(0, 1.01, 0.1), 2)], workers)
     thp = refit(th0, tau, pilot, psims)
-    cols = ('relaysPerBridgeTurn', 'mirrorPostsPerHolder')
+    cols = ('contamination', 'relaysPerBridgeTurn', 'mirrorPostsPerHolder')
     simB = {c['id'].split(':')[1]: {m: float(np.nanmean([simRow(c, s, thp)[m] for s in range(3000, 3030)])) for m in cols}
-            for c in pc if c['arm'] != 'coupled'}
-    f, sha = c1Forecast(pilotRows, root=REPO, fitFn=lambda rd: th0, tauFn=lambda th, rd: tau,
-                        refitFn=lambda th, ta, p: thp, pilotBridgeSim=simB, refitTargets=pilot)
+            for c in pc}
+    f, sha = c1Forecast(pilotRows, root=REPO, scale=scale, fitFn=lambda rd: th0, tauFn=lambda th, rd: tau,
+                        refitFn=lambda th, ta, p: thp, pilotSim=dict(theta=thp, cells=simB))
     print(f'C1 forecast: θ0 {th0}, θ_pilot {thp}, SHA-256 {sha}, {time.time() - t0:.0f} s')
 
 
@@ -179,8 +189,20 @@ def scoreRun(exp):
     print(json.dumps(dict(common=out['common'], all=out['all']), indent=1))
 
 
+def gateRun():
+    "T9 step 2: poolScores over every score file, gateB3 (refuses while a frozen forecast is unscored), writeB3 and figB3."
+    from explRL.b3_report import FORECASTS, figB3, gateB3, poolScores, writeB3
+    paths = [REPO / p.replace('_predictions', '_score') for p in FORECASTS.values()]
+    P = poolScores([p for p in paths if p.exists()])
+    G = gateB3(P, status=None)
+    fitRes, retro = (json.loads((OUT / f).read_text()) for f in ('fit.json', 'retro.json'))
+    writeB3(fitRes, retro, P, G, OUT)
+    figB3(P, retro, OUT / 'b3.png')
+    print(G['verdict'], G.get('right'), G.get('missing'))
+
+
 if __name__ == '__main__':
     cmd, arg = sys.argv[1], sys.argv[2:]
     w = int(arg[-1]) if arg and arg[-1].isdigit() else 8
-    dict(check=lambda: check(w), probe=probe, grid=lambda: gridRun(w), fit=lambda: fitRun(w), retro=lambda: retroRun(w), forecast=lambda: forecastRun(arg[0]),
-         score=lambda: scoreRun(arg[0]))[cmd]()
+    dict(check=lambda: check(w), probe=probe, grid=lambda: gridRun(w), fit=lambda: fitRun(w), retro=lambda: retroRun(w),
+         forecast=lambda: forecastRun(arg[0], w), score=lambda: scoreRun(arg[0]), gate=gateRun)[cmd]()

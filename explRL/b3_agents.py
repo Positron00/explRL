@@ -71,14 +71,15 @@ class TrustOne:
 
 class Spread:
     """choose: the base agent's action; if it is an open and the b3 draw < spread, the open goes instead to the live subtask
-    with the fewest openers (ties: most known clues, then value, then at random on the b3 generator)."""
+    with the fewest openers, other than its own (ties: most known clues, then value, then at random on the b3 generator)."""
     def choose(self, b, t):
         act = super().choose(b, t)
         if act[0] != 'open' or not self.b3rng.random() < self.b3['spread']:
             return act
         kn = self.knownFor(b) if hasattr(self, 'knownFor') else known(self.id, b, self.channel)
         live, n = [x for x in b.open if b.tasks[x].expire > t + 1] or list(b.open), Counter(b.opened)
-        key = {x: (n[x] - (b.opened[self.id] == x), -len(kn[x]), -b.tasks[x].value) for x in live}
+        live = [x for x in live if x != b.opened[self.id]] or live             # the base agent chose to leave its own subtask
+        key = {x: (n[x], -len(kn[x]), -b.tasks[x].value) for x in live}
         top = [x for x in live if key[x] == min(key.values())]
         return ('open', int(top[int(self.b3rng.integers(len(top)))]))
 

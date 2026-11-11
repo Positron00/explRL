@@ -282,3 +282,23 @@ The code follows the sections above except where this list says otherwise; where
 - **`test_b3_mirror`** uses C1's own 64-agent numpy bridge board, not a 16-agent one.
 - **A bug fix outside B3 (NFR-4).** `RuleAgent.choose` and `ViewAgent.choose` now wait when a guess has no answer consistent with the known clues. Before, they crashed on `rng.integers(0)`. That line is never reached at guess 0, so every earlier output is unchanged (full suite, and `tools/b3_run.py check`).
 - **Runtime (T4 step 3 probe).** With knobs set, a 64-agent board takes 0.6-1.0 s and an 8-agent board 0.015 s. One grid point is 234.7 s on 8 workers, so the coarse grid takes about 0.8 hours and the fine grid about 0.7. The full θ_default check (1,470 boards) takes 31 s.
+- **Fixes after the independent review (2026-11-11), all before `B3_PLAN` is frozen.**
+  - **Pilot-only.** The unpaired estimate averages over the sizes at which every arm has rows. Stage 1's 16-agent pilot therefore computes H18-1 to H18-3, as the retrospective table says, instead of falling back.
+  - **`Spread`** never retargets an agent to the subtask it already has open (the base agent chose to leave it).
+  - **Grid cache.** It lives in `grid/<codeHash()>/`: the first 12 hex of the SHA-256 of the modules that play a board or compute its row (`b3_fit.PLAYS`). Tests write only to temporary folders. `gridSim(..., play=False)` raises on a missing board. `fit` reads the cache only.
+  - **Non-finite values.** `loss` and `refit` raise on a non-finite cell mean, pilot value or s, instead of letting NaN decide the argmin.
+  - **τ and s_t (NFR-6).**
+    - For the retrospective, τ is computed per candidate and fold without the fold's cells (`fit.json` `tauBy[knob][fold]`), and s_t from the fit cells outside the fold.
+    - For C1, s_t comes from the fit cells other than C1's reused cells (`c1Forecast(..., scale=...)`).
+    - H22-2 compares the fitted line's right count with the unfitted line's own count.
+  - **Held-out faults (P22-3).** `b3_retro.faultChecks`: Stage 1's and the 32-agent run's error and collude cells, contamination at θ_default and at the fit on all cells, reported in `retro.md`.
+  - **Gate.**
+    - `gateB3` reads `forecastStatus()` by default.
+    - It refuses for any experiment in `experiments` (two-line A2 included).
+    - `FORECASTS` lists C1 and A2.
+    - `tools/b3_run.py gate` pools, gates, writes the report and draws the figure.
+    - `fit`, `retro` and `forecast` refuse an unfrozen plan.
+  - **Forecast file.**
+    - The header records `dirty` (uncommitted changes in `explRL/` or `tools/`).
+    - The C1 file records each pilot measure's s, and `pilotSim`: the simulated contamination, relays and mirror posts at θ_pilot beside the pilot's.
+  - **`test_b3_hashes`** pins the SHA-256 of the committed Phase 13-18 prediction and score files.
