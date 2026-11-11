@@ -80,6 +80,7 @@ Rules are as in Phases 16-19:
   2. Freeze `C1_PILOT_PLAN` (with `cap=250.0` and its `capNote`, P20-9) and push.
   3. Run the pilot: `coupled`, `bridge1` and `bridgeGuard` at 64 agents, seed 1890.
   4. `pilotCheck20` and the cost rule. Rows go to `results/multiagent/colony/c1pilot/runs.csv`, with `contamination` and the bridge columns (B3 reads them). Copy `metrics.json` and `timing.jsonl` to `*_live` before any cached rerun.
+- **Status (2026-11-11): plan frozen.** The user approved the $1.76-2.21 estimate; `C1_PILOT_PLAN['frozen']` is true, its hash `445194d8e1c4` pinned in `test_c1_grid`, and pushed before the pilot.
 - **Then:** report the checks, the cost per call by arm and the projection of the main run (38 boards; the clean boards at 2,560 calls each) beside the $35 ceiling to the user, and wait for approval (P20-8). **Stop and ask** on any failed check. The pilot has no clean board (P20-14).
 
 ## T9. Forecast refit and C1_PLAN

@@ -1,4 +1,4 @@
-"""Phase 20 (`specs/multiagent/phase20/`, experiment C1): the plans, unfrozen. `C1_PILOT_PLAN` (arms, cells and seeds, H20-1 to H20-8, Gate C1, the inert-bridge rule, the pilot checks, the report-and-wait cost rule with its $35 ceiling, and the cap of $250 per calendar month) and `C1_PLAN` (the pilot plan plus the pilot's verdict and projection and B3's forecast, filled at T9); `costRule20` (always 'ask': the user approves every estimate, P20-8) and `pilotCheck20` (FR-C2).
+"""Phase 20 (`specs/multiagent/phase20/`, experiment C1): the plans: `C1_PILOT_PLAN` frozen 2026-11-11 (T8), `C1_PLAN` frozen at T9. `C1_PILOT_PLAN` (arms, cells and seeds, H20-1 to H20-8, Gate C1, the inert-bridge rule, the pilot checks, the report-and-wait cost rule with its $35 ceiling, and the cap of $250 per calendar month) and `C1_PLAN` (the pilot plan plus the pilot's verdict and projection and B3's forecast, filled at T9); `costRule20` (always 'ask': the user approves every estimate, P20-8) and `pilotCheck20` (FR-C2).
 
 Docs: https://Positron00.github.io/explRL/bridge_plan.html.md"""
 
@@ -14,7 +14,7 @@ from .colony_grid import PILOT_SEED, WORLD18
 
 _L = 'honestPooled, N 64, independent liars'
 C1_PILOT_PLAN = dict(
-    version=1, frozen=False, plan='specs/multiagent/phase20/', model='claude-haiku-5-5', world=WORLD18, turns=40,
+    version=1, frozen=True, plan='specs/multiagent/phase20/', model='claude-haiku-5-5', world=WORLD18, turns=40,   # frozen 2026-11-11 (T8, the user approved the $1.76-2.21 estimate)
     channel='blackboard', memory='full', effort='low', arms=ARMS20, cells=dict(
         liars={a: s for a, s in C1_CELLS.items()}, clean={a: s for a, s in C1_CLEAN.items()}, pilot=list(PILOT20),
         reused={a: dict(study=st, seeds=SEEDS8) for a, st in REUSED20}),
