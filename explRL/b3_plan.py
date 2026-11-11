@@ -12,7 +12,7 @@ from .b3_agents import B3_KNOBS
 from .b3_cells import CANDIDATES, COARSE, FINE_STEP, FIT_CELLS, FOLDS, REUSED, SIM_SEEDS
 
 B3_PLAN = dict(
-    version=1, frozen=False, plan='specs/multiagent/phase22/', exploratory=True,
+    version=1, frozen=True, plan='specs/multiagent/phase22/', exploratory=True,   # frozen 2026-11-11 (T4), before the week-1 fit
     hypotheses=dict(
         H22_1='Gate B3, primary: pooled over C1, C2 and C4 part b, the fitted simulator calls more effects right than each of '
               'the unfitted simulator, pilot-only and every-design-helps (the common set, P22-10)',
