@@ -54,6 +54,6 @@ After the last one (plan: weeks 14-16): poolScores -> gateB3 -> results/multiage
 
 1. **Regression gate** before any fit: NFR-1, and the full suite.
 2. **`B3_PLAN` frozen and pushed** before the week-1 fit (NFR-7).
-3. **Fit health** (P22-11): a parameter at a range bound, or H22-3 failing, stops B3 and asks the user before C1's forecast. Otherwise the retrospective check is reported and nothing waits on its score.
+3. **Fit health** (P22-11): a parameter at the top of its range (P22-21; a knob at 0 is reported, not a stop), or H22-3 failing, stops B3 and asks the user before C1's forecast. Otherwise the retrospective check is reported and nothing waits on its score.
 4. **Before each main run:** the experiment's forecast is committed and pushed and its SHA-256 recorded in its frozen plan. C1's main run cannot start without it (P20-13). A2's runs do not wait (P21-8).
 5. **Gate B3** (plan: week 16): P22-10's counting rule on the pooled common set, read only with at least 8 conclusive items. It gates nothing downstream. Its result goes to the Stage 2 decision on whether a fitted screen is worth running before expensive experiments.

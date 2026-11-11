@@ -44,7 +44,7 @@ Rules are as in Phases 16-21:
   3. Run a 1-seed timing probe on the slowest fit cell (64 agents) and update the runtime estimate.
   4. `tools/b3_run.py grid`: the coarse grid for the three candidates; `chooseKnob`; the fine grid for the winner.
   5. `fit` per fold and on all cells; `bootTau`; `fitHealth`.
-- **Then:** if a parameter sits at a range bound, or H22-3 fails (held-out loss not below θ_default's in at least 2 of 3 folds), **stop and ask** before T6 (P22-11).
+- **Then:** if a parameter sits at the top of its range (P22-21), or H22-3 fails (held-out loss not below θ_default's in at least 2 of 3 folds), **stop and ask** before T6 (P22-11).
 - **Done when:** `results/multiagent/b3/fit.json` holds the chosen knob, θ0 per fold and on all cells, τ, held-out losses beside θ_default's, and the fit-health verdict; the grid cache is complete.
 - **Status (2026-11-11): step 1 done, step 3 done.** `tools/b3_run.py check`: 840 Part 0 and 630 Stage 4 forecast boards at θ_default (30 seeds) equal their saved rows, 0 differ; full suite passes. Probe: 0.6-1.0 s per 64-agent board with knobs set; 234.7 s per grid point on 8 workers, so the coarse grid about 0.8 hours and the fine grid about 0.7. Next: freeze and push `B3_PLAN` (needs the user's go-ahead to push), then grid and fit.
 

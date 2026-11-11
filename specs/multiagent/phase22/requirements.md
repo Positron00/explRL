@@ -56,7 +56,7 @@ Terms are as in Phases 18-21, paper2 and the research plan. In addition:
 - **FR-B5** `chooseKnob(sims)`: for each candidate, the summed held-out loss over `S1`, `S4` and `S4b` on the coarse grid; the lowest wins, ties to `spread` (P22-2). The fine grid then runs for that candidate only.
 - **FR-B6** `bootTau(cells, sims, n=200)`: the standard deviation of the fitted θ over resamples of Claude boards within cells, floored at 0.1.
 - **FR-B7** `refit(theta0, tau, pilotTargets, sims)`: the penalized fit of P22-6. `pilotTargets` maps each pilot measure to its simulated cell, pilot value and s. Parameters with no pilot measure keep θ0.
-- **FR-B8** `fitHealth(fits)`: flags any parameter at a range bound, and H22-3 (reported for all three keep-output candidates, not only the chosen one, since `chooseKnob` picked it on the same folds; P22-18) (held-out loss below θ_default's in at least 2 of 3 folds).
+- **FR-B8** `fitHealth(fits)`: flags any parameter at the top of its range (P22-21; a knob fitted to 0 is reported in `atZero`), and H22-3 (reported for all three keep-output candidates, not only the chosen one, since `chooseKnob` picked it on the same folds; P22-18) (held-out loss below θ_default's in at least 2 of 3 folds).
 
 ### Part C: forecasters and the entry point
 

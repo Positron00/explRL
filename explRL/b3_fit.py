@@ -161,9 +161,11 @@ def pilotScale(rows, measure, nBoards, cells=FIT_CELLS):
 
 
 def fitHealth(fits, held, knobs, chosen):
-    """FR-B8: bound hits (a fitted knob at either end of its range, in any fit) and H22-3 per candidate (held-out loss below
-    θ_default's in at least 2 of S1, S4 and S4b); ok when no bound hit and H22-3 holds for the chosen knob (P22-11, P22-18).
+    """FR-B8: bound hits (a fitted knob at the top of its range, in any fit: the range may be too narrow; P22-21) and H22-3 per
+    candidate (held-out loss below θ_default's in at least 2 of S1, S4 and S4b); ok when no bound hit and H22-3 holds for the
+    chosen knob (P22-11, P22-18). A knob fitted to 0 (the behaviour off) is reported in atZero and does not stop the run.
     fits {name: θ}; held {candidate: {fold: heldOut(...)}}."""
-    hits = [(n, k, th.get(k, 0.0)) for n, th in fits.items() for k in knobs if th.get(k, 0.0) in B3_KNOBS[k]]
+    hits = [(n, k, th.get(k, 0.0)) for n, th in fits.items() for k in knobs if th.get(k, 0.0) >= B3_KNOBS[k][1]]
+    zero = [(n, k) for n, th in fits.items() for k in knobs if not th.get(k)]
     h3 = {c: sum(held[c][f]['better'] for f in ('S1', 'S4', 'S4b')) >= 2 for c in held}
-    return dict(boundHits=hits, H22_3=h3, ok=not hits and bool(h3.get(chosen)))
+    return dict(boundHits=hits, atZero=zero, H22_3=h3, ok=not hits and bool(h3.get(chosen)))
