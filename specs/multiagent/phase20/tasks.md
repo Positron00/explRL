@@ -1,6 +1,6 @@
 # Tasks: Phase 20
 
-Status (2026-11-11): T0-T6, T8 and T9 done; the pilot ran ($2.06) and `C1_PLAN` is frozen. Next: T10, the main run (approved at $29.50). Earlier (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-17 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
+Status (2026-11-11): T0-T6, T8 and T9 done; the pilot ran ($2.06) and `C1_PLAN` is frozen. T10 done: Gate C1 passes ($23.95). Next: T11. Earlier (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-17 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
 
 Order: T0-T6, then T7 (part b and the bridge check) at any time after T6, and T8 (the pilot) at any time after T6. T9 and T10 wait for B3. T11 follows T10.
 
@@ -102,6 +102,7 @@ Rules are as in Phases 16-19:
   - it reports the core measures per arm (FR-D5);
   - the forecast is scored (by B3's code, Phase 22, not C1's);
   - spend is recorded on the ledger.
+- **Status (2026-11-11): done.** Batches main1 (28 boards, $17.54, invalid 0.2%) and main2 (10 boards, $6.41, invalid 0.2%), then the full grid from the cache at $0. Gate C1 passes on both measures; the inert-bridge flag does not fire. `report.md`, `c1.png` and `summary.json` in `results/multiagent/colony/c1/`.
 
 ## T11. Gate C1 handoff and docs
 - **What:**

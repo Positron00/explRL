@@ -1,0 +1,214 @@
+{
+ "all": {
+  "fitted": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  },
+  "naive": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  },
+  "pilotOnly": {
+   "no call": 2,
+   "right": 5,
+   "wrong": 1
+  },
+  "priorOnly": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  },
+  "unfitted": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  }
+ },
+ "common": {
+  "fitted": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  },
+  "naive": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  },
+  "pilotOnly": {
+   "no call": 2,
+   "right": 5,
+   "wrong": 1
+  },
+  "priorOnly": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  },
+  "unfitted": {
+   "no call": 2,
+   "right": 4,
+   "wrong": 2
+  }
+ },
+ "exp": "C1",
+ "forecast": "c1_predictions.json",
+ "items": {
+  "C1-1": {
+   "ci": [
+    0.08565140478187042,
+    0.12466617583197957
+   ],
+   "estimate": 0.10510018290292712,
+   "fallback": false,
+   "observed": "+",
+   "represented": true,
+   "result": {
+    "fitted": "right",
+    "naive": "right",
+    "pilotOnly": "right",
+    "priorOnly": "right",
+    "unfitted": "right"
+   }
+  },
+  "C1-2": {
+   "ci": [
+    0.0006938226936088439,
+    0.03746338089599265
+   ],
+   "estimate": 0.019812784111736342,
+   "fallback": false,
+   "observed": "+",
+   "represented": true,
+   "result": {
+    "fitted": "wrong",
+    "naive": "right",
+    "pilotOnly": "right",
+    "priorOnly": "wrong",
+    "unfitted": "wrong"
+   }
+  },
+  "C1-3": {
+   "ci": [
+    -0.05099235517928798,
+    -0.014902148511582496
+   ],
+   "estimate": -0.03331057074155476,
+   "fallback": false,
+   "observed": "-",
+   "represented": true,
+   "result": {
+    "fitted": "right",
+    "naive": "wrong",
+    "pilotOnly": "right",
+    "priorOnly": "right",
+    "unfitted": "right"
+   }
+  },
+  "C1-4": {
+   "ci": [
+    -0.028112591478401006,
+    0.010825555489940266
+   ],
+   "estimate": -0.009197596872463689,
+   "fallback": true,
+   "observed": "0",
+   "represented": true,
+   "result": {
+    "fitted": "no call",
+    "naive": "no call",
+    "pilotOnly": "no call",
+    "priorOnly": "no call",
+    "unfitted": "no call"
+   }
+  },
+  "C1-5": {
+   "ci": [
+    0.015151515151515138,
+    0.5675675675675675
+   ],
+   "estimate": 0.21232754953685185,
+   "fallback": false,
+   "observed": "+",
+   "represented": true,
+   "result": {
+    "fitted": "wrong",
+    "naive": "right",
+    "pilotOnly": "right",
+    "priorOnly": "wrong",
+    "unfitted": "wrong"
+   }
+  },
+  "C1-6": {
+   "ci": [
+    -0.012381903542248357,
+    0.005614084710268646
+   ],
+   "estimate": -0.00466564489462275,
+   "fallback": false,
+   "observed": "0",
+   "represented": true,
+   "result": {
+    "fitted": "no call",
+    "naive": "no call",
+    "pilotOnly": "no call",
+    "priorOnly": "no call",
+    "unfitted": "no call"
+   }
+  },
+  "C1-7": {
+   "ci": [
+    -0.06410440575324418,
+    -0.05068143200027109
+   ],
+   "estimate": -0.05806094742633951,
+   "fallback": true,
+   "observed": "-",
+   "represented": true,
+   "result": {
+    "fitted": "right",
+    "naive": "wrong",
+    "pilotOnly": "wrong",
+    "priorOnly": "right",
+    "unfitted": "right"
+   }
+  },
+  "C1-8": {
+   "ci": [
+    0.08478072681494771,
+    0.10152523739695156
+   ],
+   "estimate": 0.09247765576921331,
+   "fallback": true,
+   "observed": "+",
+   "represented": true,
+   "result": {
+    "fitted": "right",
+    "naive": "right",
+    "pilotOnly": "right",
+    "priorOnly": "right",
+    "unfitted": "right"
+   }
+  }
+ },
+ "n": {
+  "all": 8,
+  "common": 8,
+  "pilotComputed": 5
+ },
+ "pilotComputed": {
+  "fitted": {
+   "no call": 1,
+   "right": 2,
+   "wrong": 2
+  },
+  "pilotOnly": {
+   "no call": 1,
+   "right": 4,
+   "wrong": 0
+  }
+ },
+ "rule": "paper2's rule (P22-9): no call when the Claude 95% interval spans 0; right when it excludes 0 on the forecast's side; wrong when it excludes 0 and the forecast has the other sign or 0"
+}
