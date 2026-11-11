@@ -1,6 +1,6 @@
 # Plan: Phase 22, a better cheap screen (B3)
 
-Status: **specified, decisions made 2026-11-10, not built.** The user accepted P22-1 to P22-15 as proposed and decided P22-16 to P22-19 after a review of the specs (table below). Nothing is implemented and nothing has run. This phase is experiment B3 of the Stage 1 research plan (project B, "evaluate how teams of Claudes behave as they grow"). It makes no API calls and uses no GPU: numpy on the Mac, on cached rows and on the pilots that other experiments pay for.
+Status: **built and tested offline 2026-11-11 (T1-T3); the regression gate passed; `B3_PLAN` not yet frozen, so the week-1 fit has not run.** The user accepted P22-1 to P22-15 as proposed and decided P22-16 to P22-20 after a review of the specs (table below). Where the code differs from the designs, design-low-level's "As built" section says so. This phase is experiment B3 of the Stage 1 research plan (project B, "evaluate how teams of Claudes behave as they grow"). It makes no API calls and uses no GPU: numpy on the Mac, on cached rows and on the pilots that other experiments pay for.
 
 **Order relative to the plan.** The plan runs B3 over weeks 1-16. The fit and a retrospective check come in week 1. Then each Claude experiment gets a forecast refit on its own pilot and frozen before its main run:
 

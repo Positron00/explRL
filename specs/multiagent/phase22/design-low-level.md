@@ -256,3 +256,29 @@ For the retrospective, `priorRows` are the Claude cells that had run before each
   - T9 calls `c1Forecast()` with the pilot's rows and commits `c1_predictions.json`.
 - **Phase 21 (A2).** At T5's second freeze, `a2Forecast(pilotRows)` writes `a2_predictions.json`, and its SHA-256 goes into `A2_PLAN`. If B3's code does not exist then, A2 writes the two lines by hand by the rules above, and B3 later checks them with `forecastPilot` and `forecastNaive`. The fitted line reads "not represented" either way, which is not a deviation.
 - **C2 and C4 part b.** Their specs write their effect lists (with `naive` and `represented`), a numpy `cellFn`, `pilotMap` and `reused`, and freeze them before their pilots (P22-15).
+
+## As built (2026-11-11)
+
+The code follows the sections above except where this list says otherwise; where they differ, this list describes the code.
+
+- **Modules (line budget, NFR-4).**
+  - `b3_agents`: also holds `b3Replay`. T1's tests need it, and it only wires members.
+  - `b3_cells`: `FIT_CELLS`, `CELL`, `FOLDS`, `REUSED`, `SIM_SEEDS`, `COARSE`, `FINE_STEP`, `CANDIDATES`, `grid(knobs, steps=None)`, `thetaKey`/`parseKey`, `claudeRows`, `cellValues`, `claudeTargets`. A cell id is `<folder>:<level>:<N>`.
+  - `b3_fit`: `numpyCell`, `simRow`, `simCell`, `gridSim`, `loss`, `onKnobs`, `fit`, `heldOut`, `chooseKnob`, `bootTau`, `refit`, `pilotScale`, `fitHealth`.
+  - `b3_plan`: `B3_PLAN`.
+  - `b3_retro`: `retrospective`, `retroFold`, `retroCellFn`, `pilotTargets`, `RETRO_PILOTS`, `RETRO_PRIOR`.
+  - `b3_report`: `poolScores`, `forecastStatus`, `gateB3`, `mcnemar`, `retroMarkdown`, `writeB3`, `figB3`, `syntheticB3`.
+- **Signatures.**
+  - `gridSim(cells, thetas, workers=8, seeds=SIM_SEEDS, out=None)` returns the cell means `{key: {cell id: mean}}`. Per-seed values are cached per θ in `grid/<key>.csv`, and `gridSim.new` counts the boards a call played.
+  - `refit(theta0, tau, pilot, sims, params=('trustOne',))`. `pilotScale(rows, measure, nBoards, cells)` gives s_t.
+  - `fitHealth(fits, held, knobs, chosen)`: a fitted knob at either end of its range in any fit is a bound hit. H22-3 is checked per candidate.
+  - `cellFn(arm, fault, N, seed, theta) -> row`.
+  - `Effect` terms may be `(coef, arm, N)`, for an arm at another size, or `(coef, None)`, a constant. `naive=None` marks an item where every-design-helps does not apply (Phase 14).
+  - `forecastExperiment` takes injectable `fitFn`, `tauFn` and `refitFn`.
+  - `a2Forecast` reads Phase 21's `a2TeamEstimates` (Phase 21's FR-C3).
+- **Fit health in `tools/b3_run.py fit`.** Bound hits are read on `all`, `allC1`, `S1`, `S4` and `S4b`. `tauBy` holds τ for every candidate, for the retrospective.
+- **Retrospective.** Each candidate refits on its own grid: the fine grid for the winner, the coarse grid for the others. s_t comes from the fit cells outside the fold. Phase 14's fold refits on the scale pilot's clean board (seed 900, N 32, pooled share). Its liar board has no contamination column, so it adds no measure.
+- **Scoring C1 (T9).** `tools/b3_run.py score C1` computes each effect from C1's own Claude rows: its terms, paired on seed over its boards, with `bootSeeds` (2,000 resamples), as `c1Summaries` does.
+- **`test_b3_mirror`** uses C1's own 64-agent numpy bridge board, not a 16-agent one.
+- **A bug fix outside B3 (NFR-4).** `RuleAgent.choose` and `ViewAgent.choose` now wait when a guess has no answer consistent with the known clues. Before, they crashed on `rng.integers(0)`. That line is never reached at guess 0, so every earlier output is unchanged (full suite, and `tools/b3_run.py check`).
+- **Runtime (T4 step 3 probe).** With knobs set, a 64-agent board takes 0.6-1.0 s and an 8-agent board 0.015 s. One grid point is 234.7 s on 8 workers, so the coarse grid takes about 0.8 hours and the fine grid about 0.7. The full θ_default check (1,470 boards) takes 31 s.

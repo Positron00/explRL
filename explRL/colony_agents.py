@@ -51,8 +51,7 @@ class ViewAgent(RuleAgent):
         top = [x for x in top if b.tasks[x].value == max(b.tasks[y].value for y in top)]
         if k not in top:
             return ('open', int(top[int(self.rng.integers(len(top)))]))
-        if self.rng.random() < self.guess:
-            c = candidates(b, k, kn[k])
+        if self.rng.random() < self.guess and (c := candidates(b, k, kn[k])):   # no consistent answer: wait (Phase 22)
             b.noteSubmit(self.id, len(c))
             return ('submit', int(c[int(self.rng.integers(len(c)))]))
         return ('wait', None)

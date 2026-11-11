@@ -9,6 +9,7 @@ website:
           - demo.ipynb
           - demo_bench.ipynb
           - demo_c1.ipynb
+          - demo_b3.ipynb
           - demo_circuit.ipynb
           - demo_clue.ipynb
           - demo_colony.ipynb
@@ -41,6 +42,14 @@ website:
           - bench_metrics.ipynb
           - bench_report.ipynb
           - bench_stats.ipynb
+          - b3_agents.ipynb
+          - b3_forecast.ipynb
+          - b3_effects.ipynb
+          - b3_cells.ipynb
+          - b3_fit.ipynb
+          - b3_plan.ipynb
+          - b3_retro.ipynb
+          - b3_report.ipynb
           - board_agents.ipynb
           - bridge_board.ipynb
           - bridge_agents.ipynb
