@@ -1,6 +1,6 @@
 # Tasks: Phase 22
 
-Status (2026-11-11): T1-T3 built and tested offline (with T6's tests and `tools/b3_run.py` for T4-T6 and T9); T4 step 1 (the regression gate) passed; `B3_PLAN` not yet frozen. Decisions P22-1 to P22-20 made by the user on 2026-11-10. B3 makes no API calls and uses no GPU. **C1's main run waits for T6** (P20-13), and A1 waits for Gate C1, so T1-T6 are on the critical path. **T6 also needs Phase 20's T1-T2** (the bridge board, `RuleBridge`, `bridgeMembers`, mirror posts as P22-12) **and C1's pilot rows** (Phase 20's T8). A2 does not wait for B3 (P21-8); T2 gives A2 its two forecasters early.
+Status (2026-11-11): T1-T6 done (week-1 fit: health ok, H22-2 fails; C1's forecast committed). Earlier: T1-T3 built and tested offline (with T6's tests and `tools/b3_run.py` for T4-T6 and T9); T4 step 1 (the regression gate) passed; `B3_PLAN` not yet frozen. Decisions P22-1 to P22-20 made by the user on 2026-11-10. B3 makes no API calls and uses no GPU. **C1's main run waits for T6** (P20-13), and A1 waits for Gate C1, so T1-T6 are on the critical path. **T6 also needs Phase 20's T1-T2** (the bridge board, `RuleBridge`, `bridgeMembers`, mirror posts as P22-12) **and C1's pilot rows** (Phase 20's T8). A2 does not wait for B3 (P21-8); T2 gives A2 its two forecasters early.
 
 Order: T1 and T2 first (T2's naive and pilot-only parts before A2's T5 freeze), then T3, T4 and T5 in week 1. T6 once its Phase 20 inputs exist. T7 alongside A2. T8 when C2's and C4's specs exist. T9 after each main run, and the gate at the end.
 
@@ -46,7 +46,7 @@ Rules are as in Phases 16-21:
   5. `fit` per fold and on all cells; `bootTau`; `fitHealth`.
 - **Then:** if a parameter sits at the top of its range (P22-21), or H22-3 fails (held-out loss not below θ_default's in at least 2 of 3 folds), **stop and ask** before T6 (P22-11).
 - **Done when:** `results/multiagent/b3/fit.json` holds the chosen knob, θ0 per fold and on all cells, τ, held-out losses beside θ_default's, and the fit-health verdict; the grid cache is complete.
-- **Status (2026-11-11): steps 1-3 done; `B3_PLAN` frozen, hash `3490efe9aa41` (pinned in `test_b3_plan`), to be pushed before step 4.** `tools/b3_run.py check`: 840 Part 0 and 630 Stage 4 forecast boards at θ_default (30 seeds) equal their saved rows, 0 differ; full suite passes. Probe: 0.6-1.0 s per 64-agent board with knobs set; 234.7 s per grid point on 8 workers, so the coarse grid about 0.8 hours and the fine grid about 0.7. Next: freeze and push `B3_PLAN` (needs the user's go-ahead to push), then grid and fit.
+- **Status (2026-11-11): steps 1-3 done; `B3_PLAN` frozen, hash `3490efe9aa41` (pinned in `test_b3_plan`), to be pushed before step 4.** `tools/b3_run.py check`: 840 Part 0 and 630 Stage 4 forecast boards at θ_default (30 seeds) equal their saved rows, 0 differ; full suite passes. Probe: 0.6-1.0 s per 64-agent board with knobs set; 234.7 s per grid point on 8 workers, so the coarse grid about 0.8 hours and the fine grid about 0.7. Next: freeze and push `B3_PLAN` (needs the user's go-ahead to push), then grid and fit. **Step 4 done (2026-11-11, pushed first):** coarse grid 92,160 boards (31 min), fine 81,600 (59 min). `spread` chosen (ties `shareAll`: both keep-output knobs fit to 0 in nearly every fold, `atZero`); `trustOne` 0.6 (0.4 in the S1 fold); loss 3,325 at θ_default to 1,318. Fit health ok: no top-bound hit, H22-3 holds for all three candidates.
 
 ## T5. Retrospective check on paper2's calls (Mac, under 1 hour, $0)
 - **What:** `tools/b3_run.py retro`: per fold, θ0 without the fold, refit on that study's pilot (seed 1890), each study's frozen forecast rule, and the scores of all four forecasters and prior-only against the saved Haiku results. The `P14` fold scores Phase 14's two team-size calls for the two simulators.
@@ -55,6 +55,7 @@ Rules are as in Phases 16-21:
   - the error and collude faults are reported as held-out checks;
   - the plain-board liar misfit is stated.
 - **Then:** report the retrospective and the fit to the user. Nothing waits on the score.
+- **Status (2026-11-11): done, reported to the user.** H22-2 does not hold: fitted 7 right and 4 wrong of 11, against the unfitted line's 9 and 2 (AC-8 holds), every-design-helps 10 and 1, pilot-only 11 and 0; the same for all three candidates. The fit turns H18-3 and `did_guardDeal` wrong and leaves H18-4 and H18-13 wrong. P14: 1 right, 1 wrong for each simulator. Held-out faults: colony-board contamination error 360 to 205. The user went ahead with C1's forecast.
 
 ## T6. C1's forecast (Mac, under 1 hour, $0)
 - **Needs:**
@@ -66,6 +67,7 @@ Rules are as in Phases 16-21:
   2. `tools/b3_run.py forecast C1`: θ0 without C1's reused cells (Stage 4's `squads` at 64 and the 64-agent `colonyGuards`); refit `trustOne` on the pilot's contamination; the five lines for `C1_EFFECTS`; simulated against observed relays and mirror posts.
   3. Commit and push `specs/multiagent/phase20/c1_predictions.json`. Hand its SHA-256 and commit to Phase 20's T9 for `C1_PLAN`.
 - **Done when:** `C1_PLAN` can be frozen with the forecast's SHA-256, and a rerun of T6 at the same commit gives the same bytes.
+- **Status (2026-11-11): done.** θ0 `trustOne` 0.6 (fit without C1's reused cells), refit on C1's pilot to θ_pilot `trustOne` 0.4; `specs/multiagent/phase20/c1_predictions.json` committed (4763008), SHA-256 `6a45dc09…` in `C1_PLAN`.
 
 ## T7. A2's two forecasts (alongside Phase 21's T5)
 - **What:** after A2's pilot, `a2Forecast(pilotRows)` writes `specs/multiagent/phase21/a2_predictions.json`: every-design-helps on `A2-1` to `A2-4`; pilot-only on `A2-2` (team 2190) and `A2-4` (drop-only seed 990 against Phase 14's originals 900-904), 0 on the others; fitted and unfitted "not represented".

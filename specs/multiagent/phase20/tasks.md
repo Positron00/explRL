@@ -1,6 +1,6 @@
 # Tasks: Phase 20
 
-Status (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed; nothing live has run). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-17 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
+Status (2026-11-11): T0-T6, T8 and T9 done; the pilot ran ($2.06) and `C1_PLAN` is frozen. Next: T10, the main run (approved at $29.50). Earlier (2026-11-10): built and tested offline (T0-T6 done; the regression gate passed). Next: T7 (part b and the bridge check on Colab; the user runs it) and T8 (the pilot; needs the user's approval of its estimate of about $2). T9-T10 wait for B3 (Phase 22). Decisions made 2026-11-09, amended by Phase 22's P22-12 and P22-8 on 2026-11-10. The user decided P20-1 to P20-14 (README) on 2026-11-09 and P20-15 to P20-17 on 2026-11-10; P20-14 adds 15 clean boards. **Before T8**, `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P20-8). **Before T9**, B3's fitted simulator exists (P20-13); T9 and T10 wait for it. **After T10**, Gate C1 goes to Phase 19: it sets A1's training world (the user, 2026-11-08), so A1 also waits for B3.
 
 Order: T0-T6, then T7 (part b and the bridge check) at any time after T6, and T8 (the pilot) at any time after T6. T9 and T10 wait for B3. T11 follows T10.
 
@@ -89,6 +89,7 @@ Rules are as in Phases 16-19:
   1. B3's T6 (`tools/b3_run.py forecast C1`, `c1Forecast()`) refits on the pilot, writes, commits and pushes `c1_predictions.json` (P20-13).
   2. Freeze `C1_PLAN` with its SHA-256, the pilot's verdict and projection (with the user's approval in `C1_PLAN['projection']['approved']`, which `demo_c1`'s main stage asserts), and push.
 - **Done when:** `C1_PLAN['frozen']` is true and its content is `C1_PILOT_PLAN`'s plus the forecast, the verdict and the projection.
+- **Status (2026-11-11): done.** The pilot passed every check ($2.06, 5,760 calls; `bridge1` relayed only 2 times in 320 bridge turns, flagged as an inert-bridge risk). The user approved the $29.50 projection on 2026-11-11, after B3's week-1 report (fit health ok; H22-2 failed: fitted 7 of 11 right against the unfitted line's 9). `c1_predictions.json` committed (4763008, SHA-256 in `C1_PLAN`); `C1_PLAN` frozen, hash `9a120ccc3d9e` pinned in `test_c1_grid`, and pushed before the main run.
 
 ## T10. Main run and Gate C1 (Mac, live, about $25-31; then $0)
 - **Needs:** T9, and the user's approval of the pilot's projection (P20-8).

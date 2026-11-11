@@ -57,10 +57,14 @@ C1_PILOT_PLAN = dict(
     check='bridgeCheckCells (P20-11): warm, N 16, world19e(S) + couple 0.25 + bridges 1, S 8 and 4, 4 guards, 4 liars, 900-904',
     dirs=dict(pilot='results/multiagent/colony/c1pilot', main='results/multiagent/colony/c1', partB='results/multiagent/colony/c1b'),
     nboot=2000, exploratory=True)
-C1_PLAN = dict(   # frozen after the pilot and B3's forecast (T9); nothing in the hypotheses or the gate changes
-    C1_PILOT_PLAN, frozen=False, pilotHash=None, verdict=None, projection=None,
-    forecast=dict(file='specs/multiagent/phase20/c1_predictions.json', commit=None, sha256=None,
-                  effects='b3_effects.C1_EFFECTS (B3, Phase 22): C1-1 to C1-8', lines=None,
+C1_PLAN = dict(   # frozen 2026-11-11 (T9), after the pilot and B3's forecast; nothing in the hypotheses or the gate changes
+    C1_PILOT_PLAN, frozen=True, pilotHash='445194d8e1c4',
+    verdict="pilotCheck20 ok, no reasons (2026-11-11); bridge1 relayed 2 times in 320 bridge turns (inert-bridge risk noted)",
+    projection=dict(approved='2026-11-11', cost=29.50, ceiling=35.0, boards=38, calls=82560, pilotCost=2.06),
+    forecast=dict(file='specs/multiagent/phase20/c1_predictions.json', commit='47630088fa3fa7a14f7d9d20929ca9628003df05',
+                  sha256='6a45dc09fa1ca72428d66f73d2c587a651f7f766e0c89057c35496880f56fde7',
+                  effects='b3_effects.C1_EFFECTS (B3, Phase 22): C1-1 to C1-8',
+                  lines=('fitted', 'priorOnly', 'unfitted', 'pilotOnly', 'naive'),
                   how="B3's fitted simulator refit on the pilot, RuleBridge for bridges (P20-13); no fallback"))
 
 # %% ../nbs/bridge_plan.ipynb #e6307541
