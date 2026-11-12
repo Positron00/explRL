@@ -1,6 +1,6 @@
 # Design: Phase 23, bridges that carry evidence (C1b)
 
-Status: v4 (2026-11-11: T1-T5 done, aligned with requirements v4 by the alignment check below; `C1B_PILOT_PLAN` frozen; 2026-11-12: T6's pilot run, `C1B_PLAN` frozen at T7). One design file covers both levels, as the phase is small.
+Status: v4 (2026-11-11: T1-T5 done, aligned with requirements v4 by the alignment check below; `C1B_PILOT_PLAN` frozen; 2026-11-12: T6's pilot run, `C1B_PLAN` frozen and the main run done at T7: Gate C1b ask). One design file covers both levels, as the phase is small.
 
 ## Components
 

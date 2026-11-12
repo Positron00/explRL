@@ -1,6 +1,6 @@
 # Tasks: Phase 23, bridges that carry evidence (C1b)
 
-Status (2026-11-12): T0-T6 done (build notes and the alignment check in design.md). T7: the user approved the projection ($24.88) with relayEvid kept; `C1B_PLAN` frozen with the P23-10 calls. Next: push it, then main1, main2 and main.
+Status (2026-11-12): T0-T7 done. Gate C1b: **ask** (part i fails, part ii holds). The user chose to confirm `bridgeRole` against `bridge1` on fresh seeds before A1 adopts a bridge design (a follow-up phase). T8 waits for that result.
 
 Order:
 
@@ -74,6 +74,19 @@ A2's build (Phase 21) can run alongside.
   2. Run batches main1 and main2.
   3. Run the full grid from the cache, then the report.
 - **Status (2026-11-12):** step 1 done. `C1B_PLAN` is frozen; its hash is pinned in `test_c1b_plans`. The pilot-only calls: H23-1 fails (−0.013), H23-2 holds (−0.043), H23-3 not supported (win-back 0.12), H23-4 supported (+0.048). So the pilot-only gate call is "stop and ask". Every-design-helps calls yes on all four.
+- **Status (2026-11-12): done.**
+  - **Cost:** main1 $15.52 (24 boards), main2 $5.92 (9 boards). Invalid replies under 0.1%. Full grid replayed from the cache at $0, 69 boards analysed. Month's spend $50.10.
+  - **Gate C1b: ask.**
+    - Part (i), bridgeFix − bridge1 on honestPooled: −0.003 [−0.022, 0.014], p 0.62. Fails. Robustness on welfareHonest has the same sign.
+    - Part (ii), contamination: −0.048, with a 95th-percentile bound of −0.006 against the 0.05 margin. Holds.
+  - **Secondary results** (exploratory, 5 boards, uncorrected):
+    - H23-3: win-back 0.30, not supported.
+    - H23-4: filter gain −0.027, not supported.
+    - H23-5: the role's main effect is +0.016 (p 0.031); evidence's is −0.001; the interaction is −0.009.
+    - `bridgeRole` is the best coupled arm: honestPooled 0.193, contamination 0.246 (the lowest of all arms).
+    - `mirrorWindow` matches `bridgeFix` on honestPooled (0.189), with the highest contamination (0.375). On clean boards it is at squads' level (0.344 against 0.336).
+  - **The P23-10 calls:** pilot-only got 3 of 4 right, including the gate's "ask"; every-design-helps got 1 of 4.
+  - **The user's decision (2026-11-12):** confirm `bridgeRole` against `bridge1` on 8 fresh paired seeds before A1 adopts it.
 - **Done when:** `results/multiagent/colony/c1bmain/report.md` reports, as frozen:
   - Gate C1b, both parts, with robustness;
   - H23-3 to H23-8;
