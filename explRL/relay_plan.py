@@ -1,4 +1,4 @@
-"""Phase 23 (`specs/multiagent/phase23/`, experiment C1b): the plans. `C1B_PILOT_PLAN` (arms, cells and seeds, H23-1 to H23-8, Gate C1b and what it decides for A1 (P23-7), the pilot checks (P23-9), the report-and-wait cost rule and the cap of $250 per calendar month) was frozen on 2026-11-11 (T6), after the user approved the pilot's estimate of $2.60-2.99, and its hash is pinned in `test_c1b_plans`. `C1B_PLAN` is the pilot plan plus the pilot's verdict, the user's approval of its projection and the hand-recorded calls (P23-10), frozen and pushed before the main run (T7). `pilotCheck23` applies P23-9's checks and `costRule20`'s report-and-wait rule.
+"""Phase 23 (`specs/multiagent/phase23/`, experiment C1b): the plans. `C1B_PILOT_PLAN` (arms, cells and seeds, H23-1 to H23-8, Gate C1b and what it decides for A1 (P23-7), the pilot checks (P23-9), the report-and-wait cost rule and the cap of $250 per calendar month) was frozen on 2026-11-11 (T6), after the user approved the pilot's estimate of $2.60-2.99. `C1B_PLAN` is the pilot plan plus the pilot's verdict, the user's approval of its projection ($24.88, 2026-11-12) and the hand-recorded calls (P23-10), frozen on 2026-11-12 (T7) and pushed before the main run. Both hashes are pinned in `test_c1b_plans`. `pilotCheck23` applies P23-9's checks and `costRule20`'s report-and-wait rule.
 
 Docs: https://Positron00.github.io/explRL/relay_plan.html.md"""
 
@@ -58,9 +58,20 @@ C1B_PILOT_PLAN = dict(
     dirs=dict(pilot='results/multiagent/colony/c1bpilot', main='results/multiagent/colony/c1bmain',
               batches=['results/multiagent/colony/c1bmain1', 'results/multiagent/colony/c1bmain2']),
     nboot=2000, exploratory=True)
-C1B_PLAN = dict(   # frozen at T7, after the pilot; nothing in the hypotheses or the gate changes
-    C1B_PILOT_PLAN, frozen=False, pilotHash=None, verdict=None, projection=None,
-    calls=None)    # P23-10: {'pilotOnly': {...}, 'everyDesignHelps': {...}} for H23-1 to H23-4, recorded by hand before the main run
+C1B_PLAN = dict(   # frozen 2026-11-12 (T7), after the pilot; nothing in the hypotheses or the gate changes
+    C1B_PILOT_PLAN, frozen=True, pilotHash='e607531b64ef',
+    verdict="pilotCheck23 failed 2 checks, both on relayEvid (2026-11-12): relays per bridge turn 0.003 < 0.05 (1 relay in 320 "
+            "bridge turns) and no relay confirmed on arrival; every other check passed (invalid 0.14%, bridgeRole 0.141 and "
+            "bridgeFix 0.066 relays per bridge turn, bridgeFix 6 relays confirmed on arrival, bridge tokens 1,081-1,172 per call). "
+            "The user kept relayEvid in the main run as frozen (2026-11-12): its silence is H23-5's evidence-only cell",
+    projection=dict(approved='2026-11-12', cost=24.88, ceiling=28.0, boards=33, calls=69760, pilotCost=2.73),
+    calls=dict(    # P23-10, by hand before the main run; pilot-only: B3's rule (P22-16, P22-17), the pilot's cells, else C1's cached rows, unpaired
+        basis='pilot seed 1890 (bridgeFix); bridge1, coupled and squads from C1 (c1/runs.csv, c1/reused.csv, c1pilot), all seeds',
+        pilotOnly=dict(H23_1=dict(call='fails', estimate=-0.0125), H23_2=dict(call='holds', estimate=-0.0432),
+                       H23_3=dict(call='not supported', estimate=0.115), H23_4=dict(call='supported', estimate=0.0476),
+                       gate='part (i) fails and part (ii) holds: stop and ask'),
+        everyDesignHelps=dict(H23_1=dict(call='passes'), H23_2=dict(call='holds'), H23_3=dict(call='supported'),
+                              H23_4=dict(call='supported'), gate='passes')))
 
 # %% ../nbs/relay_plan.ipynb #61b5b484
 def pilotCheck23(rows, plan=None):

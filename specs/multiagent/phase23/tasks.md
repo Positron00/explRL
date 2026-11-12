@@ -1,6 +1,6 @@
 # Tasks: Phase 23, bridges that carry evidence (C1b)
 
-Status (2026-11-11): T0-T5 done (build notes and the alignment check in design.md). T6: the user approved the estimate; `C1B_PILOT_PLAN` frozen. Next: push it, then the pilot.
+Status (2026-11-12): T0-T6 done (build notes and the alignment check in design.md). T7: the user approved the projection ($24.88) with relayEvid kept; `C1B_PLAN` frozen with the P23-10 calls. Next: push it, then main1, main2 and main.
 
 Order:
 
@@ -65,6 +65,7 @@ A2's build (Phase 21) can run alongside.
   2. Run the four new arms at seed 1890.
   3. Run `pilotCheck23`.
 - **Then:** report the checks, the cost per call by arm and the main run's projection to you, and wait. Stop and ask on any failed check.
+- **Status (2026-11-12): done.** The pilot cost $2.73. `pilotCheck23` failed on relayEvid only: 0.003 relays per bridge turn (1 in 320) and none confirmed on arrival. Every other check passed. Projection $24.88 for 33 boards (ceiling $28). The user kept relayEvid in the main run and approved the projection.
 
 ## T7. Main run (Mac, live, about $21-24; then $0)
 - **Needs:** T6, and your approval of the projection.
@@ -72,6 +73,7 @@ A2's build (Phase 21) can run alongside.
   1. Record the pilot-only and every-design-helps calls (P23-10) in `C1B_PLAN`, then freeze and push it.
   2. Run batches main1 and main2.
   3. Run the full grid from the cache, then the report.
+- **Status (2026-11-12):** step 1 done. `C1B_PLAN` is frozen; its hash is pinned in `test_c1b_plans`. The pilot-only calls: H23-1 fails (−0.013), H23-2 holds (−0.043), H23-3 not supported (win-back 0.12), H23-4 supported (+0.048). So the pilot-only gate call is "stop and ask". Every-design-helps calls yes on all four.
 - **Done when:** `results/multiagent/colony/c1bmain/report.md` reports, as frozen:
   - Gate C1b, both parts, with robustness;
   - H23-3 to H23-8;
