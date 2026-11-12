@@ -67,6 +67,7 @@ Rules are as in Phases 16-19:
 - **Status (2026-11-10): done, step 2 replaced.** `tools/c1_regression.py` (without `EXPLRL_LLM_LIVE`): 413 earlier live boards (Phase 18's pilot 4, Stage 1 176, 32 agents 64, Stage 3 pilot 2 and run 40, 64 agents pilot 1 and run 16, Stage 4 pilot 3 and run 80, Stage 4b pilot 3 and run 24) replayed through the cache-only client with no miss and every saved column equal, in 166 s; the 16 reused cells replay through `reusedRows20` with every earlier column equal and C1's columns added. Full suite passes. Step 2 (the live-flag cached reruns) was not run: with no cache miss and every column equal, it would only rewrite the saved `metrics.json` and `timing.jsonl`; it can run before T8 if wanted.
 
 ## T7. Part b and the 3B bridge check (Colab, one account, about 5.5 A100 hours)
+- **Changed by P23-6 (the user, 2026-11-11):** the bridge check (P20-11) is re-pointed at Phase 23's design: `bridgeFix` in squads of 8, and evidence with solver bridges in squads of 4. It waits for Phase 23's T1-T2. Part b is unchanged and may run at any time.
 - **What:**
   1. Run the "Phase 20" cell: `squadEvalSuite` (180 boards; the warm start and the final `r17mix` adapters as published, P20-10) and `bridgeCheckCells` (10 boards), resumable per model.
   2. Pack `explRL_c1b.zip`.
