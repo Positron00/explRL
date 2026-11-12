@@ -21,7 +21,8 @@ from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
 from .colony_agents import scriptedFaults
 from .colony_board import STAGE4_KEYS, ColonyBoardEnv, stage4Members
-from .bridge_board import BRIDGE_KEYS, BridgeBoardEnv
+from .bridge_board import BRIDGE_KEYS
+from .relay_board import boardClass, relayKw
 from .bridge_mech import bridgeColumns, isPhase20
 from .contest import applySharePenalty, contestOptions
 from .contest_eval import contestColumns, enforceBoard, isPhase19
@@ -67,8 +68,8 @@ def boardFactory(cfg, scripted=None):
     if s4 and scripted:
         scripted = {i: (lambda ch, rng, f=f: stage4Members(w, [f(ch, rng)])[0]) for i, f in scripted.items()}
     g = range(nl, nl + w.get('guards', 0))
-    br = dict(nLiar=nl) if any(k in w for k in BRIDGE_KEYS) else {}                 # Phase 20: the bridge board
-    make = lambda s: (BridgeBoardEnv if br else ColonyBoardEnv)(s, cfg.N, guardSlots=g, **br, **s4, **kw) if s4 else ClueBoardEnv(s, cfg.N, **kw)
+    br = dict(nLiar=nl, **relayKw(w)) if any(k in w for k in BRIDGE_KEYS) else {}   # Phase 20: the bridge board; Phase 23: relay keys
+    make = lambda s: (boardClass(w) if br else ColonyBoardEnv)(s, cfg.N, guardSlots=g, **br, **s4, **kw) if s4 else ClueBoardEnv(s, cfg.N, **kw)
     return ((lambda s: enforceBoard(make(s), w['enforceK'])) if w.get('enforceK') else make), scripted
 
 

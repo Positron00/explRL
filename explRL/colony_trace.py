@@ -50,12 +50,17 @@ def replay(cfg, seed, client=None):
     return Replay([row], log, b, ans, nL, T)
 
 # %% ../nbs/colony_trace.ipynb #e64f0ed7
-def falseValues(board):
-    "{(k, j, r): (time, poster) of its first post} for every false value posted."
+def falseValues(board, shown=False):
+    """{(k, j, r): (time, poster) of its first post} for every false value posted. shown (Phase 23, FR-D1): also every false
+    mirror value a receiving board showed (`countedFalse`), at its first exposure; contamination reads these, the measures of
+    posted lies do not."""
     out = {}
     for t, i, k, j, r, _, false in board.shareLog:
         if false:
             out.setdefault((k, j, r), (t, i))
+    for key, post in (getattr(board, 'countedFalse', dict)() if shown else {}).items():
+        if key not in out or post < out[key]:
+            out[key] = post
     return out
 
 
@@ -107,10 +112,10 @@ def actionMix(board, honest):
 def traceBoard(board, answers, nLiar):
     "The Phase 18 trace measures of one finished board (honest agents: nLiar .. N - 1)."
     honest = range(nLiar, board.nAgents)
-    fv, sl = falseValues(board), board.shareLog
+    fv, sl, fvShown = falseValues(board), board.shareLog, falseValues(board, True)   # Phase 23: contamination sees shown lies
     subs = [s for s in board.submits if s[1] >= nLiar]
-    con = [contaminatedBy(board, s, answers.get((float(s[0]), s[1])), fv) for s in subs]
-    reach = {v: set() for v in fv}
+    con = [contaminatedBy(board, s, answers.get((float(s[0]), s[1])), fvShown) for s in subs]
+    reach = {v: set() for v in fvShown}
     for s, c in zip(subs, con):
         for v in c:
             reach[v].add(s[1])
@@ -129,7 +134,7 @@ def traceBoard(board, answers, nLiar):
     trueClues = {(s[2], s[3], s[4]) for s in sl if not s[6]}
     n = len(fv)
     return dict(contamination=float(np.mean([bool(c) for c in con])) if subs else NAN,
-                reach=float(np.mean([len(x) for x in reach.values()])) if n else NAN,
+                reach=float(np.mean([len(x) for x in reach.values()])) if reach else NAN,
                 suppression=sup / n if n else NAN, relay=relay / n if n else NAN,
                 confirmFalse=conf / n if n else NAN, contestFalse=cont / n if n else NAN,
                 confirmTrue=float(np.mean([len(senders[v]) - 1 for v in trueClues])) if trueClues else NAN,

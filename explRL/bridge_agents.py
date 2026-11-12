@@ -41,7 +41,10 @@ def bridgeRules(env, i):
     return ''.join('\n\n' + x for x in out)
 
 
-def _vals(p, vs):
+def _vals(p, vs, marks=False):
+    if marks and vs:                                           # Phase 23 (FR-B6): colonyLine's words on a relay board
+        return ' | '.join(f"x mod {p} = {r} ({len(s)} agent{'s' * (len(s) != 1)}, {'confirmed' if len(s) >= Q else 'unconfirmed'})"
+                          for r, s, _ in vs) + (', contested' if len(vs) > 1 else '')
     return ', '.join(f"x mod {p} = {r} ({len(s)} agent{'s' * (len(s) != 1)})" for r, s, _ in vs) or 'none'
 
 
@@ -58,7 +61,8 @@ def bridgeLines(view, i, t=None):
             f"T{k}: x mod {b.tasks[k].task.primes[1]}{f' = {held[k][1]} (yours)' if k in held else ''}; posted: "
             + _vals(b.tasks[k].task.primes[1], b.mirrorTally(k).get(k, {}).get(1, [])) for k in mine))
     if (pair := view.pair) is not None:
-        out.append(PAIR_HEAD.format(s2=s2) + ('; '.join(f'T{k}: ' + _vals(b.tasks[k].task.primes[1], pair[k].get(1, []))
+        mk = getattr(b, 'evidence', False) or getattr(b, 'bridgeRole', False)      # Phase 23: marks (FR-B6)
+        out.append(PAIR_HEAD.format(s2=s2) + ('; '.join(f'T{k}: ' + _vals(b.tasks[k].task.primes[1], pair[k].get(1, []), mk)
                                                          for k in view.open if k in pair) or 'none'))
     if need := [k for k in view.open if b.coupled.get(k, (None,))[0] == i % b.nSquads]:
         out.append(NEED_HEAD.format(s2=s2) + ', '.join(f'T{k}' for k in need))
@@ -172,7 +176,8 @@ def bridgeMembers(world, members):
             x.__class__ = MirrorLiar
         elif isinstance(x, RuleAgent) and not isinstance(x, (ClueLiar, MistakenAgent, RuleBridge)):
             x.__class__ = _bridged(type(x))
-    return members
+    from explRL.relay_agents import relayMembers               # Phase 23 (lazy: relay_agents imports this module)
+    return relayMembers(world, members)
 
 
 def bridgePromptTokens(cfg, seeds, tok=None, policy=None):

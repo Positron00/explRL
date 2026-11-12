@@ -1,6 +1,6 @@
 # Design: Phase 23, bridges that carry evidence (C1b)
 
-Status: draft v2 (aligned with requirements draft v2, 2026-11-11). One design file covers both levels, as the phase is small.
+Status: v3 (built 2026-11-11, T1-T4; aligned with requirements v3). One design file covers both levels, as the phase is small.
 
 ## Components
 
@@ -56,7 +56,7 @@ Same as C1: `runC1Cell` produces rows with `stage4Columns`, `bridgeColumns` and 
 
 - `results/multiagent/colony/c1bpilot/` for the pilot;
 - `c1bmain1/` and `c1bmain2/` for the two seed batches;
-- `c1b/` for the full grid, where `reused.csv` holds the replayed C1 cells.
+- `c1bmain/` for the full grid, where `reused.csv` holds the replayed C1 cells (`c1b/` is C1's part b).
 
 As in C1, the main stage replays every new cell through the cache-only client before writing; a missing reply raises `CacheMiss` before any paid call.
 
@@ -68,8 +68,7 @@ As in C1, the main stage replays every new cell through the cache-only client be
 | `coupledContamination` | the same, over honest answers on coupled subtasks only |
 | `arrivalConfirmed` | relays whose value had at least `Q` mirror senders at the relay's turn, / relays |
 | `filterGain` | false share of the distinct mirror values on the bridge's pair when it relayed, minus `falseRelayShare` |
-| `reRelays` | relays on a coupled subtask whose earlier relayed value no longer leads the mirror |
-| `relaysUsedCorrect` | relays whose value entered a correct answer |
+| `reRelays` | relays of the mirror's leader on a coupled subtask whose earlier relayed value no longer leads the mirror |
 | `roleBreaks` | a dedicated bridge's opens (its rule says never) |
 | `truthConfirmable` | mirrors that ever had a confirmed true value, / mirrors |
 | `liarConfirmed` | mirrors with a false value posted by two liars, / mirrors |
@@ -124,3 +123,14 @@ See README's table: $23.7-27.3.
 | `test_main_ready23` | demo_c1b | AC-8, FR-C5 |
 | `test_gate_c1b`, `test_write_c1b` | relay_report | AC-9, FR-D2-D4 |
 | `tools/c1_regression.py` (extended to all 38 C1 boards), `tools/b3_run.py check` | — | NFR-1 |
+
+## Build notes (2026-11-11): deviations and review fixes
+
+- **Names.** `opened(k)` is `relayOpened(k)` (ColonyBoardEnv already has `opened`). `tally` merges `relayTally(k)`, `[(r, mirror senders, newest)]`, so the mirror's times carry over; `relaySenders(k, j)` stays as `{r: senders}`. No `RelayView`: `BridgeView` delegates to the board. `relay_write.py` holds `writeC1b`, `figC1b` and `syntheticRows23` (NFR-2, as C1's `bridge_write`). `relaysUsedCorrect` is not added: C1's `relaysUsed` counts exactly that. `boardClass` and `relayKw` pick the board in `clueSetup` and `boardFactory`.
+- **Bridge posts.** On a shown clue, a bridge's channel post of a value on the mirror is dropped (its mirror senders count instead); a bridge post of any other value still counts.
+- **Dedicated bridge (review A, B).** The deal gives a bridge clues like any slot, so the role's rule now ends by sharing held clues before waiting (FR-B1's added clause). `RoleBridge` relays a given value on a subtask at most once, so a value two receiving-squad liars outvote cannot hold it on one subtask.
+- **False values (review C).** `falseValues(board, shown=False)`; only contamination (with `traceBoard`'s reach) and `coupledContamination` read the shown lies, so `lieTiming` and the posted-lie trace stay comparable with C1's arms.
+- **Display (review).** A relayed value also posted in the receiving squad reads `(1 agent in squad 3 and 1 in your squad, relayed, confirmed)`, so the count never contradicts the label.
+- **Seeds (review G).** H23-3's `truthConfirmable` and H23-8's per-arm values are on seeds 1800-1804, as the plan says. H23-4 is over the 8 `bridgeFix` boards (the plan's reading; FR-D3 said "bridge boards").
+- **Pilot.** Mirror posts are checked per board as well as in total (a window board must show something). The token bar compares the measured mean, so `<= 1560` passes (P23-9 stops above it). Offline, `test_relay_prompt_tokens` scales the estimate from C1's `bridge1` (estimate 1,453, measured mean 1,002): the dedicated bridge's estimate is about 1.11x, projecting about 1,150. The main-run cost ceiling is $28.
+- **Cost.** `c1bRange` gives $23.65-27.20 (README's $27.3 sums rounded rows).

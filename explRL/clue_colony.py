@@ -11,6 +11,7 @@ __all__ = ['COLONY_OPTS', 'FAULTS', 'Q', 'SHARE_AGAIN', 'COLONY_RULES', 'CONFIRM
 
 # %% ../nbs/clue_colony.ipynb #1838564c
 from .bridge_board import checkBridge
+from .relay_board import checkRelay
 from .clue_agents import ClueBoard
 from .colony_board import failures
 
@@ -21,15 +22,24 @@ Q = 2                                                   # distinct senders for "
 
 def tally(channel, board):
     """{k: {j: [(r, senders, newest)]}} for the open subtasks with posts: per clue, each posted value with the set of
-    its distinct senders and its newest post time, ordered by number of senders, then newest first."""
+    its distinct senders and its newest post time, ordered by number of senders, then newest first. Phase 23: on a board
+    with relayTally, a coupled clue open to the receiving squad counts its mirror senders, and the bridges' own posts of
+    that clue do not count (P23-2)."""
     out = {}
     if not isinstance(channel, ClueBoard):
         return out
+    rt = getattr(board, 'relayTally', None)
     for k in board.open:
-        vals = {}
+        vals, mt = {}, rt(k) if rt is not None else []
+        skip, onMirror = (board.bridgeSet if mt else ()), {x[0] for x in mt}
         for j, _, r, a, t in channel.posts.get(k, []):
+            if j == 1 and a in skip and r in onMirror:              # a relay: its mirror senders count instead
+                continue
             s, n = vals.get((j, r), (set(), -1.0))
             vals[(j, r)] = (s | {a}, max(n, t))
+        for r, s2, n2 in mt:
+            s, n = vals.get((1, r), (set(), -1.0))
+            vals[(1, r)] = (s | s2, max(n, n2))
         for (j, r), (s, n) in vals.items():
             out.setdefault(k, {}).setdefault(j, []).append((r, frozenset(s), n))
         for j in out.get(k, {}):
@@ -48,20 +58,27 @@ def contestedCount(tal):
     return sum(len(vs) > 1 for c in tal.values() for vs in c.values())
 
 
-def _value(p, r, s, q, f=0):
+def _value(p, r, s, q, f=0, src=None):
+    "One value's text; src (m, s2, h): a relayed value, m its mirror senders in squad s2 and h its senders here (Phase 23, FR-A5)."
     n = len(s)
     fail = f", in {f} failed answer{'s' * (f != 1)}" if f else ''
-    return f"x mod {p} = {r} ({n} agent{'s' * (n != 1)}, {'confirmed' if n >= q else 'unconfirmed'}{fail})"
+    c = 'confirmed' if n >= q else 'unconfirmed'
+    if src is not None:
+        here = f' and {src[2]} in your squad' if src[2] else ''
+        return f"x mod {p} = {r} ({src[0]} agent{'s' * (src[0] != 1)} in squad {src[1]}{here}, relayed, {c}{fail})"
+    return f"x mod {p} = {r} ({n} agent{'s' * (n != 1)}, {c}{fail})"
 
 
 def colonyLine(board, tal, q=Q, fails=None):
     """'Clues shared on the board: T3: x mod 7 = 4 (2 agents, confirmed) | x mod 7 = 2 (1 agent, unconfirmed), contested;
     T5: ...' (subtasks in board order, clues by index; 'none' when empty)."""
-    parts = []
+    parts, rs = [], getattr(board, 'relaySenders', None)
     for k in board.open:
         for j in sorted(tal.get(k, {})):
             p, vs = board.tasks[k].task.primes[j], tal[k][j]
-            parts.append(f'T{k}: ' + ' | '.join(_value(p, r, s, q, (fails or {}).get((k, j, r), 0)) for r, s, _ in vs) + (', contested' if len(vs) > 1 else ''))
+            m = rs(k, j) if rs is not None else {}
+            src = lambda r, s: (len(m[r]), board.coupled[k][1], len(s - m[r])) if r in m else None
+            parts.append(f'T{k}: ' + ' | '.join(_value(p, r, s, q, (fails or {}).get((k, j, r), 0), src(r, s)) for r, s, _ in vs) + (', contested' if len(vs) > 1 else ''))
     return 'Clues shared on the board: ' + ('; '.join(parts) or 'none')
 
 
@@ -124,7 +141,8 @@ def colonyRules(env, text, i=None):
     elif getattr(env, 'volunteer', False) and i >= env.nLiar:
         text += '\n\n' + VOLUNTEER_RULE
     from explRL.bridge_agents import bridgeRules                  # Phase 20 (lazy: it imports this module)
-    return text + bridgeRules(env, i)
+    from explRL.relay_agents import relayRules                    # Phase 23 (lazy, likewise)
+    return text + bridgeRules(env, i) + relayRules(env, i)
 
 
 def checkOptions(world, N=None, nLiar=0):
@@ -147,4 +165,4 @@ def checkOptions(world, N=None, nLiar=0):
     S = world.get('squads')
     if S and N is not None and (N % S or g % (N // S)):          # Phase 19: liars may split unevenly (dealSquads)
         raise ValueError(f'squads: N and guards must split evenly into N // {S} squads')
-    return checkBridge(world, N, nLiar)                            # Phase 20: the bridge keys
+    return checkBridge(world, N, nLiar) and checkRelay(world, N, nLiar)   # Phase 20: the bridge keys; Phase 23: the relay keys

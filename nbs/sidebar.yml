@@ -9,6 +9,7 @@ website:
           - demo.ipynb
           - demo_bench.ipynb
           - demo_c1.ipynb
+          - demo_c1b.ipynb
           - demo_b3.ipynb
           - demo_circuit.ipynb
           - demo_clue.ipynb
@@ -132,6 +133,13 @@ website:
           - prestructured_train.ipynb
           - profile_domains.ipynb
           - profile_runs.ipynb
+          - relay_board.ipynb
+          - relay_agents.ipynb
+          - relay_grid.ipynb
+          - relay_plan.ipynb
+          - relay_report.ipynb
+          - relay_write.ipynb
+          - relay_mech.ipynb
           - rl16_grid.ipynb
           - rl16_report.ipynb
           - rl17_grid.ipynb

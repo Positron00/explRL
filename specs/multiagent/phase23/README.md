@@ -1,6 +1,6 @@
 # Plan: Phase 23, bridges that carry evidence (C1b)
 
-Status: **draft v2, 2026-11-11 (after an independent review; 15 findings checked against the code and fixed). The user decided P23-1 to P23-10 on 2026-11-11, all as proposed.** Nothing is built and nothing has run. Next: T1-T5 (offline, $0), then the pilot estimate for the user's approval. This phase follows up C1 (Phase 20), whose Gate C1 passed on 2026-11-11 but whose bridges did almost nothing: `bridge1` − `coupled` +0.013, a win-back of 14% of the coupling cost (H20-3 not supported). It belongs to project C of the Stage 1 research plan ("test which team structures help and can arise from RL") and feeds A1 (Phase 19), which trains in a bridged world.
+Status: **draft v2, 2026-11-11 (after an independent review; 15 findings checked against the code and fixed). The user decided P23-1 to P23-10 on 2026-11-11, all as proposed.** Built 2026-11-11 (T1-T4, independently reviewed; deviations and fixes in design.md's build notes, including one added clause in the dedicated bridge's rule); nothing live has run. Next: T5's regression gate, then the pilot estimate ($2.60-2.99) for the user's approval. This phase follows up C1 (Phase 20), whose Gate C1 passed on 2026-11-11 but whose bridges did almost nothing: `bridge1` − `coupled` +0.013, a win-back of 14% of the coupling cost (H20-3 not supported). It belongs to project C of the Stage 1 research plan ("test which team structures help and can arise from RL") and feeds A1 (Phase 19), which trains in a bridged world.
 
 ## Files in this spec
 

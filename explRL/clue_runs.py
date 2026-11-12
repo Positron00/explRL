@@ -13,7 +13,8 @@ import numpy as np
 from .clue_agents import ClueBoard, ClueLead, ClueLiar, ClueMessages, RuleAgent
 from .colony_agents import faultClass, faultMembers, memberClass
 from .colony_board import STAGE4_KEYS, ColonyBoardEnv, stage4Members
-from .bridge_board import BRIDGE_KEYS, BridgeBoardEnv
+from .bridge_board import BRIDGE_KEYS
+from .relay_board import boardClass, relayKw
 from .clue_fix import fixOptions
 from .clue_text import TextClueEnv
 from .clueboard import ClueBoardEnv
@@ -33,8 +34,8 @@ def clueSetup(cfg, seed):
     "The board (settings from cfg.world; Stage 4's keys: ColonyBoardEnv; Phase 20's: BridgeBoardEnv) and the channel for one run."
     w = cfg.world
     kw = {k: v for k, v in w.items() if k in BOARD_KEYS}
-    br = dict(nLiar=cfg.nLiar, **{k: w[k] for k in BRIDGE_KEYS if k in w}) if any(k in w for k in BRIDGE_KEYS) else {}   # Phase 20
-    b = ((BridgeBoardEnv if br else ColonyBoardEnv)(seed, cfg.N, guardSlots=range(cfg.nLiar, cfg.nLiar + w.get('guards', 0)),
+    br = dict(nLiar=cfg.nLiar, **{k: w[k] for k in BRIDGE_KEYS if k in w}, **relayKw(w)) if any(k in w for k in BRIDGE_KEYS) else {}   # Phase 20, 23
+    b = ((boardClass(w) if br else ColonyBoardEnv)(seed, cfg.N, guardSlots=range(cfg.nLiar, cfg.nLiar + w.get('guards', 0)),
                         **br, **{k: w[k] for k in STAGE4_KEYS if k in w}, **kw)
          if br or any(k in w for k in STAGE4_KEYS) else ClueBoardEnv(seed, cfg.N, **kw))
     ch = dict(none=None, blackboard=ClueBoard(), hierarchical=ClueLead(cfg.N, cfg.world.get('passPooled', False)),
