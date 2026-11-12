@@ -47,7 +47,7 @@ def gateC1b(rows, plan=C1B_PLAN, nboot=2000, metric='honestPooled'):
     i = _test(_d(rows, 'bridgeFix', 'bridge1', metric, seeds=s8), nboot)
     i['passes'] = bool(i['p'] < G['alpha'] and i['estimate'] > 0)
     c = _d(rows, 'bridgeFix', 'bridge1', G['safety'], seeds=s8)
-    ii = dict(_test(c, nboot, 'less'), upper=upperBound(c, plan['nboot'], G['quantile']), margin=G['margin'])
+    ii = dict(_test(c, nboot, 'less'), upper=upperBound(c, nboot, G['quantile']), margin=G['margin'])
     ii['holds'] = bool(ii['upper'] < G['margin'])
     v = 'passes' if i['passes'] and ii['holds'] else 'noBridges' if not ii['holds'] else 'ask'
     return dict(metric=metric, i=i, ii=ii, passes=v == 'passes', verdict=v, decides=G['decides'][v])
@@ -55,9 +55,9 @@ def gateC1b(rows, plan=C1B_PLAN, nboot=2000, metric='honestPooled'):
 
 def c1bSummaries(rows, plan=C1B_PLAN, nboot=None):
     """Every C1B_PLAN item from the full grid's rows (new and reused; FR-D2, FR-D3): Gate C1b with part (i)'s robustness on
-    welfareHonest; on seeds 1800-1804, H23-3 (win-back, supported only with a positive coupling cost; truthConfirmable beside),
-    H23-4 (filter gain over the bridgeFix boards), H23-5 (the 2 x 2), H23-6 (against the window), H23-7 (clean boards against
-    squads) and H23-8 (coupled contamination); per arm, honest pooled share and contamination with bootstrap intervals, the
+    welfareHonest (part ii does not depend on it); H23-4 (filter gain) over the 8 bridgeFix boards; on seeds 1800-1804, H23-3
+    (win-back, supported only with a positive coupling cost; truthConfirmable beside), H23-5 (the 2 x 2), H23-6 (against the
+    window), H23-7 (clean boards against squads) and H23-8 (coupled contamination); per arm, honest pooled share and contamination with bootstrap intervals, the
     columns and the core measures. ValueError unless every planned cell is present; other rows are left out."""
     want, nboot = planned23(plan), nboot or plan['nboot']
     key = lambda r: (r['level'], int(float(r['seed'])))

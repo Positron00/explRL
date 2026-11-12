@@ -1,6 +1,6 @@
 # Plan: Phase 23, bridges that carry evidence (C1b)
 
-Status: **draft v2, 2026-11-11 (after an independent review; 15 findings checked against the code and fixed). The user decided P23-1 to P23-10 on 2026-11-11, all as proposed.** Built 2026-11-11 (T1-T4, independently reviewed; deviations and fixes in design.md's build notes, including one added clause in the dedicated bridge's rule); nothing live has run. Next: T5's regression gate, then the pilot estimate ($2.60-2.99) for the user's approval. This phase follows up C1 (Phase 20), whose Gate C1 passed on 2026-11-11 but whose bridges did almost nothing: `bridge1` − `coupled` +0.013, a win-back of 14% of the coupling cost (H20-3 not supported). It belongs to project C of the Stage 1 research plan ("test which team structures help and can arise from RL") and feeds A1 (Phase 19), which trains in a bridged world.
+Status: **v3, 2026-11-11 (aligned with requirements v4 and design v4; the spec had an independent review, 15 findings fixed, and the build an alignment check). The user decided P23-1 to P23-10 on 2026-11-11, all as proposed.** T1-T5 done 2026-11-11: T1-T4 built and independently reviewed; T5's gate passed (C1's regression and B3's check: 0 differences; the full suite with slow tests passes); an alignment check of plan, specs and code fixed the gaps listed in design.md's build notes. `C1B_PILOT_PLAN` frozen 2026-11-11 after the user approved the pilot's estimate ($2.60-2.99). Next: T6's pilot. Nothing live had run when the plan was frozen. One clause was added to the dedicated bridge's rule at build (FR-B1); it was shown to the user before the pilot was approved. This phase follows up C1 (Phase 20), whose Gate C1 passed on 2026-11-11 but whose bridges did almost nothing: `bridge1` − `coupled` +0.013, a win-back of 14% of the coupling cost (H20-3 not supported). It belongs to project C of the Stage 1 research plan ("test which team structures help and can arise from RL") and feeds A1 (Phase 19), which trains in a bridged world.
 
 ## Files in this spec
 
@@ -43,7 +43,7 @@ So the place where a lie can be stopped is the mirror, where the true holders ar
 | ID | Hypothesis | Family |
 |---|---|---|
 | H23-1 | A dedicated bridge whose relays carry the mirror's evidence (`bridgeFix`) beats C1's `bridge1` in honest pooled share | Gate C1b, part i (effective) |
-| H23-2 | `bridgeFix` is not less safe than `bridge1`: its contamination (FR-D1, counting lies that arrive through relays and mirror lines) is at most 0.05 above `bridge1`'s (non-inferiority) | Gate C1b, part ii (safe) |
+| H23-2 | `bridgeFix` is not less safe than `bridge1`: its contamination (FR-D1, counting lies that arrive through relays and mirror lines) is less than 0.05 above `bridge1`'s, by the one-sided 95% bound (non-inferiority) | Gate C1b, part ii (safe) |
 | H23-3 | `bridgeFix` wins back more than half of what coupling costs: (`bridgeFix` − `coupled`) / (`squads` − `coupled`) > 0.5 (C1's H20-3, retried) | Secondary |
 | H23-4 | Bridges filter: `bridgeFix`'s false-relay share is below the false share of the mirror values it could relay | Secondary |
 | H23-5 | Evidence and role each help: the 2 × 2 of evidence (no, yes) × role (solver, dedicated), with `bridge1` as (no, solver) | Descriptive |
@@ -71,7 +71,7 @@ Each can fail:
   - **Counts never fall:** mirror posts are never withdrawn. But when the true holders post later, their value appears downstream and contests a relayed lie, without anyone relaying it again.
   - **One hook:** a hook in `clue_colony.tally` does this for the display, for Claude and for rule agents alike.
 - **Dedicated bridge (`bridgeRole`, P23-3).** The bridge does not open or answer subtasks. As for guards, this is its rule, not something the board enforces.
-  - **Its rule:** relay a value only when it leads on the mirror, is confirmed there, and no other value is tied with it. When the mirror's leader changes, relay the new one.
+  - **Its rule:** relay a value only when it leads on the mirror, is confirmed there, no other value is tied with it, and its own squad's board does not already show it leading. When the mirror's leader changes, relay the new one. With nothing to relay, share a clue it holds that a board is missing, shows wrong or shows unconfirmed (added at build: the deal gives a bridge clues like any slot); otherwise wait.
   - **Its view:** its view of the mirror marks values confirmed and contested (FR-B6).
   - **Its slot:** it is taken from the 4 honest non-guard agents of its squad, so each squad has 3 solvers, 2 guards and 1 bridge (P23-4).
 - **Mirror window (`mirrorWindow`, P23-5).** No bridge agent. The receiving squad's board shows every mirror value of its coupled subtasks with its mirror senders from the start. This is the structural ceiling for a link.
@@ -97,7 +97,7 @@ Every new board is paired with C1's boards on the same seed. The pilot is seed 1
   - **(i) effective:** `bridgeFix` − `bridge1` > 0 in honest pooled share. One-sided exact sign-flip over 8 paired boards, α = 0.05.
   - **(ii) safe:** the one-sided 95% upper bound (the 95th percentile of 2,000 paired bootstrap means) of `bridgeFix` − `bridge1` in contamination is below 0.05.
     - **Why 0.05:** in C1, paired differences in contamination between arms vary by 0.04-0.07 from seed to seed. With 8 pairs, a design as safe as `bridge1` passes about 95% of the time, and one that is truly 0.05 worse passes about 5% of the time. A 0.02 margin would pass only a design that is clearly safer.
-  - **Robustness:** both parts are repeated on raw honest welfare, as in C1.
+  - **Robustness:** part (i) is repeated on raw honest welfare, as in C1; part (ii) is contamination, which does not depend on the welfare measure.
   - **Correction:** two parts that must both hold need no multiplicity correction.
 - **What the gate decides (P23-7).**
   - **Passes:** A1's bridged world uses evidence, and dedicated bridges in its assigned arms (amends P19-8).
@@ -118,6 +118,7 @@ Every new board is paired with C1's boards on the same seed. The pilot is seed 1
 
 - **The cap.** November's spend is $25.98 of the $250 monthly cap (the ledger, 2026-11-11). A2 (Phase 21) is estimated at $34-39. C1b would bring the month to about $85-93. That is within the cap and close to the $100 monthly credit. As in every phase, the user sees the estimate before the pilot and the projection before the main run (P20-8's rule, P23-9).
 - **Wall time.** C1 played 38 boards in 3.3 hours (11:25-14:45 on 2026-11-11). So the main run should take about 3 hours, and the pilot under 30 minutes.
+- **Main-run ceiling: $28.** The pilot's projection is reported beside it; above it the user decides (P20-8's rule, P23-9).
 - **GPU: none in this phase.** The 3B check of the chosen design is P23-6.
 
 ## Decisions (the user, 2026-11-11: all ten accepted as proposed)
@@ -132,13 +133,13 @@ Every new board is paired with C1's boards on the same seed. The pilot is seed 1
 | P23-6 | 3B check | Point Phase 20's T7 bridge check (P20-11, not yet run) at `bridgeFix` in squads of 8, and at evidence with solver bridges in squads of 4. Its 0.5 A100 hours then test what A1 would use. Part b of T7 is unchanged. | Run C1's bridge check as well (about 0.5 A100 hours more). |
 | P23-7 | What Gate C1b decides for A1 | **Pass:** A1's bridged world has evidence. Arms 1-3 (assigned guards) get a dedicated bridge in squads of 8 and solver bridges in squads of 4. Arm 4 (no assigned roles, emergence) gets evidence and solver bridges, since an assigned role would defeat its test (as P19-8 noted for `bridgeGuard`). **Part (ii) fails:** A1 trains without bridges. **Part (i) fails and (ii) holds:** stop and ask. | Advisory only. |
 | P23-8 | Pay for stopping a lie at the border in A1 (amends P19-10) | In A1's bridged world, a true holder's mirror post that contests a false mirror value earns contest credit, as a contest on the squad's own board does. With evidence (P23-2) that post now reaches the receiving squad, so the reward trains a behaviour that has an effect. | Keep P19-10: a mirror post earns no contest credit. |
-| P23-9 | Pilot checks and cost rule | P20-8's rule: report the estimate and wait, then report the projection and wait. **Stop and ask** on any of: invalid replies at 5%; no mirror posts; on a bridge arm, relays per bridge turn below 0.05 (C1's check only asked for more than zero); on an evidence arm, no relayed value confirmed on arrival; a bridge's mean input tokens per call above 1,560 (C1's check). | C1's checks unchanged. |
+| P23-9 | Pilot checks and cost rule | P20-8's rule: report the estimate and wait, then report the projection and wait. **Stop and ask** on any of: invalid replies at 5%; no mirror posts; on a bridge arm, relays per bridge turn below 0.05 (C1's check only asked for more than zero); on an evidence arm, no relayed value confirmed on arrival; a bridge's mean input tokens per call above 1,560 (C1's check). The relay check covers all three bridge arms, `relayEvid`'s solver bridges included (the user, 2026-11-11, knowing C1's solver bridges relayed on 0.5% of turns, so `relayEvid` may stop the pilot to ask). | C1's checks unchanged. |
 | P23-10 | Forecast | No B3 forecast: `B3_PLAN` is frozen with its list of experiments, and C1b is not on it. Instead `C1B_PLAN` records by hand, before the main run, the pilot-only and every-design-helps calls for H23-1 to H23-4. Those have been the best forecasters so far (C1: pilot-only 5 of 6 right). | Amend B3 to add C1b, which needs a new B3 plan version. |
 
 ## Relation to the other experiments
 
 - **C1 (Phase 20):** its gate stands as frozen. C1b reuses:
-  - C1's code (`BridgeBoardEnv`, `bridgeColumns`, `runC1Cell`, and the statistics in `c1Summaries`);
+  - C1's code (`BridgeBoardEnv`, `c1Columns` with `bridgeColumns`, `colony_trace.replay`, and the statistics helpers of `bridge_report`);
   - C1's cached reference boards;
   - its seeds.
 - **A1 (Phase 19):** C1b decides A1's bridge configuration (P23-7, amending P19-8). It also asks whether A1 pays for stopping lies at the border (P23-8, amending P19-10). A1's T5a (the bridged world's wiring) can go ahead now; the new keys add to it.

@@ -1,6 +1,6 @@
 # Tasks: Phase 23, bridges that carry evidence (C1b)
 
-Status (2026-11-11): T0-T4 done and reviewed (build notes in design.md); T5's gate running. Next: T6, the pilot estimate to the user.
+Status (2026-11-11): T0-T5 done (build notes and the alignment check in design.md). T6: the user approved the estimate; `C1B_PILOT_PLAN` frozen. Next: push it, then the pilot.
 
 Order:
 
@@ -35,7 +35,7 @@ A2's build (Phase 21) can run alongside.
   - the three rule sentences and `relayRules`;
   - the pair line's marks;
   - `RoleBridge` and `relayMembers`.
-- **Done when:** `test_relay_rules`, `test_role_bridge_numpy` and `test_relay_prompt_tokens` pass. A dedicated bridge's prompt on a 64-agent board is under 1,560 tokens, and a 3B bridge prompt in A1's world is under 3,072.
+- **Done when:** `test_relay_rules`, `test_role_bridge_numpy` and `test_relay_prompt_tokens` pass. The estimated ratio of a dedicated bridge's prompt to C1's `bridge1` prompt (64 agents) is under 1.15, so C1's measured mean (1,038) times it is under 1,560; a 3B bridge prompt in A1's world is under 3,072. The measured mean is checked in the pilot.
 
 - **Status (2026-11-11): done.**
 ## T3. Measures and report (about 1 day)
@@ -55,6 +55,8 @@ A2's build (Phase 21) can run alongside.
 ## T5. Regression gate ($0)
 - **Covers:** NFR-1.
 - **Done when:** `tools/c1_regression.py` (all 38 C1 boards and the 16 reused cells) and `tools/b3_run.py check` report 0 differences, and the full suite passes with slow tests. Then commit.
+
+- **Status (2026-11-11): done.** Regression 0 differences, B3 check 0 differences, full suite with slow tests passes; rerun after the alignment fixes.
 
 ## T6. Pilot (Mac, live, about $3)
 - **Needs:** T5, and your approval of the pilot estimate (P23-9).

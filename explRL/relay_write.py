@@ -31,7 +31,7 @@ def writeC1b(path, S, meta, plan=C1B_PLAN):
           _row('(i) robustness: welfareHonest', G['welfareHonest'], f"same sign: {G['robust']}"),
           _row('(ii) safe: contamination (p for < 0: safer)', ii,
                f"holds: {ii['holds']} (95th percentile of paired bootstrap means {_g(ii['upper'])} against {ii['margin']})")]
-    L += ['', f"**Gate C1b: {G['verdict']}.** {G['decides']}.", '', '## Secondary (seeds 1800-1804; exploratory, uncorrected)', ''] + _HEAD
+    L += ['', f"**Gate C1b: {G['verdict']}.** {G['decides']}.", '', '## Secondary (seeds 1800-1804; H23-4 on the 8 bridgeFix boards, 1800-1807; exploratory, uncorrected)', ''] + _HEAD
     h3, h5 = H['H23_3'], H['H23_5']
     L += [_row('H23-3 margin: (bridgeFix - coupled) - 0.5 (squads - coupled)', h3,
                f"win-back {_g(h3['winBack'])} {_ci(h3['winBackCi'])}; supported: {h3['supported']}; truthConfirmable "

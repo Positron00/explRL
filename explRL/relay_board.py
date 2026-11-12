@@ -87,3 +87,16 @@ class RelayBoardEnv(BridgeBoardEnv):
             elif self.evidence and k in first:
                 out[(k, 1, r)] = max((t, a), first[k])
         return out
+
+    def withShown(self, posted):
+        "colony_trace.falseValues' hook (shown=True, FR-D1): posted lies plus countedFalse, each at its earlier exposure."
+        out = dict(posted)
+        for key, post in self.countedFalse().items():
+            if key not in out or post < out[key]:
+                out[key] = post
+        return out
+
+    def pairVals(self, p, vs):
+        "bridge_agents.bridgeLines' hook: the pair line's values, marked on an evidence or bridgeRole board (FR-B6)."
+        from explRL.relay_agents import markedVals                       # lazy: relay_agents imports this module
+        return markedVals(p, vs, self.evidence or self.bridgeRole)

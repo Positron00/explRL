@@ -21,8 +21,7 @@ from .bench_grid import readCSV, rowKey, writeCSV
 from .clue_agents import ClueLiar
 from .colony_agents import scriptedFaults
 from .colony_board import STAGE4_KEYS, ColonyBoardEnv, stage4Members
-from .bridge_board import BRIDGE_KEYS
-from .relay_board import boardClass, relayKw
+from .relay_board import BRIDGE_KEYS, boardClass, relayKw
 from .bridge_mech import bridgeColumns, isPhase20
 from .contest import applySharePenalty, contestOptions
 from .contest_eval import contestColumns, enforceBoard, isPhase19

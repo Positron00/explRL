@@ -1,4 +1,4 @@
-"""Phase 23 (`specs/multiagent/phase23/`, experiment C1b): the plans. `C1B_PILOT_PLAN` (arms, cells and seeds, H23-1 to H23-8, Gate C1b and what it decides for A1 (P23-7), the pilot checks (P23-9), the report-and-wait cost rule and the cap of $250 per calendar month) is frozen and pushed after the user approves the pilot's estimate (T6). `C1B_PLAN` is the pilot plan plus the pilot's verdict, the user's approval of its projection and the hand-recorded calls (P23-10), frozen and pushed before the main run (T7). `pilotCheck23` applies P23-9's checks and `costRule20`'s report-and-wait rule.
+"""Phase 23 (`specs/multiagent/phase23/`, experiment C1b): the plans. `C1B_PILOT_PLAN` (arms, cells and seeds, H23-1 to H23-8, Gate C1b and what it decides for A1 (P23-7), the pilot checks (P23-9), the report-and-wait cost rule and the cap of $250 per calendar month) was frozen on 2026-11-11 (T6), after the user approved the pilot's estimate of $2.60-2.99, and its hash is pinned in `test_c1b_plans`. `C1B_PLAN` is the pilot plan plus the pilot's verdict, the user's approval of its projection and the hand-recorded calls (P23-10), frozen and pushed before the main run (T7). `pilotCheck23` applies P23-9's checks and `costRule20`'s report-and-wait rule.
 
 Docs: https://Positron00.github.io/explRL/relay_plan.html.md"""
 
@@ -16,7 +16,7 @@ from .relay_grid import (ALLOW23, ARMS23, C1B_CELLS, C1B_CLEAN, NEW23, PER_BOARD
 
 _L = 'honestPooled, N 64, independent liars, seeds 1800-1807 paired'
 C1B_PILOT_PLAN = dict(
-    version=1, frozen=False, plan='specs/multiagent/phase23/', model='claude-haiku-5-5', world=WORLD18, turns=40,   # freeze at T6
+    version=1, frozen=True, plan='specs/multiagent/phase23/', model='claude-haiku-5-5', world=WORLD18, turns=40,   # frozen 2026-11-11 (T6, the user approved the $2.60-2.99 estimate)
     channel='blackboard', memory='full', effort='low', arms=ARMS23, cells=dict(
         liars=dict(C1B_CELLS), clean=dict(C1B_CLEAN), pilot=list(PILOT23),
         reused=dict(liars=dict(REUSED23['liars']), clean=dict(REUSED23['clean']), source="C1's cache ($0): c1/runs.csv, c1/reused.csv")),
@@ -47,12 +47,14 @@ C1B_PILOT_PLAN = dict(
     pilot=dict(cells=list(PILOT23), seed=PILOT_SEED, analysed=False, maxInvalid=0.05, minMirrorPosts=1, minRelaysPerBridgeTurn=0.05,
                minArrivalConfirmed=1, maxBridgeTokens=1560, bridgeArms=[a for a in NEW23 if ARMS23[a].get('bridges')],
                evidenceArms=[a for a in NEW23 if ARMS23[a].get('evidence')], onFail='stop and ask',
+               bridgeArmsNote="the relay check covers all three bridge arms, relayEvid's solver bridges included (the user, "
+                              "2026-11-11); C1's bridge1 relayed on 0.5% of bridge turns, so relayEvid may stop the pilot to ask",
                columns=dict(mirror='mirrorPosts', relays='relaysPerBridgeTurn', arrival='arrivalConfirmed', nRelays='bridgeRelays',
                             bridgeTok='inTokPerCallBridge')),
     costRule=dict(rule='report and wait (P20-8, P23-9): the estimate before the pilot, the projection after it; the user approves each',
                   ceiling=28.0, projection="the pilot's cost per call by arm x c1bGrid's calls (1,920 per liar board, 2,560 per clean)",
                   estimate=c1bRange(), perBoard=PER_BOARD23, allowance=ALLOW23),
-    cap=250.0, capNote='per calendar month (the user, 2026-11-09)',
+    cap=250.0, capNote='per calendar month (the user, 2026-11-09)', approved=dict(estimate='2026-11-11', pilot=(2.60, 2.99)),
     dirs=dict(pilot='results/multiagent/colony/c1bpilot', main='results/multiagent/colony/c1bmain',
               batches=['results/multiagent/colony/c1bmain1', 'results/multiagent/colony/c1bmain2']),
     nboot=2000, exploratory=True)
@@ -75,7 +77,7 @@ def pilotCheck23(rows, plan=None):
     br, ev = [a for a in P['bridgeArms'] if a in by], [a for a in P['evidenceArms'] if a in by]
     vals = dict(invalid=sum(f(r, 'invalid') for r in rows) / calls, mirrorPosts=sum(f(r, col['mirror']) for r in rows),
                 relaysPerBridgeTurn={a: f(by[a], col['relays']) for a in br}, bridgeTokens={a: f(by[a], col['bridgeTok']) for a in br},
-                confirmedOnArrival={a: f(by[a], col['arrival']) * f(by[a], col['nRelays']) for a in ev})
+                confirmedOnArrival={a: round(f(by[a], col['arrival']) * f(by[a], col['nRelays']), 6) for a in ev})   # 1/49 * 49 < 1
     reasons = [m for m, bad in [
         (f"missing pilot boards {sorted(set(P['cells']) - set(by))}", set(P['cells']) - set(by)),
         (f"invalid {vals['invalid']:.3f} >= {P['maxInvalid']}", not vals['invalid'] < P['maxInvalid']),

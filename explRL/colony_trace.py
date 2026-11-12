@@ -51,17 +51,12 @@ def replay(cfg, seed, client=None):
 
 # %% ../nbs/colony_trace.ipynb #e64f0ed7
 def falseValues(board, shown=False):
-    """{(k, j, r): (time, poster) of its first post} for every false value posted. shown (Phase 23, FR-D1): also every false
-    mirror value a receiving board showed (`countedFalse`), at its first exposure; contamination reads these, the measures of
-    posted lies do not."""
+    "{(k, j, r): (time, poster) of its first post} for every false value posted; shown: and those a board showed (Phase 23)."
     out = {}
     for t, i, k, j, r, _, false in board.shareLog:
         if false:
             out.setdefault((k, j, r), (t, i))
-    for key, post in (getattr(board, 'countedFalse', dict)() if shown else {}).items():
-        if key not in out or post < out[key]:
-            out[key] = post
-    return out
+    return board.withShown(out) if shown and hasattr(board, 'withShown') else out
 
 
 def _before(post, t, i):

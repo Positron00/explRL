@@ -1,6 +1,6 @@
 # Requirements: Phase 23, bridges that carry evidence (C1b)
 
-Status: v3 (built 2026-11-11; aligned with the code, see design.md's build notes). Decisions P23-1 to P23-10 decided by the user on 2026-11-11, all as proposed; requirements that depend on one name it.
+Status: v4 (2026-11-11: built, T5 passed, and aligned with the code by an alignment check; see design.md's build notes). Decisions P23-1 to P23-10 decided by the user on 2026-11-11, all as proposed; requirements that depend on one name it.
 
 ## Terms
 
@@ -10,7 +10,7 @@ Status: v3 (built 2026-11-11; aligned with the code, see design.md's build notes
 - **Evidence count:** on the receiving squad's board, each value of an opened clue (on an `evidence` board) or of every coupled clue (on a `mirrorWindow` board) counted with its mirror senders only. The relaying bridge's own post does not add a sender (P23-2).
 - **Dedicated bridge:** a bridge with `bridgeRole`. Its rule says never to open or answer, and to relay only an untied confirmed mirror leader (P23-3).
 - **Arrival-confirmed relay:** a relay whose value had at least `Q` = 2 mirror senders at the turn it was relayed.
-- **Filter gain:** the false share of the distinct mirror values on the bridge's pair when it relayed, minus the false share of the values it relayed (H23-4).
+- **Filter gain:** for each relay, the false share of the distinct values on the relayed subtask's mirror that the bridge could see when it relayed, averaged over relays, minus the false share of the values it relayed (H23-4).
 
 ## Functional requirements
 
@@ -18,7 +18,7 @@ Status: v3 (built 2026-11-11; aligned with the code, see design.md's build notes
 
 - **FR-A1** `RelayBoardEnv(BridgeBoardEnv)` with three keys, `RELAY_KEYS = ('evidence', 'bridgeRole', 'mirrorWindow')`, all off by default. Without any of them, every board, prompt and saved row is unchanged (NFR-1).
 - **FR-A2** `evidence`: `relaySenders(k, j)` returns `{r: senders}` from the mirror tally of every opened clue (j = 1), and `{}` otherwise.
-  - `clue_colony.tally` merges these senders into the receiving squad's tally when the board defines `relaySenders`. For a value the bridge posted, the bridge's own post is dropped from its sender set.
+  - `clue_colony.tally` merges the board's `relayTally(k)` (`[(r, mirror senders, newest)]`, the same senders as `relaySenders`, with the mirror's times) into the receiving squad's tally. A bridge's own channel post of a value that is on the mirror is dropped from that value's sender set; a bridge post of any other value still counts.
   - So the display, `knownColony`, the colony and guard rule agents and B3's agents all see the same evidence count.
 - **FR-A3** `mirrorWindow`: `bridges` must be 0. `relaySenders` returns the mirror tally of every open coupled subtask of the receiving squad. Mirror posts still never reach the channel.
 - **FR-A4** `bridgeRole`: needs `bridges` ≥ 1 and not `bridgeGuard`. As for guards, the role is set by its rule, not enforced by the board. A dedicated bridge's opens and answers stay valid and are counted (`bridgeOpens`, `bridgeSolves`), so the role can be measured and, in A1, trained. The board exposes `roleBridges`.
@@ -36,7 +36,7 @@ Status: v3 (built 2026-11-11; aligned with the code, see design.md's build notes
 
 ### Part C: grid, plans and runs
 
-- **FR-C1** `C1B_ARMS` and `C1B_CELLS` as README's table:
+- **FR-C1** `ARMS23`, `NEW23`, `C1B_CELLS`, `C1B_CLEAN`, `PILOT23` and `REUSED23` (`relay_grid`) as README's table:
   - new cells with independent liars for `relayEvid`, `bridgeRole`, `bridgeFix` and `mirrorWindow`;
   - clean cells for `bridgeFix` and `mirrorWindow`;
   - all at N 64, on README's seeds.
@@ -44,9 +44,9 @@ Status: v3 (built 2026-11-11; aligned with the code, see design.md's build notes
 - **FR-C3** Two frozen plans, both recording `cap=250.0` and its `capNote`:
   - `C1B_PILOT_PLAN`: frozen and pushed before the pilot, after the user approves the estimate;
   - `C1B_PLAN`: the pilot plan plus the pilot's verdict, the user's approval of its projection and the hand-recorded calls of P23-10; frozen and pushed before the main run.
-- **FR-C4** `pilotCheck23` applies P23-9's checks and `costRule20`'s report-and-wait rule.
+- **FR-C4** `pilotCheck23` applies P23-9's checks and `costRule20`'s report-and-wait rule, with the main run's projection beside the $28 ceiling. The relay check covers every bridge arm (`relayEvid`, `bridgeRole`, `bridgeFix`); the arrival check covers the evidence arms (`relayEvid`, `bridgeFix`); a missing pilot board or column fails its check.
 - **FR-C5** `demo_c1b`, staged by `EXPLRL_C1B_STAGE`:
-  - `quick`: fake client, synthetic rows;
+  - `quick`: fake client, synthetic rows (runs in every test, whatever the stage);
   - `pilot`;
   - `main1` and `main2`: the seed batches;
   - `main`: the full grid from the cache at $0, then the report (folder `c1bmain/`; `c1b/` is C1's part b).
@@ -66,31 +66,32 @@ Status: v3 (built 2026-11-11; aligned with the code, see design.md's build notes
     - `truthConfirmable`: the share of mirrors that ever had a confirmed true value;
     - `liarConfirmed`: the share of mirrors with a false value confirmed by two liars.
   - C1's `bridgeColumns` stay.
-- **FR-D2** `gateC1b`, with both parts repeated on raw honest welfare:
+- **FR-D2** `gateC1b`, with part (i) repeated on raw honest welfare (part ii does not depend on it); part (ii) also reports its one-sided sign-flip p, for reading only:
   - **Part (i):** one-sided exact sign-flip over the 8 paired boards of `bridgeFix` − `bridge1` in honest pooled share, α 0.05.
   - **Part (ii):** the 95th percentile of 2,000 paired bootstrap means of `bridgeFix` − `bridge1` in contamination must be below 0.05.
 - **FR-D3** `c1bSummaries`, each with a 95% bootstrap interval and an uncorrected p:
   - H23-3: the win-back on seeds 1800-1804, supported only when the coupling cost is positive, as C1's T5 note;
-  - H23-4: filter gain, a sign-flip over the bridge boards;
-  - H23-5: the 2 × 2 table with each main effect;
+  - H23-4: filter gain, a sign-flip over the 8 `bridgeFix` boards (1800-1807);
+  - H23-5: the 2 × 2 table with each main effect and the interaction;
   - H23-6: `bridgeFix` − `mirrorWindow`, and `relayEvid` − `mirrorWindow`;
-  - H23-7: the clean contrasts with `squads`;
+  - H23-7: the clean contrasts with `squads` (`coupled`, `bridge1`, `bridgeFix`, `mirrorWindow`);
   - H23-8: `coupledContamination` per arm against `coupled`.
 - **FR-D4** `writeC1b` (`results/multiagent/colony/c1bmain/report.md`) and `figC1b` (`c1b.png`). The figure shows honest pooled share and contamination per arm side by side, so effectiveness and safety are read together.
 
 ## Quality requirements
 
 - **NFR-1** Every earlier board is unchanged after the `tally` hook. All 38 of C1's boards and its 16 reused cells replay from the cache with every saved column equal. Phase 20's regression tool (`tools/c1_regression.py`) and B3's check (`tools/b3_run.py check`) report 0 differences.
-- **NFR-2** Modules stay under 200 lines. Notebooks import with `from explRL.`.
+- **NFR-2** Modules stay under 200 lines. Notebooks import with `from explRL.`. Hooks in existing modules are one or two lines each and the logic lives in `relay_board` and `relay_agents`: `colony_trace.falseValues` calls `withShown`, `bridge_agents.bridgeLines` calls `pairVals`, `colony_board.stage4Members` calls `relayMembers` after `bridgeMembers`. As built: `colony_trace` 199, `bridge_agents` 199, `clue_roll` 199, `colony_board` 192.
 - **NFR-3** No API call in tests; live stages need `EXPLRL_LLM_LIVE=1`.
 - **NFR-4** Prompt length:
-  - on Claude, a dedicated bridge's mean input tokens per call stay under 1,560 (P23-9);
+  - on Claude, a bridge's mean input tokens per call stay at most 1,560 (P23-9, checked in the pilot); offline, the estimated ratio to C1's `bridge1` prompt is under 1.15 and C1's measured mean (1,038) times it is under 1,560;
   - the longest 3B bridge prompt fits 3,072 tokens, measured by `bridgePromptTokens` on A1's world.
 - **NFR-5** Keys are never logged. Spend is counted by `Budget` per calendar month.
 
 ## Acceptance criteria
 
 - **AC-1** With no relay key, a `RelayBoardEnv` run equals a `BridgeBoardEnv` run on the same seed: same board and same log (FR-A1).
+- **AC-1b** A whole numpy run of C1's `bridge1` world forced through `RelayBoardEnv` gives the same row and turn log as on `BridgeBoardEnv` (FR-A1).
 - **AC-2** On an evidence board (FR-A2):
   - a relay of a mirror value with 2 true senders is confirmed on arrival;
   - a lone liar's value on the receiving board loses to it in `knownColony`;

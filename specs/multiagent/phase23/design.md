@@ -1,18 +1,18 @@
 # Design: Phase 23, bridges that carry evidence (C1b)
 
-Status: v3 (built 2026-11-11, T1-T4; aligned with requirements v3). One design file covers both levels, as the phase is small.
+Status: v4 (2026-11-11: T1-T5 done, aligned with requirements v4 by the alignment check below; `C1B_PILOT_PLAN` frozen). One design file covers both levels, as the phase is small.
 
 ## Components
 
 | Module (new unless marked) | Contents | Lines (est.) |
 |---|---|---|
-| `explRL/relay_board.py` (`nbs/relay_board.ipynb`) | `RELAY_KEYS`, `checkRelay`, `RelayBoardEnv(BridgeBoardEnv)` with `relaySenders`, `opened`, `roleBridges` and `falseValues` hook data, and `RelayView` | ~110 |
+| `explRL/relay_board.py` (`nbs/relay_board.ipynb`) | `RELAY_KEYS`, `checkRelay`, `relayKw`, `boardClass`, `RelayBoardEnv(BridgeBoardEnv)` with `relayOpened`, `relayTally`, `relaySenders`, `countedFalse`, `roleBridges`, and the hook targets `withShown` and `pairVals` | ~100 |
 | `explRL/clue_colony.py` (changed) | `tally` merges `board.relaySenders(k, j)` when the board defines it; `_value` takes an optional source tag | +10 |
-| `explRL/colony_trace.py` (changed) | `falseValues` adds `board.countedFalse()` when the board defines it | +3 |
+| `explRL/colony_trace.py` (changed) | `falseValues(board, shown=False)`: with `shown`, `board.withShown(posted)` when the board defines it (one line) | +0 |
 | `explRL/relay_agents.py` (`nbs/relay_agents.ipynb`) | `BRIDGE_ROLE_RULE`, `EVIDENCE_RULE`, `WINDOW_RULE`, `relayRules`, the evidence display line, the pair line's marks (FR-B6), `RoleBridge`, `relayMembers` | ~130 |
-| `explRL/relay_grid.py` | `C1B_ARMS`, `C1B_CELLS`, `C1B_CLEAN`, `PILOT23`, `c1bGrid`, `c1bEstimate`, `reusedCells23` | ~80 |
+| `explRL/relay_grid.py` | `ARMS23`, `NEW23`, `C1B_CELLS`, `C1B_CLEAN`, `PILOT23`, `REUSED23`, `PER_BOARD23`, `ALLOW23`, `arm23`, `c1bCell`, `c1bGrid`, `c1bPilotGrid`, `reusedCells23`, `c1bRange` | ~65 |
 | `explRL/relay_plan.py` | `C1B_PILOT_PLAN`, `C1B_PLAN`, `pilotCheck23` | ~80 |
-| `explRL/relay_mech.py` | `relayColumns`, `runC1bCell` (wraps `runC1Cell`), `reusedRows23` | ~120 |
+| `explRL/relay_mech.py` | `relayColumns`, `c1bColumns` (`c1Columns` plus `relayColumns`), `runC1b`, `runC1bCell` (Claude through `runLLMCell`, numpy through `replay`), `reusedRows23` | ~90 |
 | `explRL/relay_report.py` | `gateC1b`, `c1bSummaries`, `writeC1b`, `figC1b`, `syntheticRows23` | ~170 |
 | `nbs/demo_c1b.ipynb` | stages quick, pilot, main1, main2, main; `mainReady23` | — |
 
@@ -21,10 +21,10 @@ Status: v3 (built 2026-11-11, T1-T4; aligned with requirements v3). One design f
 ## The evidence tally (FR-A2, FR-A3, P23-2)
 
 ```
-RelayBoardEnv.opened(k)    -> any relayLog entry on k                       # evidence: the clue is opened by its first relay
+RelayBoardEnv.relayOpened(k) -> any relayLog entry on k                      # evidence: the clue is opened by its first relay
 RelayBoardEnv.relaySenders(k, j) -> {r: frozenset(mirror senders)}          # {} unless k coupled to i's squad and j == 1
     mt = mirrorTally(k).get(k, {}).get(1, [])                                # [] when the mirror has no posts
-    if mirrorWindow or (evidence and opened(k)): return {r: s for r, s, _ in mt}
+    if mirrorWindow or (evidence and relayOpened(k)): return {r: s for r, s, _ in mt}
     return {}
 ```
 
@@ -48,14 +48,15 @@ Agent ids from squad s2 never collide with squad s's, so the counts are of real,
 - **Slot:** `dealBridges` is unchanged (the first honest non-guard slot per squad). `bridgeRole` marks those slots in `roleBridges`.
 - **Board:** nothing is enforced, as for guards. `ColonyBoardEnv` uses `guardSet` only for the deal; "Do not open subtasks" is in the prompt.
 - **Prompt:** `BRIDGE_RULE`, then `BRIDGE_ROLE_RULE`. The pair line marks confirmed, unconfirmed and contested values (FR-B6). Without these marks the rule could not be followed from the text.
-- **Rule agent:** `RoleBridge._relay` takes the leader of each mirror on its pair. It relays it only if the leader has at least `Q` senders, no other value has as many, and its own board does not show it as leading. Otherwise it waits. It never opens.
+- **Rule agent:** `RoleBridge._roleRelay` takes the leader of each mirror on its pair. It relays it only if the leader has at least `Q` senders, no other value has as many, its own board does not show it as leading, and it has not already relayed that value on that subtask. Otherwise it shares a held clue as a guard does (mirrors first), else it waits. It never opens.
 
 ## Data flow
 
-Same as C1: `runC1Cell` produces rows with `stage4Columns`, `bridgeColumns` and `contestColumns`, plus `relayColumns`. The output folders are:
+As C1: `runC1bCell` produces rows with `c1Columns` (`stage4Columns`, `bridgeColumns`, `contestColumns`) plus `relayColumns`. The output folders are:
 
 - `results/multiagent/colony/c1bpilot/` for the pilot;
 - `c1bmain1/` and `c1bmain2/` for the two seed batches;
+- `c1bquick/` for the quick stage (fake client, synthetic rows);
 - `c1bmain/` for the full grid, where `reused.csv` holds the replayed C1 cells (`c1b/` is C1's part b).
 
 As in C1, the main stage replays every new cell through the cache-only client before writing; a missing reply raises `CacheMiss` before any paid call.
@@ -67,7 +68,7 @@ As in C1, the main stage replays every new cell through the cache-only client be
 | `contamination` | `traceBoard`'s, with `falseValues` extended by `countedFalse` |
 | `coupledContamination` | the same, over honest answers on coupled subtasks only |
 | `arrivalConfirmed` | relays whose value had at least `Q` mirror senders at the relay's turn, / relays |
-| `filterGain` | false share of the distinct mirror values on the bridge's pair when it relayed, minus `falseRelayShare` |
+| `filterGain` | per relay, the false share of the distinct values on that subtask's mirror visible to the bridge when it relayed, averaged over relays, minus the false share of the relayed values |
 | `reRelays` | relays of the mirror's leader on a coupled subtask whose earlier relayed value no longer leads the mirror |
 | `roleBreaks` | a dedicated bridge's opens (its rule says never) |
 | `truthConfirmable` | mirrors that ever had a confirmed true value, / mirrors |
@@ -110,11 +111,12 @@ See README's table: $23.7-27.3.
 | Test | Notebook | Covers |
 |---|---|---|
 | `test_relay_off` | relay_board | AC-1, FR-A1 |
+| `test_relay_off_replay` | relay_mech | AC-1b, FR-A1 |
 | `test_check_relay` | relay_board | FR-A6 |
 | `test_evidence_tally` | relay_board | AC-2, AC-3, FR-A2, FR-A5 |
 | `test_window` | relay_board | AC-4, FR-A3 |
 | `test_counted_false` | relay_board | AC-10, FR-D1 (contamination) |
-| `test_relay_rules` | relay_agents | AC-5, FR-A4, FR-B1-B4, FR-B6 |
+| `test_relay_rules` | relay_agents | AC-5 (the rule), FR-A4, FR-B1-B4, FR-B6; `test_relay_columns` has AC-5's `roleBreaks` |
 | `test_role_bridge_numpy` | relay_agents | AC-6, FR-B5 |
 | `test_relay_prompt_tokens` | relay_agents | NFR-4 |
 | `test_relay_columns` | relay_mech | FR-D1 (columns) |
@@ -134,3 +136,11 @@ See README's table: $23.7-27.3.
 - **Seeds (review G).** H23-3's `truthConfirmable` and H23-8's per-arm values are on seeds 1800-1804, as the plan says. H23-4 is over the 8 `bridgeFix` boards (the plan's reading; FR-D3 said "bridge boards").
 - **Pilot.** Mirror posts are checked per board as well as in total (a window board must show something). The token bar compares the measured mean, so `<= 1560` passes (P23-9 stops above it). Offline, `test_relay_prompt_tokens` scales the estimate from C1's `bridge1` (estimate 1,453, measured mean 1,002): the dedicated bridge's estimate is about 1.11x, projecting about 1,150. The main-run cost ceiling is $28.
 - **Cost.** `c1bRange` gives $23.65-27.20 (README's $27.3 sums rounded rows).
+- **Alignment check (2026-11-11, after T5; an independent review, each finding checked against the code).**
+  - NFR-2: the hooks had pushed `colony_trace` (204), `bridge_agents` (203) and `clue_roll` (200) to the limit or over it. The logic moved to `RelayBoardEnv.withShown` and `pairVals` and `relay_agents.markedVals`; `relayMembers` is now called by `colony_board.stage4Members` after `bridgeMembers`. Rows are unchanged (regression rerun).
+  - `pilotCheck23`: one relay confirmed out of 49 (or 98, 103, ...) relays gave 0.999... and would have stopped the pilot falsely; the product is rounded. Tested.
+  - `gateC1b` passes its `nboot` to the bound (the run uses 2,000 either way).
+  - Specs: robustness is part (i) only; FR-A2's merge and bridge-post rule; the grid's names; filter gain's definition; H23-4 on the 8 `bridgeFix` boards (also in the report's heading); H23-5's interaction and H23-7's extra contrasts written into FR-D3; NFR-4's "at most"; the $28 ceiling in README and FR-C4.
+  - Tests: `test_relay_off_replay` (AC-1b: a whole numpy run through `RelayBoardEnv` equals `BridgeBoardEnv`'s); the dedicated bridge's sharing of held clues is now asserted unconditionally (a true clue it holds).
+  - Batches: `main1` is seeds 1800-1803 (24 boards) and `main2` 1804-1807 (9 boards), because the 5-seed arms end at 1804.
+  - Pilot plan: frozen with the user's approval of the estimate and the all-bridge-arms relay check recorded; its hash is pinned in `test_c1b_plans`.
