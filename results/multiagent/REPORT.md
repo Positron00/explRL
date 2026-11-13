@@ -162,6 +162,17 @@ Each clue held by two agents, a quarter of the agents scripted liars; a board th
 
 Details: `specs/multiagent/phase18/README.md`, `results/multiagent/colony/stage1/report.md`.
 
+## 16. Squads on coupled work: bridges (C1, C1b, C1c; Phases 20, 23, 24)
+
+64 Claude Haiku 5.5 agents in squads of 8 with their own guards, a quarter scripted liars (independent; mirror liars on cross-squad clues), now with subtasks whose clues span two squads: each such clue appears on the other squad's board as a mirror. Paired seeds 1800-1807 (C1, C1b) and fresh seeds 1810-1817 (C1c); each plan frozen and pushed before its run; exact one-sided sign-flip tests.
+
+- **Coupling costs squads, and one bridge wins little of it back (C1, $23.95):** with coupled subtasks squads lose 0.092 honest pooled share (squads - coupled, seeds 1800-1804, 5 of 5). One bridge agent per pair of squads (`bridge1`) still beats guards on one board by 0.105 [0.086, 0.125] (p 0.004; Gate C1 passes, robust on raw welfare), but over coupled squads it adds only 0.013 [-0.002, 0.027]: 14% of the coupling cost (H20-3 not supported), because it relayed on under 1% of its turns. A second bridge added 0.014; a guard as the bridge cut false relays but not damage. Without liars, coupling cost 0.092 and `bridge1` 0.058.
+- **Evidence does not make bridges relay; a dedicated role does (C1b, $24.17 with the pilot):** showing who posted a relayed value (evidence) changed nothing (-0.001); making the bridge a dedicated relay, not a solver, raised honest pooled share by 0.016 over the 2 x 2 (5 boards, exploratory). Both together (`bridgeFix`) were no better than `bridge1` (-0.003 [-0.022, 0.014], p 0.62) but were safer (contamination -0.048): Gate C1b asked. A window showing each squad the other's mirror values, with no bridge (`mirrorWindow`), did as well as `bridgeFix` with liars (-0.002) and cost nothing on clean boards (+0.008 over squads).
+- **The dedicated bridge did not replicate (C1c, $10.57, confirmatory):** on 8 fresh seeds `bridgeRole` - `bridge1` was -0.013 [-0.029, 0.002] (p 0.92; Gate C1c fails), though C1b's 5 boards had shown +0.021 in 5 of 5. It relayed on 24% of its turns (88% confirmed on arrival) and lowered contamination (-0.040), but carried more lies between squads (cross-squad contamination 0.126 against 0.023). A1 trains with `bridge1`.
+- **What it means:** squads hold up when work spans them only if information crosses the border; a busier courier also carries more lies, and the gain from relaying and the harm from relayed lies roughly cancel. The cheapest promising lead is the mirror window (no extra agent), untested on fresh seeds.
+
+Details: `specs/multiagent/phase20/`, `phase23/`, `phase24/`; `results/multiagent/colony/c1/report.md`, `c1bmain/report.md`, `c1c/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).
