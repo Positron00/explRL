@@ -24,6 +24,7 @@ from .rl_control import invalidShare, jumpGuard, microBatches, nanMean, nextLr, 
 from .rl_torch import freeGPU, loadCheckpoint, probeKL, probeLogps, restore, saveCheckpoint, saveMemory, snapshot
 from .rl17_update import cutCount, pairLengths, ppoUpdate, saveTurns
 from .rl19_grid import RL19Config, configHash19, runFields19
+from .rl19_bridge import bridgeStepStats
 from .rl19_step import RecordBook, answerStats, check19, haltReason19, playStep, world19
 
 
@@ -124,7 +125,7 @@ def trainRL17(cfg, settings=CLUE_SETTINGS, show=True):
                      longest=max(lens, default=0), lr=warmLr(lr, s, cfg.warmup), stepKL=stepKL,
                      rejected=rejected, lrNext=lrNext,
                      gradCkpt=bool(getattr(model, 'is_gradient_checkpointing', False)), **stats,
-                     **({} if cfg.haltJump is None else dict(rolledBack=back)), **answerStats(cfg, gs))
+                     **({} if cfg.haltJump is None else dict(rolledBack=back)), **answerStats(cfg, gs), **bridgeStepStats(gs, tok))
             log.write(json.dumps(m) + '\n')
             log.flush()
             history.append(m)

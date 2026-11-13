@@ -28,8 +28,8 @@ def _senders(board, k, j, r=None):
 def refuses(board, i, k, x, K):
     """True when agent i's answer x to subtask k uses a posted value of a clue i does not hold (x agrees with it) that
     fewer than K distinct senders posted. A guess that agrees with no posted value is not refused."""
-    if k is None or k not in board.tasks or isinstance(x, bool) or not isinstance(x, (int, np.integer)):
-        return False
+    if k is None or k not in board.tasks or isinstance(x, bool) or not isinstance(x, (int, np.integer)) or k in getattr(board, 'coupled', {}):
+        return False   # P19-9: a coupled subtask's answer is exempt
     s = board.tasks[k]
     for j, hs in enumerate(s.holders):
         if i not in hs and 0 < len(_senders(board, k, j, int(x) % s.task.clue(j)[0])) < K:
@@ -146,7 +146,14 @@ def contestColumns(cfg, board, slotLogs=None):
     """Phase 19's columns for one board: liar posts (false values posted by liar slots) and contests on them (also on clues
     a guard holds), every contest's lag (JSON), the waiting rate's counts, refusals, honest answers and turns, first wrong
     answers made while misinformed, liar-first clues left uncorrected, repeated wrong values, and per slot (JSON lists)
-    turns, shares, contests, submissions and opens."""
+    turns, shares, contests, submissions and opens. On A1's bridged cells (rl19_bridge.isBridge19) the relay-aware
+    rl19_bridge.contestColumns19 instead; earlier bridged rows (C1-C1d) keep these."""
+    from explRL.rl19_bridge import contestColumns19, isBridge19
+    return (contestColumns19 if isBridge19(cfg.world) else _columns)(cfg, board, slotLogs)
+
+
+def _columns(cfg, board, slotLogs=None):
+    "contestColumns' plain columns (the board's own shareLog)."
     nl, g, N, ans = cfg.nLiar, int(cfg.world.get('guards', 0)), cfg.N, answersOf(slotLogs)
     gs, lies, cs = set(range(nl, nl + g)), [s for s in board.shareLog if s[1] < nl and s[6]], contestsOf(board, nl)
     held = lambda k, j: bool(gs & set(board.tasks[k].holders[j]))

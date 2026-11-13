@@ -63,6 +63,9 @@ class BridgeBoardEnv(ColonyBoardEnv):
         "mirrorLog, relayLog, coupled {k: (s, s2)} and nAssigned per squad, then the base reset (which deals 2N + 2 subtasks)."
         self.nAssigned, self.coupled, self.mirrorLog, self.relayLog = [0] * self.nSquads, {}, [], []
         super().reset(seed, nAgents)
+        if self.contestLog is not None:            # Phase 19 (T5a): relayed lies and border contests (P20-12, P23-8)
+            from explRL.rl19_bridge import BridgeContestLog
+            self.contestLog = BridgeContestLog(self, **self.contestOpts)
 
     def _deal(self):
         "Once per subtask, from ClueBoardEnv._new (self._squad and self.serial set): every 1/couple-th of a squad's is coupled."
@@ -119,6 +122,8 @@ class BridgeBoardEnv(ColonyBoardEnv):
             k, j, r = (int(x) for x in arg)
             if j == 1 and k in self.mirrors(i):
                 red = any(m[2] == k and m[3] == j for m in self.mirrorLog)
+                if self.contestLog is not None:        # a border contest is judged before the post counts
+                    self.contestLog.onMirror(t, i, k, j, r, self.tasks[k].task.clue(j)[1] == r)
                 self.mirrorLog.append((float(t), i, k, j, r, red, self.tasks[k].task.clue(j)[1] != r))
                 self.counts['shares'] += 1
                 rew, dur, _, info = super().apply(i, ('wait', None), t)   # the turn as a wait (time, contest view, reward) ...

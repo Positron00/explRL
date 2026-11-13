@@ -23,6 +23,7 @@ from .colony_agents import scriptedFaults
 from .contest import Records
 from .contest_eval import contestsOf
 from .llm_runs import LLMConfig, cellRow
+from .rl19_bridge import bridgeCells19
 from .rl19_grid import BASE19, LIFETIMES, PILOT19_PLAN, RL19_PLAN, SPEED19, VARIED, needWorld19
 from .rl19_step import SEQ
 
@@ -61,9 +62,9 @@ def contestSuite(models, squads, best=(), warm='warm', seeds=EVAL19_SEEDS, recor
     out 'n<N>L<liars>' (N 8 and 32, clean and N // 4 liars), the faults 'error' and 'collude' (4 of 16); for the warm start also
     the plain board ('plain' + the test: the damage reference) and enforceK ('k<K>L<liars>T<life>'); for arm 4 and the warm
     start the sequences (seqCells); for the models in `best`, 64-agent squads joined by bridges ('big64L0', 'big64L16'; the warm
-    start's plain board too). 40 turns, seeds 900-909, the default reward scheme. `world` (RL19_PLAN's): refused by needWorld19
-    until bridged rollouts exist, and so are the 64-agent cells (always bridged)."""
-    needWorld19(RL19_PLAN['world'] if world is None else world)
+    start's plain board too). 40 turns, seeds 900-909. `world` (RL19_PLAN's) 'bridges': every cell in two squads or more is
+    bridged (rl19_bridge.bridgeCells19), the plain reference included; the 64-agent cells, in squads of 8, always are."""
+    br = needWorld19(RL19_PLAN['world'] if world is None else world) == 'bridges'
     if best:
         needWorld19('bridges')                # the 64-agent squads are joined by bridges whatever the training world
     S, cells = int(squads), []
@@ -80,18 +81,18 @@ def contestSuite(models, squads, best=(), warm='warm', seeds=EVAL19_SEEDS, recor
             cells += seqCells(m, S, seeds, records)
     for m in best:
         for nl in (0, 16):
-            cells += [_cell(m, f'big64L{nl}', 64, sd, world19e(S, **_guards(m, 64)), nl) for sd in seeds]
-            cells += [_cell(warm, f'plainbig64L{nl}', 64, sd, world19e(S, 'plain'), nl) for sd in seeds] if warm not in best else []
-    return cells
+            cells += [_cell(m, f'big64L{nl}', 64, sd, world19e(8, **_guards(m, 64)), nl) for sd in seeds]   # squads of 8 (P19-9)
+            cells += [_cell(warm, f'plainbig64L{nl}', 64, sd, world19e(8, 'plain'), nl) for sd in seeds] if warm not in best else []
+    return bridgeCells19(cells, lambda c: br or 'big64' in c['level'])   # single-squad cells stay unbridged
 
 
 def warmCells(squads, guards=4, seeds=SPEED19['warmSeeds']):
     """The speed check's WARM_ANSWERS cells ('trainG<guards>L<liars>T<life>'): the warm start on every training board type, 16
     agents, training turns, in arm 2's world (guards 4) or arm 4's (guards 0: contest credit open to all), SPEED19's world."""
-    needWorld19(SPEED19['world'])
+    br = needWorld19(SPEED19['world']) == 'bridges'
     w = dict(BASE19['world'], squads=int(squads), scheme='contest', **(dict(guards=guards, contestSlots='guards') if guards else dict(contestSlots='all')))
-    return [_cell('warm', f'trainG{guards}L{nl}T{L}', 16, sd, world19e(squads, **{**w, 'life': L}), nl, BASE19['turns'])
-            for nl in VARIED[0] for L in LIFETIMES for sd in seeds]
+    return bridgeCells19([_cell('warm', f'trainG{guards}L{nl}T{L}', 16, sd, world19e(squads, **{**w, 'life': L}), nl, BASE19['turns'])
+                          for nl in VARIED[0] for L in LIFETIMES for sd in seeds], br)
 
 
 def warmTable(rows, guards=4):
@@ -105,7 +106,7 @@ def warmTable(rows, guards=4):
 
 def pilotCells(models, squads, seeds=PILOT19_PLAN['heldOut']):
     "The pilot's held-out boards: 16 agents at 4 liars, guards 4, the chosen squads, lifetime 30, 40 turns ('<model>|pilotL4')."
-    return [_cell(m, 'pilotL4', 16, sd, world19e(squads, guards=4), 4) for m in models for sd in seeds]
+    return bridgeCells19([_cell(m, 'pilotL4', 16, sd, world19e(squads, guards=4), 4) for m in models for sd in seeds], needWorld19(PILOT19_PLAN['world']) == 'bridges')
 
 
 def pilotGain(rows, model, warm='warm'):

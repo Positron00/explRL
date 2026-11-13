@@ -1,6 +1,6 @@
 # Tasks: Phase 19
 
-Status (2026-11-08): T1-T4 done (offline tests and the `train`-flagged step test pass; committed in bfe5e5b), including the review's alignment fixes (README, implementation notes in design-low-level). The user's decisions are in the README. **Before T5b:** Gate C1 (Phase 20) and Gate A2 (prompted screens) must run; they set A1's training world and arm 4's records. **A1 waits for Gate C1, and C1's main run waits for B3's fitted simulator** (Phase 20, P20-13, 2026-11-09), so A1 waits for B3 too. C1's code exists since 2026-11-10, so T5a (the bridged world's wiring and tests) can start now; T5b (recording Gate C1 and setting the world) waits for the gate. Two handoffs were accepted on 2026-11-09: relay credit (Phase 20's P20-12: the split is built in Phase 20, the relay-aware `ContestLog` in T5a) and A2's record format (Phase 21's P21-11, T8). P19-10 and P19-11 were decided on 2026-11-10.
+Status (2026-11-08): T1-T4 done (offline tests and the `train`-flagged step test pass; committed in bfe5e5b), including the review's alignment fixes (README, implementation notes in design-low-level). The user's decisions are in the README. **Before T5b:** Gate C1 (Phase 20) and Gate A2 (prompted screens) must run; they set A1's training world and arm 4's records. **A1 waits for Gate C1, and C1's main run waits for B3's fitted simulator** (Phase 20, P20-13, 2026-11-09), so A1 waits for B3 too. **Update (2026-11-12): T5a and T5b done**; Gate C1 is recorded and A1 trains in squads joined by `bridge1`. Next: Gate A2 (Phase 21), then T6 on Colab. Two handoffs were accepted on 2026-11-09: relay credit (Phase 20's P20-12: the split is built in Phase 20, the relay-aware `ContestLog` in T5a) and A2's record format (Phase 21's P21-11, T8). P19-10 and P19-11 were decided on 2026-11-10.
 
 Rules are as in Phases 16-18:
 
@@ -48,13 +48,13 @@ Rules are as in Phases 16-18:
   - P19-9: coupled answers out of `waitAnswers` and exempt from `enforceK` (reported apart); the reference cells coupled and bridged; single-squad cells unbridged; the 64-agent cells in squads of 8;
   - P19-11: the held-out `collude` cell has no mirror lies in the bridged world (C1 converts only exact `ClueLiar` members to mirror liars); report it as such, with no new code.
 - **Done when:** `rl19Config` builds an arm in squads with bridges; a recorded 16-agent bridged rollout shows the bridges' relays and `longestBridge`; the AC-8 refusals are replaced by tests of the bridged world, P20-12's split and a paid contest against a relayed lie included; the full suite and `test_rl19_step` pass.
-- **Status (2026-11-10): can start now** (C1's code exists). Until it is done, `rl19Config`, `speedConfig19`, `pilotConfig19`, `warmCells` and `contestSuite` refuse 'bridges' with an error naming Phase 20.
+- **Status (2026-11-12): done.** New module `rl19_bridge.py` (`BRIDGE19`, `bridgeWorld19`, `bridgeCells19`, `BridgeContestLog`, `contestColumns19`, `bridgeStepStats`); `BridgeBoardEnv` builds `BridgeContestLog` under contest credit and judges border contests before a mirror post counts; `contest_eval.contestColumns` hands A1's bridged cells to `contestColumns19` (C1-C1d's rows unchanged: the C1 regression replays 454 boards with 0 mismatches); `trainRL17` logs `bridgeStepStats`. P19-10 as amended by P23-8: a border contest's watchers are the receiving squad's agents shown the lie (the user, 2026-11-12). The speed cell (T6) reads `longestBridge` from the step metrics and refuses bridged metrics without it; `bridgePromptTokens` with the 3B tokenizer (the prompt only) is recorded by Phase 20's bridge check on Colab (P20-11, Phase 20 T7), which the user runs. Tests: `test_bridge19_world`, `test_bridge19_contest`, `test_bridge19_step`, and AC-8's refusals rewritten in `rl19_grid` and `rl19_suite`.
 
 ## T5b. Gate C1 and the world (waits for Gate C1)
 - **Needs:** T5a, and Gate C1 (Phase 20, T10), which waits for B3 (P20-13).
 - **What:** record Gate C1 in `RL19_PLAN['gates']` as {passed, inertFired, userAcceptsBridges} and set the plans' `world` from it (`worldFor19`: 'bridges' if it passed and bridges are kept, 'squads' if it failed or the user declined inert bridges; P19-8); `bridge1` for every arm.
 - **Done when:** the gate record and the world are in the plans, and the Colab cells' Gate C1 assertions pass.
-- **Status (2026-11-10): waiting for Gate C1.**
+- **Status (2026-11-12): done.** `RL19_PLAN['gates']['C1']` = `rl19_bridge.GATE_C1` (passed, the inert-bridge rule did not fire, `bridge1`); `worldFor19` reads the record, so every plan's world is 'bridges'. The Colab cells' Gate C1 assertions pass with it (AC-6 test).
 
 ## T6. Speed check (Colab A, about 3 A100 hours: 6 steps at about 1,080 s, plus 120 warm-start boards)
 - **What:**

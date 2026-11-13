@@ -152,6 +152,7 @@ website:
           - rl17_update.ipynb
           - rl18_grid.ipynb
           - rl18_report.ipynb
+          - rl19_bridge.ipynb
           - rl19_grid.ipynb
           - rl19_measures.ipynb
           - rl19_report.ipynb

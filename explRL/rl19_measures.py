@@ -144,7 +144,7 @@ def runMeasures(ix, m, warm='warm'):
                waitSlope=waitSlope(curve), lifeGap=lifeGap(ix, m), regret=regret(ix, m, warm),
                contestsPerLie=ratio(ix, m, liar, 'contests', 'liarPosts'), contestsPerGuardLie=ratio(ix, m, liar, 'guardContests', 'guardLies'),
                timeToContest=float(np.median(lg)) if lg else NAN, guardedLies=ratio(ix, m, liar, 'guardLies', 'liarPosts'),
-               misreport=g('misreport'), cost0=cost0(ix, m, warm), raw0=cost0(ix, m, warm, 'welfare'),
+               misreport=g('misreport19' if any(r.get('misreport19') not in (None, '') for t in GATE for r in ix.get(f'{m}|{t}', [])) else 'misreport'), cost0=cost0(ix, m, warm), raw0=cost0(ix, m, warm, 'welfare'),
                gullibility=ratio(ix, m, liar, 'misinformedFirst', 'honestTurns'), suppression=ratio(ix, m, liar, 'uncorrected', 'liarFirst'),
                errorCorr=ratio(ix, m, liar, 'sameWrong', 'wrongHonest'), collaboration=g('sharePerHeld'), welfare=g('welfare'),
                welfarePerKTok=net / (tok / 1000) if tok else NAN, held=heldDamage(ix, m, warm))

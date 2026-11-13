@@ -1,4 +1,4 @@
-"""Phase 19 (`specs/multiagent/phase19/`): training the guard role with RL (contest credit). `RL19Config` (contest slots, the bonus half-life, the all-sharing penalty, the varied-threat mix, per-agent records and the answer halt) with `configHash19` (Phase 17-18 hashes unchanged); the arms and runs (`ARMS19`, `SEEDS19`, `RUNS19`, `BASE19`, `rl19Config`); the speed check (`SPEED19`), the squad-size pilot (`PILOT19_PLAN`, `pilotChoice19`) and the main plan's skeleton (`RL19_PLAN`, its decisions P19-1 to P19-7 as the user decided them, unfrozen); the training world (`worldFor19`, `needWorld19`: squads joined by bridges, P19-1, refused until Phase 20's bridged rollouts exist; squads without cross-squad subtasks only if Gate C1 fails); `projectHours19` and `evalAdapter19` (the checkpoint before a halting streak, the answer halt included). The evaluation grid is in `rl19_suite`.
+"""Phase 19 (`specs/multiagent/phase19/`): training the guard role with RL (contest credit). `RL19Config` (contest slots, the bonus half-life, the all-sharing penalty, the varied-threat mix, per-agent records and the answer halt) with `configHash19` (Phase 17-18 hashes unchanged); the arms and runs (`ARMS19`, `SEEDS19`, `RUNS19`, `BASE19`, `rl19Config`); the speed check (`SPEED19`), the squad-size pilot (`PILOT19_PLAN`, `pilotChoice19`) and the main plan's skeleton (`RL19_PLAN`, its decisions P19-1 to P19-7 as the user decided them, unfrozen); the training world (`worldFor19`, `needWorld19`: squads joined by bridges, P19-1, from Gate C1's record, `rl19_bridge.GATE_C1`, with `bridge1` on every arm; squads without cross-squad subtasks only if Gate C1 fails); `projectHours19` and `evalAdapter19` (the checkpoint before a halting streak, the answer halt included). The evaluation grid is in `rl19_suite`.
 
 Docs: https://Positron00.github.io/explRL/rl19_grid.html.md"""
 
@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from .coop_grid import RL_PLAN
 from .rl17_grid import BASE17, RL17_PLAN, RL17Config, runFields17
 from .rl18_grid import FIX18
+from .rl19_bridge import GATE_C1, bridgeWorld19
 
 LIFETIMES = (15, 30)                    # P19-7: subtask lifetimes in turns (the board's default life is 30)
 VARIED, FIXED4 = ((0, 4, 6), LIFETIMES), ((4,), LIFETIMES)   # liars of 16 and lifetimes drawn per training board
@@ -67,14 +68,15 @@ DECISIONS19 = dict(    # the user's decisions (2026-11-08); P19-6 is confirmed a
     P19_7=dict(value=LIFETIMES, proposal='subtask lifetimes 15 and 30 turns', confirmed=True),
     power=dict(value=1.5, proposal='the primary tests are powered for 1.5 SD with 8 seeds per arm; a 1-SD effect would likely read as not shown (user, 2026-11-08)', confirmed=True))
 WORLDS19 = ('bridges', 'squads')       # P19-1: squads joined by bridges; squads without cross-squad subtasks only if Gate C1 fails
-BRIDGES_READY = False                  # True once Phase 20 (C1) has built and tested bridged rollouts
+BRIDGES_READY = True                   # Phase 20's bridged rollouts exist; A1's wiring is rl19_bridge (T5a, 2026-11-12)
 
 
 def worldFor19(c1):
-    "The training world from Gate C1's outcome (True: passed, False: failed); refused while Gate C1 is unrecorded (None)."
+    "The world from Gate C1's record ({passed, inertFired, userAcceptsBridges}, or bool passed): 'bridges' if it passed and bridges are kept (P19-8)."
     if c1 is None:
         raise ValueError('Gate C1 is not recorded: A1 waits for C1 (P19-1)')
-    return 'bridges' if c1 else 'squads'
+    c1 = c1 if isinstance(c1, dict) else dict(passed=bool(c1), inertFired=False)
+    return 'bridges' if c1['passed'] and (not c1['inertFired'] or c1.get('userAcceptsBridges')) else 'squads'
 
 
 def needWorld19(world):
@@ -102,7 +104,7 @@ PILOT19_PLAN = dict(
 RL19_PLAN = dict(
     version=1, frozen=None, userConfirmed=None, decisions=DECISIONS19, squads=None, world=DECISIONS19['P19_1']['value'], records=None,
     arms=ARMS19, seeds=SEEDS19, runs=[list(r) for r in RUNS19], steps=STEPS19, recipe=dict(RL17_PLAN['recipe']), maxLen=3072,
-    turnFraction=None, warmAnswers=None, projectedHours=None, power=None, gates=dict(C1=None, A2=None),
+    turnFraction=None, warmAnswers=None, projectedHours=None, power=None, gates=dict(C1=GATE_C1, A2=None),
     common='RL_PLAN v2 + BASE17 (FIX17; wrong answers cost 3 in training) + FIX18 + BASE19; trainSeed = seed - 1',
     evaluation='rl19_suite.contestSuite: 16 agents in the chosen squads of the training world, liars 0, 2, 4, 6, 8 of 16, lifetimes '
                '15 and 30, seeds 900-909, 40 turns, the default (individual) reward scheme in the prompts (sequences: arm 4\'s, contest '
@@ -130,17 +132,17 @@ RL19_PLAN = dict(
 
 def rl19Config(arm, seed, model, out, recipe, squads, warm=None, plan=RL19_PLAN, kind=None, **over):
     """A Phase 19 run: RL_PLAN v2 + BASE19 + the recipe + the arm, guards and squads in the world (`kind`, default plan['world']:
-    'bridges' is refused until Phase 20's bridged rollouts exist, `needWorld19`); with `warm` (WARM_ANSWERS for these squads,
+    'bridges': BRIDGE19's coupling and one bridge per pair, rl19_bridge.bridgeWorld19); with `warm` (WARM_ANSWERS for these squads,
     {guards: table}) the world carries the table for the arm's guards (arm 4: the guard-free one) and the run has the penalty
     (P19-3) and the answer halt, else neither (the speed check). Arm 4's records come from plan['records'] (P19-5).
     trainSeed = seed - 1; a checkpoint every step."""
-    needWorld19(plan['world'] if kind is None else kind)
+    w19 = needWorld19(plan['world'] if kind is None else kind)
     a = dict(ARMS19[arm])
     g, rec = a.pop('guards'), a.pop('records', False)
     rec = plan['records'] if rec is None else rec
     if rec is None:
         raise ValueError(f'{arm}: records are set by P19-5 when RL19_PLAN is frozen')
-    world = BASE19['world'] + ((('guards', g),) if g else ()) + (('squads', int(squads)),)
+    world = (bridgeWorld19 if w19 == 'bridges' else lambda w, N: w)(BASE19['world'] + ((('guards', g),) if g else ()) + (('squads', int(squads)),), BASE19['N'])
     if warm:
         t = dict(warm)[g]
         world += (('warmAnswers', tuple((tuple(k), float(v)) for k, v in sorted(t.items() if isinstance(t, dict) else t))),)
