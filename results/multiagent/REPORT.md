@@ -162,16 +162,16 @@ Each clue held by two agents, a quarter of the agents scripted liars; a board th
 
 Details: `specs/multiagent/phase18/README.md`, `results/multiagent/colony/stage1/report.md`.
 
-## 16. Squads on coupled work: bridges (C1, C1b, C1c; Phases 20, 23, 24)
+## 16. Squads on coupled work: bridges and windows (C1, C1b, C1c, C1d; Phases 20, 23-25)
 
-64 Claude Haiku 5.5 agents in squads of 8 with their own guards, a quarter scripted liars (independent; mirror liars on cross-squad clues), now with subtasks whose clues span two squads: each such clue appears on the other squad's board as a mirror. Paired seeds 1800-1807 (C1, C1b) and fresh seeds 1810-1817 (C1c); each plan frozen and pushed before its run; exact one-sided sign-flip tests.
+64 Claude Haiku 5.5 agents in squads of 8 with their own guards, a quarter scripted liars (mirror liars also on cross-squad clues), with every fourth subtask needing a clue held in the next squad, where it shows as a mirror line. Paired seeds 1800-1807 (C1, C1b) and fresh seeds for the confirmations (C1c 1810-1817, C1d 1820-1827); each plan frozen and pushed before its run; exact one-sided sign-flip tests. Preprint draft: `paper_bridges/main.pdf`.
 
-- **Coupling costs squads, and one bridge wins little of it back (C1, $23.95):** with coupled subtasks squads lose 0.092 honest pooled share (squads - coupled, seeds 1800-1804, 5 of 5). One bridge agent per pair of squads (`bridge1`) still beats guards on one board by 0.105 [0.086, 0.125] (p 0.004; Gate C1 passes, robust on raw welfare), but over coupled squads it adds only 0.013 [-0.002, 0.027]: 14% of the coupling cost (H20-3 not supported), because it relayed on under 1% of its turns. A second bridge added 0.014; a guard as the bridge cut false relays but not damage. Without liars, coupling cost 0.092 and `bridge1` 0.058.
-- **Evidence does not make bridges relay; a dedicated role does (C1b, $24.17 with the pilot):** showing who posted a relayed value (evidence) changed nothing (-0.001); making the bridge a dedicated relay, not a solver, raised honest pooled share by 0.016 over the 2 x 2 (5 boards, exploratory). Both together (`bridgeFix`) were no better than `bridge1` (-0.003 [-0.022, 0.014], p 0.62) but were safer (contamination -0.048): Gate C1b asked. A window showing each squad the other's mirror values, with no bridge (`mirrorWindow`), did as well as `bridgeFix` with liars (-0.002) and cost nothing on clean boards (+0.008 over squads).
-- **The dedicated bridge did not replicate (C1c, $10.57, confirmatory):** on 8 fresh seeds `bridgeRole` - `bridge1` was -0.013 [-0.029, 0.002] (p 0.92; Gate C1c fails), though C1b's 5 boards had shown +0.021 in 5 of 5. It relayed on 24% of its turns (88% confirmed on arrival) and lowered contamination (-0.040), but carried more lies between squads (cross-squad contamination 0.126 against 0.023). A1 trains with `bridge1`.
-- **What it means:** squads hold up when work spans them only if information crosses the border; a busier courier also carries more lies, and the gain from relaying and the harm from relayed lies roughly cancel. The cheapest promising lead is the mirror window (no extra agent), untested on fresh seeds.
+- **Coupling costs squads; one bridge wins little back (C1):** coupling costs 0.092 honest pooled share (5 boards). One bridge per pair of squads (`bridge1`) beats guards on one board by 0.105 [0.086, 0.125] (exact p 0.004; Gate C1 passes), but over coupled squads adds 0.013 [-0.002, 0.027], 14% of the coupling cost, because it relays on 0.5% of its turns.
+- **Evidence does not make bridges relay; a dedicated role does (C1b, exploratory 2 x 2):** evidence -0.001, role 0.016 [0.010, 0.023]. Both together against `bridge1`: -0.003 [-0.022, 0.014] (p 0.62), contamination -0.048: Gate C1b ask. The mirror window (no bridge; every coupled clue's mirror tally shown) did as well with liars (-0.002 for both minus window) and was level with uncoupled squads on clean boards.
+- **The dedicated bridge did not replicate (C1c, confirmatory):** `bridgeRole` - `bridge1` -0.013 [-0.029, 0.002] (p 0.92; Gate C1c fails), contamination -0.040. It relayed on 24% of its turns (against 0.9%) but carried more lies across squads (cross-squad contamination 0.126 against 0.023).
+- **The mirror window on fresh seeds (C1d, Phase 25):** frozen, not yet run.
 
-Details: `specs/multiagent/phase20/`, `phase23/`, `phase24/`; `results/multiagent/colony/c1/report.md`, `c1bmain/report.md`, `c1c/report.md`.
+Details: `specs/multiagent/phase20/`, `phase23/`, `phase24/`, `phase25/`; `results/multiagent/colony/c1/report.md`, `c1bmain/report.md`, `c1c/report.md`, `c1d/report.md`.
 
 ## Limitations
 
@@ -181,7 +181,7 @@ Details: `specs/multiagent/phase20/`, `phase23/`, `phase24/`; `results/multiagen
 
 ## Where to look
 
-- Phase specs and results: `specs/multiagent/phase5/` to `phase18/` (Phases 5-12 each with a plain-language figure guide).
+- Phase specs and results: `specs/multiagent/phase5/` to `phase25/` (Phases 5-12 each with a plain-language figure guide).
 - Full per-phase reports: `results/multiagent/bench/full/report.md`, `safety/h3/report.md`, `safety/full/report.md`, `llm/full/report.md`.
 - Publication figures (mean ± SEM, * at p < 0.05): `tools/figures.py`, with the drawing code in `explRL/figs_team.py` and `explRL/figs_rl.py`; `nbs/highlights.ipynb` (on GitHub Pages) redraws them from `data/highlights/highlights.json`.
-- Preprints by Chuntao Dan and Claude Opus 5.5 (NeurIPS 2025 preprint style): `paper/main.pdf` (the five findings) and `paper2/main.pdf` (what cheap simulations predict).
+- Preprints by Chuntao Dan and Claude Opus 5.5 (NeurIPS 2025 preprint style): `paper/main.pdf` (the five findings) and `paper2/main.pdf` (what cheap simulations predict); the draft `paper_bridges/main.pdf` (squads on coupled work).
