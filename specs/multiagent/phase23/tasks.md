@@ -1,6 +1,6 @@
 # Tasks: Phase 23, bridges that carry evidence (C1b)
 
-Status (2026-11-12): T0-T7 done. Gate C1b: **ask** (part i fails, part ii holds). The user chose to confirm `bridgeRole` against `bridge1` on fresh seeds before A1 adopts a bridge design (a follow-up phase). T8 waits for that result.
+Status (2026-11-12): T0-T7 done. Gate C1b: **ask** (part i fails, part ii holds). The user chose to confirm `bridgeRole` against `bridge1` on fresh seeds (Phase 24). T8 done: Gate C1c failed, so A1 keeps `bridge1`.
 
 Order:
 
@@ -98,6 +98,7 @@ A2's build (Phase 21) can run alongside.
   - Point Phase 20's T7 bridge check at the chosen design (P23-6).
   - Update this README's status, the findings in `specs/multiagent/README.md`, and memory.
 - **Done when:** Phase 19's README states A1's bridged world as Gate C1b decided it, and the C1 and C1b findings are written together.
+- **Status (2026-11-12): done.** Gate C1b asked; Gate C1c (Phase 24) failed, so P19-8 is settled on `bridge1`. P23-6's re-pointing of Phase 20's T7 is undone. P23-8 (border contest credit) stands as decided; its evidence rationale no longer holds and is flagged. C1, C1b and C1c are summarised together in `specs/multiagent/README.md`.
 
 ## Dependency graph
 

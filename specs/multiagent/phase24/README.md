@@ -1,6 +1,6 @@
 # Phase 24: confirm the dedicated bridge (C1c)
 
-Status: **v1, 2026-11-12. The user approved the design and the $10.50-11.03 estimate on 2026-11-12 (P24-1 to P24-6, all as proposed). Built and tested offline (T1-T2); `C1C_PLAN` frozen (hash `c7a01f678d5a`).** Next: push the frozen plan, then the run (T3).
+Status: **v1, 2026-11-12, done. The user approved the design and the $10.50-11.03 estimate on 2026-11-12 (P24-1 to P24-6, all as proposed). Built and tested offline (T1-T2); `C1C_PLAN` frozen (hash `c7a01f678d5a`).** Pushed; T3 ran. Gate C1c **fails** (2026-11-12, $10.57, 16 boards, invalid 0.07%): `bridgeRole` − `bridge1` honestPooled −0.013 [−0.029, 0.002], p 0.92 (welfareHonest −0.018, same sign); contamination −0.040, 95th percentile −0.010 < 0.05 (holds). `bridgeRole` relayed 27 times as often (0.243 against 0.009 relays per bridge turn, 88% confirmed on arrival) but carried more lies across squads (cross-squad contamination 0.126 against 0.023). Both recorded call lines said 'passes' and were wrong on the gate, right on safety: C1b's +0.021 on 5 boards did not replicate. A1 keeps `bridge1` (P19-8). T4 done: the handoffs to Phases 19, 20 and 23.
 
 ## Why
 
