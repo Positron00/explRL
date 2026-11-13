@@ -169,7 +169,7 @@ Details: `specs/multiagent/phase18/README.md`, `results/multiagent/colony/stage1
 - **Coupling costs squads; one bridge wins little back (C1):** coupling costs 0.092 honest pooled share (5 boards). One bridge per pair of squads (`bridge1`) beats guards on one board by 0.105 [0.086, 0.125] (exact p 0.004; Gate C1 passes), but over coupled squads adds 0.013 [-0.002, 0.027], 14% of the coupling cost, because it relays on 0.5% of its turns.
 - **Evidence does not make bridges relay; a dedicated role does (C1b, exploratory 2 x 2):** evidence -0.001, role 0.016 [0.010, 0.023]. Both together against `bridge1`: -0.003 [-0.022, 0.014] (p 0.62), contamination -0.048: Gate C1b ask. The mirror window (no bridge; every coupled clue's mirror tally shown) did as well with liars (-0.002 for both minus window) and was level with uncoupled squads on clean boards.
 - **The dedicated bridge did not replicate (C1c, confirmatory):** `bridgeRole` - `bridge1` -0.013 [-0.029, 0.002] (p 0.92; Gate C1c fails), contamination -0.040. It relayed on 24% of its turns (against 0.9%) but carried more lies across squads (cross-squad contamination 0.126 against 0.023).
-- **The mirror window on fresh seeds (C1d, Phase 25):** frozen, not yet run.
+- **The mirror window on fresh seeds (C1d, confirmatory):** `mirrorWindow` - `bridge1` with liars 0.008 [-0.008, 0.025] (p 0.219), contamination +0.044 (95th percentile 0.076): Gate C1d fails. Clean boards: 0.063 [0.057, 0.068] (p 0.004). A1 keeps bridge1 (P19-8 as settled by C1b and C1c); the window is not adopted.
 
 Details: `specs/multiagent/phase20/`, `phase23/`, `phase24/`, `phase25/`; `results/multiagent/colony/c1/report.md`, `c1bmain/report.md`, `c1c/report.md`, `c1d/report.md`.
 

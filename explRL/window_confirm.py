@@ -89,7 +89,7 @@ def cleanC1d(rows, plan=C1D_PLAN, nboot=2000):
     return out
 
 
-C1D_MEASURES = ('honestPooled', 'welfareHonest', 'contamination', 'coupledContamination', 'crossContamination', 'collaboration', 'inTokPerCall')
+C1D_MEASURES = ('honestPooled', 'welfareHonest', 'contamination', 'coupledContamination', 'crossContamination', 'sharePerHeld', 'inTokPerCall')
 
 
 def c1dSummary(rows, plan=C1D_PLAN, nboot=None):

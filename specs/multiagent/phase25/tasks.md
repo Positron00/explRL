@@ -1,6 +1,6 @@
 # Tasks: Phase 25, confirm the mirror window (C1d)
 
-Status (2026-11-12): T1-T2 done. Next: T3, the run, after the frozen plan is pushed.
+Status (2026-11-12): T1-T4 done. Gate C1d fails; A1 keeps `bridge1`.
 
 ## T1. Module and plan
 - **Covers:** FR-1 to FR-5.
@@ -18,6 +18,7 @@ Status (2026-11-12): T1-T2 done. Next: T3, the run, after the frozen plan is pus
 - **Needs:** T2; the frozen plan pushed; the user's approval of the estimate (given 2026-11-12).
 - **What:** `EXPLRL_LLM_LIVE=1 nbdev-test --n-workers 0 --cell-timeout 0 --flags llm nbs/demo_c1d.ipynb`.
 - **Done when:** `results/multiagent/colony/c1d/report.md` reports Gate C1d, its robustness, H25-3 and the scored calls.
+- **Status (2026-11-12): done.** **Gate C1d (2026-11-12): fails.** With liars (seeds 1820-1827): `mirrorWindow` − `bridge1` +0.008 [−0.008, 0.025], p 0.22 (welfareHonest +0.006, same sign); contamination +0.044 [0.005, 0.082], 95th percentile 0.076 against the 0.05 margin, so part (ii) fails too. Clean boards (H25-3, uncorrected): +0.063 [0.057, 0.068], 8 of 8, p 0.004. Cost $20.42, invalid replies 0.14%. Both call lines got the gate wrong and H25-3 right. The first summary pass stopped on a measure name (`collaboration` is the `sharePerHeld` column); fixed in `C1D_MEASURES` and the report replayed from the cache at $0.
 
 ## T4. Handoffs
 - **What:**
@@ -25,6 +26,7 @@ Status (2026-11-12): T1-T2 done. Next: T3, the run, after the frozen plan is pus
   - Add C1d to `results/multiagent/REPORT.md` section 16 and the C1 card of the research plan.
   - Update memory.
 - **Done when:** Phase 19's README states A1's bridged world as Gate C1d decided it.
+- **Status (2026-11-12): done.** P19-8 records Gate C1d; the window is not adopted, so P20-11 and P20-12 stand as written; REPORT section 16, the preprint `paper_bridges/` and the research plan's C1 card include C1d.
 
 ```
 T1 -> T2 -> T3 -> T4

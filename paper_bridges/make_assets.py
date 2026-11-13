@@ -9,7 +9,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from explRL.figs_team import PAPER, W, save, sem, signP, star
+from explRL.figs_team import ALPHA, PAPER, W, save, sem, signP, star
 
 R, OUT = Path('results/multiagent'), Path('paper_bridges')
 C = R / 'colony'
@@ -102,6 +102,18 @@ if D.exists():
     test('DClean', Sd['clean']['honestPooled']); test('DCleanWelfare', Sd['clean']['welfareHonest'])
     M['GateDVerdict'] = g['verdict']; M['DCleanSupported'] = 'supported' if Sd['clean']['supported'] else 'not supported'
     money('CostD', Sd_meta['cost'])
+    Ad = Sd['arms']['independent']
+    for name, arm in (('Window', 'mirrorWindow'), ('One', 'bridge1')):
+        for k, m in (('Cont', 'contamination'), ('Coupled', 'coupledContamination'), ('Cross', 'crossContamination')):
+            num(f'D{k}{name}', Ad[arm][m][0])
+    # the answer mix (runs.csv): coupled subtasks solved per board and honest pooled share on coupled subtasks
+    import csv, statistics
+    Rd = list(csv.DictReader(open(C / 'c1d' / 'runs.csv')))
+    for f, fn in (('independent', 'Liars'), ('clean', 'Clean')):
+        for name, arm in (('Window', 'mirrorWindow'), ('One', 'bridge1')):
+            rs = [r for r in Rd if r['level'] == f'{arm}|{f}']
+            M[f'DCoupledSolved{fn}{name}'] = f"{statistics.mean(float(r['coupledSolved']) for r in rs):.0f}"
+            if f == 'independent': num(f'DPooledCoupled{name}', statistics.mean(float(r['honestPooledCoupled']) for r in rs))
 
 
 # ---- the figure: per-seed rows
@@ -159,7 +171,8 @@ for k, (lab, d, colr, mk) in enumerate(ROWS):
     if d:
         b.scatter(d, [y + 0.18] * len(d), s=4, color=colr, alpha=0.45, lw=0)
         b.errorbar(np.mean(d), y, xerr=sem(d), color=colr, marker=mk, ms=3.5, capsize=1.5, lw=1)
-        star(b, np.mean(d) + sem(d), y, signP(d), horizontal=True, color=colr, size=8)
+        if signP(d) < ALPHA:   # figs_team.star's offset suits size 12; at size 8 it lands on the axis
+            b.annotate('*', (np.mean(d) + sem(d), y), xytext=(3, -2.5), textcoords='offset points', fontsize=8, color=colr, va='center')
 b.set_yticks([y for y, _ in labels], [l for _, l in labels], fontsize=6.5)
 b.axvline(0, color='#9aa3ad', lw=0.8)
 b.set(xlabel='minus one bridge, paired on seed (dots: seeds)')

@@ -1,6 +1,6 @@
 # Phase 25: confirm the mirror window (C1d)
 
-Status: **v1, 2026-11-12. The user approved the design and the $20.35-21.37 estimate on 2026-11-12 (P25-1 to P25-6). Built and tested offline (T1-T2); `C1D_PLAN` frozen (hash `27ff916003d1`).** Next: push the frozen plan, then the run (T3).
+Status: **v1, 2026-11-12. The user approved the design and the $20.35-21.37 estimate on 2026-11-12 (P25-1 to P25-6). Built and tested offline (T1-T2); `C1D_PLAN` frozen (hash `27ff916003d1`).** Run 2026-11-12 (T3) and handed off (T4). **Gate C1d (2026-11-12): fails.** With liars (seeds 1820-1827): `mirrorWindow` − `bridge1` +0.008 [−0.008, 0.025], p 0.22 (welfareHonest +0.006, same sign); contamination +0.044 [0.005, 0.082], 95th percentile 0.076 against the 0.05 margin, so part (ii) fails too. Clean boards (H25-3, uncorrected): +0.063 [0.057, 0.068], 8 of 8, p 0.004. Cost $20.42, invalid replies 0.14%. Both call lines got the gate wrong and H25-3 right. A1 keeps `bridge1` (P19-8 as settled by C1b and C1c); the window is not adopted.
 
 ## Why
 

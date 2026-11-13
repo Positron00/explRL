@@ -18,7 +18,7 @@ Status: v1 (2026-11-12; aligned with requirements v1).
 
 ## Gate
 
-`gateC1d` calls `role_confirm.gateC1c` with `C1D_PLAN` (arm `mirrorWindow`, base `bridge1`); `bridge_report._d` defaults to the boards with independent liars, so the gate never reads a clean board. `cleanC1d` calls `_d` with `fault='clean'`. `C1D_MEASURES` drops C1c's bridge-only columns, which are empty on a window board, and adds `collaboration` and `inTokPerCall` (the window's prompt cost).
+`gateC1d` calls `role_confirm.gateC1c` with `C1D_PLAN` (arm `mirrorWindow`, base `bridge1`); `bridge_report._d` defaults to the boards with independent liars, so the gate never reads a clean board. `cleanC1d` calls `_d` with `fault='clean'`. `C1D_MEASURES` drops C1c's bridge-only columns, which are empty on a window board, and adds collaboration (the `sharePerHeld` column, as in `bridge_mech`) and `inTokPerCall` (the window's prompt cost).
 
 ## Tests
 
