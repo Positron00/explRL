@@ -1723,4 +1723,11 @@ d = { 'settings': { 'branch': 'main',
                               'explRL.train.save_demo_figure': ('train.html#save_demo_figure', 'explRL/train.py'),
                               'explRL.train.save_demo_metrics': ('train.html#save_demo_metrics', 'explRL/train.py'),
                               'explRL.train.save_demo_report': ('train.html#save_demo_report', 'explRL/train.py'),
-                              'explRL.train.train_agent': ('train.html#train_agent', 'explRL/train.py')}}}
+                              'explRL.train.train_agent': ('train.html#train_agent', 'explRL/train.py')},
+            'explRL.window_confirm': { 'explRL.window_confirm.c1dCell': ('window_confirm.html#c1dcell', 'explRL/window_confirm.py'),
+                                       'explRL.window_confirm.c1dGrid': ('window_confirm.html#c1dgrid', 'explRL/window_confirm.py'),
+                                       'explRL.window_confirm.c1dRange': ('window_confirm.html#c1drange', 'explRL/window_confirm.py'),
+                                       'explRL.window_confirm.c1dSummary': ('window_confirm.html#c1dsummary', 'explRL/window_confirm.py'),
+                                       'explRL.window_confirm.cleanC1d': ('window_confirm.html#cleanc1d', 'explRL/window_confirm.py'),
+                                       'explRL.window_confirm.gateC1d': ('window_confirm.html#gatec1d', 'explRL/window_confirm.py'),
+                                       'explRL.window_confirm.writeC1d': ('window_confirm.html#writec1d', 'explRL/window_confirm.py')}}}

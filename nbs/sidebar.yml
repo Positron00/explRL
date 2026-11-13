@@ -11,6 +11,7 @@ website:
           - demo_c1.ipynb
           - demo_c1b.ipynb
           - demo_c1c.ipynb
+          - demo_c1d.ipynb
           - demo_b3.ipynb
           - demo_circuit.ipynb
           - demo_clue.ipynb
@@ -142,6 +143,7 @@ website:
           - relay_write.ipynb
           - relay_mech.ipynb
           - role_confirm.ipynb
+          - window_confirm.ipynb
           - rl16_grid.ipynb
           - rl16_report.ipynb
           - rl17_grid.ipynb
