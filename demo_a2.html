@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 21 (specs/multiagent/phase21/, experiment A2): the experience screen (do private records of past contests make guards persist?) and the rule-text screen (does the re-sharing sentence keep liars’ first posts uncorrected?), Claude Haiku 5.5. Quick (the fake client and synthetic rows), the pilot, the main run with Gate A2, and the cached rerun, under A2_PLAN.">
+
+<title>demo_a2 – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-68bd789f534ae270325663cf66662fbb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="demo_a2 – explRL">
+<meta property="og:description" content="Phase 21 (specs/multiagent/phase21/, experiment A2): the experience screen (do private records of past contests make guards persist?) and the rule-text screen (does the re-sharing sentence keep liars’ first posts uncorrected?), Claude Haiku 5.5. Quick (the fake client and synthetic rows), the pilot, the main run with Gate A2, and the cached rerun, under A2_PLAN.">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="demo_a2 – explRL">
+<meta name="twitter:description" content="Phase 21 (specs/multiagent/phase21/, experiment A2): the experience screen (do private records of past contests make guards persist?) and the rule-text screen (does the re-sharing sentence keep liars’ first posts uncorrected?), Claude Haiku 5.5. Quick (the fake client and synthetic rows), the pilot, the main run with Gate A2, and the cached rerun, under A2_PLAN.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./colab_clue_rl.html">Demos and runs</a></li><li class="breadcrumb-item"><a href="./demo_a2.html">demo_a2</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_a2.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">demo_a2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_c1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_c1b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Phase 24 (C1c): confirm the dedicated bridge</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1d.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Phase 25 (C1d): confirm the mirror window</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_b3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_b3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl19.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl19</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_cols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_cols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_seq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_seq</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_synth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_synth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_forecast.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_forecast</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_effects.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_cells.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_cells</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_retro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_retro</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contest.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">contest</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contest_eval.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">contest_eval</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./role_confirm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">role_confirm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./window_confirm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">window_confirm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_bridge.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_bridge</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_measures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_measures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_spec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_spec</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_step.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_step</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_suite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_suite</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_synth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_synth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#quick-the-fake-client-and-synthetic-rows" id="toc-quick-the-fake-client-and-synthetic-rows" class="nav-link active" data-scroll-target="#quick-the-fake-client-and-synthetic-rows">Quick: the fake client and synthetic rows</a></li>
+  <li><a href="#pilot---cell-timeout-0---flags-llm-live-about-1.90" id="toc-pilot---cell-timeout-0---flags-llm-live-about-1.90" class="nav-link" data-scroll-target="#pilot---cell-timeout-0---flags-llm-live-about-1.90">Pilot (<code>--cell-timeout 0 --flags llm</code>, live, about $1.90)</a></li>
+  <li><a href="#main-run-and-gate-a2---cell-timeout-0---flags-llm-live-about-32" id="toc-main-run-and-gate-a2---cell-timeout-0---flags-llm-live-about-32" class="nav-link" data-scroll-target="#main-run-and-gate-a2---cell-timeout-0---flags-llm-live-about-32">Main run and Gate A2 (<code>--cell-timeout 0 --flags llm</code>, live, about $32)</a></li>
+  <li><a href="#rerun-from-the-cache---flags-llm-0" id="toc-rerun-from-the-cache---flags-llm-0" class="nav-link" data-scroll-target="#rerun-from-the-cache---flags-llm-0">Rerun from the cache (<code>--flags llm</code>, $0)</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./colab_clue_rl.html">Demos and runs</a></li><li class="breadcrumb-item"><a href="./demo_a2.html">demo_a2</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">demo_a2</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 21 (<code>specs/multiagent/phase21/</code>, experiment A2): the experience screen (do private records of past contests make guards persist?) and the rule-text screen (does the re-sharing sentence keep liars’ first posts uncorrected?), Claude Haiku 5.5. Quick (the fake client and synthetic rows), the pilot, the main run with Gate A2, and the cached rerun, under <code>A2_PLAN</code>.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>Artifacts (gitignored): <code>results/multiagent/a2/{a2quick, a2pilot, a2main, a2rerun, p2}/</code> (<code>runs.csv</code>, <code>p2.csv</code>, <code>records.jsonl</code>, <code>turns.jsonl</code>, <code>timing.jsonl</code>, <code>metrics.json</code>, <code>report.md</code>, <code>a2.png</code>, <code>summary.json</code>). The response cache and the spend ledger are Phase 10’s (<code>results/multiagent/llm/</code>), under the cap of $250 per calendar month (P21-10).</p>
+<ul>
+<li><strong>Quick</strong> (normal tests): the pilot team’s sequence in all three arms and the pilot’s drop-only board, 3 turns, with the fake client (A2’s columns, the records, <a href="https://Positron00.github.io/explRL/a2_grid.html#pilotcheck21"><code>pilotCheck21</code></a>’s plumbing); then the analysis, report and <code>a2.png</code> on <a href="https://Positron00.github.io/explRL/a2_synth.html#syntheticrows21"><code>syntheticRows21</code></a>, in <code>a2quick/</code>.</li>
+<li><strong>Pilot</strong> (<code>--cell-timeout 0 --flags llm</code>, <code>EXPLRL_LLM_LIVE=1</code>, <code>EXPLRL_A2_STAGE=pilot</code>; about $1.90): team 2190’s own-record sequence of 6 boards and one drop-only board at 32 agents (seed 990), not analysed. Needs <code>A2_PLAN</code> frozen and pushed after the user approved the estimate (P21-10). Then <a href="https://Positron00.github.io/explRL/a2_grid.html#pilotcheck21"><code>pilotCheck21</code></a> (stop and ask on any failed check), the projection of the main grid (<a href="https://Positron00.github.io/explRL/a2_grid.html#costrule21"><code>costRule21</code></a>: report and wait) and the power of Gate A2 from the pilot’s spread (<a href="https://Positron00.github.io/explRL/a2_synth.html#power21"><code>power21</code></a>).</li>
+<li><strong>Main</strong> (<code>--cell-timeout 0 --flags llm</code>, <code>EXPLRL_LLM_LIVE=1</code>, <code>EXPLRL_A2_STAGE=main</code>; about $32): the six waves (boards 1-2 once per team) with P2 in the first wave’s pool (P21-14). After wave 2: invalid replies under 5% and the manipulation check in 6 of 8 teams, else stop before wave 3 and report P2 with “Gate A2 not read”. Needs <code>A2_PLAN</code> frozen with the pilot’s verdict, the forecasts’ SHA-256 and the user’s approval of the projection (<code>A2_PLAN['approved']['main']</code>).</li>
+<li><strong>Rerun</strong> (<code>--flags llm</code>, <code>EXPLRL_A2_STAGE=rerun</code>; $0): every board replayed from the cache into <code>a2rerun/</code>, rows compared with the main run’s.</li>
+</ul>
+<div id="9e3f7c25" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> copy</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> hashlib</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> shutil</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.a2_grid <span class="im">import</span> A2_PLAN, ARMS21, TEAMS21, costRule21, estimate21, manipulated, p2Grid, pilotCheck21, pilotGrid21</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.a2_report <span class="im">import</span> a2Summaries, runA2Cell</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.a2_seq <span class="im">import</span> _key, runSequences21</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.a2_synth <span class="im">import</span> pilotSigma, power21, syntheticRows21</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.a2_write <span class="im">import</span> figA2, writeA2</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bench_grid <span class="im">import</span> readCSV, writeCSV</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.coop_grid <span class="im">import</span> coopHash</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_budget <span class="im">import</span> PRICES, Budget</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_grid <span class="im">import</span> HAIKU</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_sched <span class="im">import</span> mergeTiming, timingSummary</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.train <span class="im">import</span> demo_artifact_dir</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>A2 <span class="op">=</span> <span class="st">'multiagent/a2'</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>WORKERS, LLM_WORKERS <span class="op">=</span> <span class="bu">min</span>(<span class="dv">8</span>, os.cpu_count() <span class="kw">or</span> <span class="dv">1</span>), <span class="dv">32</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>LLM <span class="op">=</span> demo_artifact_dir(<span class="va">None</span>, <span class="st">'multiagent/llm'</span>)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>LIVE <span class="op">=</span> os.environ.get(<span class="st">'EXPLRL_LLM_LIVE'</span>) <span class="op">==</span> <span class="st">'1'</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>STAGE <span class="op">=</span> os.environ.get(<span class="st">'EXPLRL_A2_STAGE'</span>, <span class="st">'pilot'</span>)        <span class="co"># what a live run may do: pilot, main or rerun</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>LIVE_SPEC <span class="op">=</span> <span class="bu">dict</span>(kind<span class="op">=</span><span class="st">'live'</span>, cache<span class="op">=</span><span class="bu">str</span>(LLM <span class="op">/</span> <span class="st">'cache'</span>), cap<span class="op">=</span><span class="bu">float</span>(A2_PLAN[<span class="st">'cap'</span>]), ledger<span class="op">=</span><span class="bu">str</span>(LLM <span class="op">/</span> <span class="st">'spend.jsonl'</span>))</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>FORECAST <span class="op">=</span> LLM.parents[<span class="dv">2</span>] <span class="op">/</span> A2_PLAN[<span class="st">'forecasts'</span>][<span class="st">'file'</span>]</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gitCommit():</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> subprocess.run([<span class="st">'git'</span>, <span class="st">'rev-parse'</span>, <span class="st">'--short'</span>, <span class="st">'HEAD'</span>], capture_output<span class="op">=</span><span class="va">True</span>, text<span class="op">=</span><span class="va">True</span>).stdout.strip() <span class="kw">or</span> <span class="st">'unknown'</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">OSError</span>:</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">'unknown'</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> runA2(mode, teams, arms, spec, p2<span class="op">=</span>(), gate<span class="op">=</span><span class="va">None</span>, edit<span class="op">=</span><span class="va">None</span>, workers<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Sequences (and P2 alongside) through runSequences21 with runA2Cell: runs.csv, p2.csv, records.jsonl, turns.jsonl, timing.jsonl, metrics.json."</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    live, out <span class="op">=</span> spec.get(<span class="st">'kind'</span>) <span class="op">==</span> <span class="st">'live'</span>, demo_artifact_dir(mode, A2)</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    t0 <span class="op">=</span> time.time()</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    R <span class="op">=</span> runSequences21(teams, arms, spec, out, workers <span class="kw">or</span> (LLM_WORKERS <span class="cf">if</span> live <span class="cf">else</span> WORKERS), edit<span class="op">=</span>edit,</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>                       alongside<span class="op">=</span>[(<span class="st">'p2'</span>, <span class="bu">list</span>(p2))] <span class="cf">if</span> p2 <span class="cf">else</span> (), gate<span class="op">=</span>gate, run<span class="op">=</span>runA2Cell)</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    wall, logs <span class="op">=</span> time.time() <span class="op">-</span> t0, out <span class="op">/</span> <span class="st">'turns'</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>    rows, p2rows <span class="op">=</span> R[<span class="st">'rows'</span>], readCSV(out <span class="op">/</span> <span class="st">'p2.csv'</span>) <span class="cf">if</span> (out <span class="op">/</span> <span class="st">'p2.csv'</span>).exists() <span class="cf">else</span> []</span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(out <span class="op">/</span> <span class="st">'turns.jsonl'</span>, <span class="st">'w'</span>) <span class="im">as</span> f:</span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> p <span class="kw">in</span> <span class="bu">sorted</span>(logs.glob(<span class="st">'*.jsonl'</span>)) <span class="cf">if</span> logs.exists() <span class="cf">else</span> []:</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>            f.write(p.read_text())</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>    timing <span class="op">=</span> timingSummary(mergeTiming(logs, out <span class="op">/</span> <span class="st">'timing.jsonl'</span>), wall)</span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>    new <span class="op">=</span> [r <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">if</span> r[<span class="st">'arm'</span>] <span class="op">==</span> arms[<span class="dv">0</span>] <span class="kw">or</span> _key(r)[<span class="dv">2</span>] <span class="op">&gt;</span> <span class="dv">2</span>] <span class="op">+</span> p2rows          <span class="co"># each board once (boards 1-2 are copied)</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>    meta <span class="op">=</span> <span class="bu">dict</span>(mode<span class="op">=</span>mode, planHash<span class="op">=</span>coopHash(A2_PLAN), commit<span class="op">=</span>gitCommit(), model<span class="op">=</span>HAIKU, cap<span class="op">=</span><span class="bu">float</span>(spec.get(<span class="st">'cap'</span>, <span class="fl">0.0</span>)), wall<span class="op">=</span>wall,</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>                pricesChecked<span class="op">=</span>PRICES[HAIKU][<span class="st">'checked'</span>], cost<span class="op">=</span><span class="bu">float</span>(<span class="bu">sum</span>(<span class="bu">float</span>(r[<span class="st">'cost'</span>]) <span class="cf">for</span> r <span class="kw">in</span> new)), calls<span class="op">=</span><span class="bu">int</span>(<span class="bu">sum</span>(<span class="bu">float</span>(r[<span class="st">'calls'</span>]) <span class="cf">for</span> r <span class="kw">in</span> new)),</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>                spent<span class="op">=</span>Budget(spec[<span class="st">'cap'</span>], spec[<span class="st">'ledger'</span>]).spent() <span class="cf">if</span> spec.get(<span class="st">'ledger'</span>) <span class="cf">else</span> <span class="fl">0.0</span>)</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    (out <span class="op">/</span> <span class="st">'metrics.json'</span>).write_text(json.dumps(<span class="bu">dict</span>(meta, ran<span class="op">=</span>R[<span class="st">'ran'</span>], stopped<span class="op">=</span>R[<span class="st">'stopped'</span>], timing<span class="op">=</span>timing), indent<span class="op">=</span><span class="dv">2</span>, sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>) <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> live:</span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'metrics.json'</span>, <span class="st">'timing.jsonl'</span>):</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="kw">not</span> (out <span class="op">/</span> f.replace(<span class="st">'.'</span>, <span class="st">'_live.'</span>)).exists():</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>                shutil.copy(out <span class="op">/</span> f, out <span class="op">/</span> f.replace(<span class="st">'.'</span>, <span class="st">'_live.'</span>))</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>mode<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">len</span>(rows)<span class="sc">}</span><span class="ss"> sequence rows, </span><span class="sc">{</span><span class="bu">len</span>(p2rows)<span class="sc">}</span><span class="ss"> P2 rows, </span><span class="sc">{</span>meta[<span class="st">'calls'</span>]<span class="sc">}</span><span class="ss"> calls, $</span><span class="sc">{</span>meta[<span class="st">'cost'</span>]<span class="sc">:.2f}</span><span class="ss"> for these runs, "</span></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"$</span><span class="sc">{</span>meta[<span class="st">'spent'</span>]<span class="sc">:.2f}</span><span class="ss"> spent this month, </span><span class="sc">{</span>wall<span class="sc">:.0f}</span><span class="ss"> s; waves </span><span class="sc">{</span>R[<span class="st">'ran'</span>]<span class="sc">}</span><span class="ss">; stopped: </span><span class="sc">{</span>R[<span class="st">'stopped'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rows, p2rows, meta, R</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyse(mode, rows, p2rows, meta, plan<span class="op">=</span>A2_PLAN, nboot<span class="op">=</span><span class="va">None</span>, partial<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">"a2Summaries, report.md, a2.png and summary.json in the mode's folder."</span></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> demo_artifact_dir(mode, A2)</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> a2Summaries(rows, p2rows, plan, partial<span class="op">=</span>partial, nboot<span class="op">=</span>nboot)</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>    writeA2(out <span class="op">/</span> <span class="st">'report.md'</span>, S, meta, plan)</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>    figA2(out, S)</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>    (out <span class="op">/</span> <span class="st">'summary.json'</span>).write_text(json.dumps(<span class="bu">dict</span>(meta, summary<span class="op">=</span>S), indent<span class="op">=</span><span class="dv">1</span>, sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>) <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> S</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mainReady():</span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""AC-8, P21-8, P21-10 before the main run: A2_PLAN frozen, the pilot's verdict recorded, the forecasts committed with their</span></span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a><span class="co">    SHA-256 in A2_PLAN, and the user's approval of the pilot's projection recorded (A2_PLAN['approved']['main'])."""</span></span>
+<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> A2_PLAN[<span class="st">'forecasts'</span>]</span>
+<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [m <span class="cf">for</span> m, bad <span class="kw">in</span> (</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>        (<span class="st">'A2_PLAN is not frozen'</span>, <span class="kw">not</span> A2_PLAN[<span class="st">'frozen'</span>]), (<span class="st">"the pilot's verdict is not recorded"</span>, <span class="kw">not</span> A2_PLAN.get(<span class="st">'pilotVerdict'</span>)),</span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"the forecasts are missing or their SHA-256 differs from A2_PLAN's"</span>,</span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>         <span class="kw">not</span> (f[<span class="st">'sha256'</span>] <span class="kw">and</span> FORECAST.exists() <span class="kw">and</span> hashlib.sha256(FORECAST.read_bytes()).hexdigest() <span class="op">==</span> f[<span class="st">'sha256'</span>])),</span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"the user's approval of the pilot's projection is not recorded"</span>, <span class="kw">not</span> A2_PLAN[<span class="st">'approved'</span>].get(<span class="st">'main'</span>))) <span class="cf">if</span> bad]</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> waveTwo(rows, plan<span class="op">=</span>A2_PLAN):</span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>    <span class="co">"The stability check after wave 2: invalid replies under 5% and the manipulation check in 6 of 8 teams (reasons to stop)."</span></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>    b12 <span class="op">=</span> [r <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">if</span> _key(r)[<span class="dv">2</span>] <span class="op">&lt;=</span> <span class="dv">2</span> <span class="kw">and</span> r[<span class="st">'arm'</span>] <span class="op">==</span> plan[<span class="st">'arms'</span>][<span class="dv">0</span>]]</span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>    inv <span class="op">=</span> <span class="bu">sum</span>(<span class="bu">float</span>(r[<span class="st">'invalid'</span>]) <span class="cf">for</span> r <span class="kw">in</span> b12) <span class="op">/</span> (<span class="bu">sum</span>(<span class="bu">float</span>(r[<span class="st">'calls'</span>]) <span class="cf">for</span> r <span class="kw">in</span> b12) <span class="kw">or</span> <span class="dv">1</span>)</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>    man <span class="op">=</span> <span class="bu">sum</span>(manipulated([r <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">if</span> r[<span class="st">'arm'</span>] <span class="op">==</span> <span class="st">'own'</span>], t) <span class="cf">for</span> t <span class="kw">in</span> plan[<span class="st">'teams'</span>])</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ([<span class="ss">f'invalid replies </span><span class="sc">{</span>inv<span class="sc">:.3f}</span><span class="ss"> &gt;= 5%'</span>] <span class="cf">if</span> inv <span class="op">&gt;=</span> plan[<span class="st">'pilotGate'</span>][<span class="st">'maxInvalid'</span>] <span class="cf">else</span> []) <span class="op">+</span> <span class="op">\</span></span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>           ([<span class="ss">f"manipulation check </span><span class="sc">{</span>man<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(plan[<span class="st">'teams'</span>])<span class="sc">}</span><span class="ss"> &lt; </span><span class="sc">{</span>plan[<span class="st">'manipulation'</span>][<span class="st">'teams'</span>]<span class="sc">}</span><span class="ss">"</span>] <span class="cf">if</span> man <span class="op">&lt;</span> plan[<span class="st">'manipulation'</span>][<span class="st">'teams'</span>] <span class="cf">else</span> [])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="6b92f97b" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_main_ready (AC-8, P21-10): the pilot and main stages refuse until their preconditions hold</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> A2_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> <span class="bu">len</span>(mainReady()) <span class="op">==</span> <span class="dv">4</span>                      <span class="co"># before T5: nothing frozen, verdict, forecasts or approval</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>_keep <span class="op">=</span> (copy.deepcopy(A2_PLAN), FORECAST)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    FORECAST <span class="op">=</span> Path(tempfile.mkdtemp()) <span class="op">/</span> <span class="st">'a2_predictions.json'</span><span class="op">;</span> FORECAST.write_text(<span class="st">'</span><span class="sc">{}</span><span class="st">'</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    A2_PLAN.update(frozen<span class="op">=</span><span class="va">True</span>, pilotVerdict<span class="op">=</span><span class="st">'checks passed'</span>, approved<span class="op">=</span><span class="bu">dict</span>(pilot<span class="op">=</span><span class="st">'x'</span>, main<span class="op">=</span><span class="st">'y'</span>),</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                   forecasts<span class="op">=</span><span class="bu">dict</span>(A2_PLAN[<span class="st">'forecasts'</span>], sha256<span class="op">=</span>hashlib.sha256(<span class="st">b'{}'</span>).hexdigest()))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> mainReady() <span class="op">==</span> []</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k, v <span class="kw">in</span> ((<span class="st">'pilotVerdict'</span>, <span class="va">None</span>), (<span class="st">'approved'</span>, <span class="bu">dict</span>(pilot<span class="op">=</span><span class="st">'x'</span>, main<span class="op">=</span><span class="va">None</span>)), (<span class="st">'forecasts'</span>, <span class="bu">dict</span>(A2_PLAN[<span class="st">'forecasts'</span>], sha256<span class="op">=</span><span class="st">'0'</span> <span class="op">*</span> <span class="dv">64</span>))):</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        old <span class="op">=</span> A2_PLAN[k]<span class="op">;</span> A2_PLAN[k] <span class="op">=</span> v</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">len</span>(mainReady()) <span class="op">==</span> <span class="dv">1</span>, k</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        A2_PLAN[k] <span class="op">=</span> old</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="cf">finally</span>:</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    A2_PLAN.clear()<span class="op">;</span> A2_PLAN.update(_keep[<span class="dv">0</span>])<span class="op">;</span> FORECAST <span class="op">=</span> _keep[<span class="dv">1</span>]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> waveTwo(syntheticRows21()[<span class="dv">0</span>]) <span class="op">==</span> [] <span class="kw">and</span> <span class="bu">len</span>(waveTwo(syntheticRows21(manipTeams<span class="op">=</span><span class="dv">5</span>)[<span class="dv">0</span>])) <span class="op">==</span> <span class="dv">1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="quick-the-fake-client-and-synthetic-rows" class="level2">
+<h2 class="anchored" data-anchor-id="quick-the-fake-client-and-synthetic-rows">Quick: the fake client and synthetic rows</h2>
+<div id="f34f2507" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>t0, q <span class="op">=</span> time.time(), demo_artifact_dir(<span class="st">'a2quick'</span>, A2)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>shutil.rmtree(q, ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>short <span class="op">=</span> <span class="kw">lambda</span> c: <span class="bu">dict</span>(c, cfg<span class="op">=</span><span class="bu">dict</span>(copy.deepcopy(c[<span class="st">'cfg'</span>]), turns<span class="op">=</span><span class="dv">3</span>))</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>P <span class="op">=</span> pilotGrid21()</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>rows, p2rows, meta, R <span class="op">=</span> runA2(<span class="st">'a2quick'</span>, P[<span class="st">'teams'</span>], <span class="bu">list</span>(ARMS21), <span class="bu">dict</span>(kind<span class="op">=</span><span class="st">'fake'</span>), p2<span class="op">=</span>[short(c) <span class="cf">for</span> c <span class="kw">in</span> P[<span class="st">'p2'</span>]], edit<span class="op">=</span>short)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> R[<span class="st">'ran'</span>] <span class="op">==</span> [(<span class="dv">1</span>, <span class="dv">1</span>), (<span class="dv">2</span>, <span class="dv">1</span>), (<span class="dv">3</span>, <span class="dv">3</span>), (<span class="dv">4</span>, <span class="dv">3</span>), (<span class="dv">5</span>, <span class="dv">3</span>), (<span class="dv">6</span>, <span class="dv">3</span>)] <span class="kw">and</span> <span class="bu">len</span>(rows) <span class="op">==</span> <span class="dv">18</span> <span class="kw">and</span> <span class="bu">len</span>(p2rows) <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(k <span class="kw">in</span> r <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">for</span> k <span class="kw">in</span> (<span class="st">'idGuarding'</span>, <span class="st">'idFollowed'</span>, <span class="st">'agents'</span>, <span class="st">'pos'</span>, <span class="st">'seqId'</span>, <span class="st">'volunteers'</span>, <span class="st">'misinformedFirst'</span>, <span class="st">'honestPooled'</span>))</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="st">'suppressedHeld'</span> <span class="kw">in</span> p2rows[<span class="dv">0</span>] <span class="kw">and</span> <span class="bu">all</span>(<span class="bu">int</span>(r[<span class="st">'liarOnFailure'</span>]) <span class="op">==</span> <span class="dv">0</span> <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">if</span> _key(r)[<span class="dv">2</span>] <span class="op">&lt;=</span> <span class="dv">2</span>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>recs <span class="op">=</span> [json.loads(x) <span class="cf">for</span> x <span class="kw">in</span> (q <span class="op">/</span> <span class="st">'records.jsonl'</span>).read_text().splitlines()]</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>own <span class="op">=</span> [r <span class="cf">for</span> r <span class="kw">in</span> rows <span class="cf">if</span> r[<span class="st">'arm'</span>] <span class="op">==</span> <span class="st">'own'</span>]</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>C <span class="op">=</span> pilotCheck21(own, [x <span class="cf">for</span> x <span class="kw">in</span> recs <span class="cf">if</span> x[<span class="st">'level'</span>].split(<span class="st">'|'</span>)[<span class="dv">0</span>] <span class="kw">in</span> (<span class="st">'common'</span>, <span class="st">'own'</span>)], p2rows)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> C[<span class="st">'checks'</span>][<span class="st">'records'</span>] <span class="kw">and</span> C[<span class="st">'checks'</span>][<span class="st">'boards'</span>] <span class="kw">and</span> C[<span class="st">'verdict'</span>] <span class="op">==</span> <span class="st">'ask'</span>      <span class="co"># the record lines render as frozen</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'pilot checks on the fake run (plumbing only):'</span>, C[<span class="st">'checks'</span>])</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>rows, p2 <span class="op">=</span> syntheticRows21()</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>writeCSV(rows, q <span class="op">/</span> <span class="st">'synthetic.csv'</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>S <span class="op">=</span> analyse(<span class="st">'a2quick'</span>, rows, p2, <span class="bu">dict</span>(mode<span class="op">=</span><span class="st">'quick'</span>, planHash<span class="op">=</span>coopHash(A2_PLAN), commit<span class="op">=</span>gitCommit(), cost<span class="op">=</span><span class="fl">0.0</span>), nboot<span class="op">=</span><span class="dv">200</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> S[<span class="st">'gate'</span>][<span class="st">'passes'</span>] <span class="kw">and</span> <span class="bu">all</span>(S[<span class="st">'p2'</span>][N][<span class="st">'supported'</span>] <span class="cf">for</span> N <span class="kw">in</span> (<span class="dv">8</span>, <span class="dv">32</span>))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> f <span class="kw">in</span> (<span class="st">'runs.csv'</span>, <span class="st">'p2.csv'</span>, <span class="st">'records.jsonl'</span>, <span class="st">'turns.jsonl'</span>, <span class="st">'metrics.json'</span>, <span class="st">'synthetic.csv'</span>, <span class="st">'report.md'</span>, <span class="st">'a2.png'</span>, <span class="st">'summary.json'</span>):</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> (q <span class="op">/</span> f).stat().st_size <span class="op">&gt;</span> <span class="dv">0</span>, f</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> p <span class="kw">in</span> q.iterdir():</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> p.suffix <span class="kw">in</span> (<span class="st">'.csv'</span>, <span class="st">'.jsonl'</span>, <span class="st">'.json'</span>, <span class="st">'.md'</span>):</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="kw">not</span> re.search(<span class="vs">r'sk-ant-</span><span class="cf">|</span><span class="vs">x-api-key</span><span class="cf">|</span><span class="vs">authorization</span><span class="cf">|</span><span class="vs">api</span><span class="pp">[_-]</span><span class="op">?</span><span class="vs">key'</span>, p.read_text(), re.I), p</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>e <span class="op">=</span> estimate21()</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"main grid estimate $</span><span class="sc">{</span>e[<span class="st">'main'</span>]<span class="sc">:.2f}</span><span class="ss"> (pilot $</span><span class="sc">{</span>e[<span class="st">'pilot'</span>]<span class="sc">:.2f}</span><span class="ss">; total $</span><span class="sc">{</span>e[<span class="st">'total'</span>]<span class="sc">:.2f}</span><span class="ss">, $</span><span class="sc">{</span>e[<span class="st">'margin'</span>]<span class="sc">:.2f}</span><span class="ss"> with a 15% margin)"</span>)</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> time.time() <span class="op">-</span> t0 <span class="op">&lt;</span> <span class="dv">300</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">open</span>(q <span class="op">/</span> <span class="st">'report.md'</span>).read()[:<span class="dv">2000</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="pilot---cell-timeout-0---flags-llm-live-about-1.90" class="level2">
+<h2 class="anchored" data-anchor-id="pilot---cell-timeout-0---flags-llm-live-about-1.90">Pilot (<code>--cell-timeout 0 --flags llm</code>, live, about $1.90)</h2>
+<p>Team 2190’s own-record sequence and one drop-only board at 32 agents (seed 990), not analysed. <a href="https://Positron00.github.io/explRL/a2_grid.html#pilotcheck21"><code>pilotCheck21</code></a> (P21-12): invalid replies under 5%; on boards 1-2 both success guards contest and a correct answer follows one of their contests; no lie on a failure guard’s clue; the record lines as frozen. Then the projection of the main grid (report and wait) and the power of Gate A2 from the pilot’s spread of guarding.</p>
+<div id="fbe6a8f8" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="op">!=</span> <span class="st">'pilot'</span>:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_A2_STAGE=pilot'</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> A2_PLAN[<span class="st">'frozen'</span>] <span class="kw">and</span> A2_PLAN[<span class="st">'approved'</span>][<span class="st">'pilot'</span>], <span class="st">'report the estimate, get the approval, then freeze and push A2_PLAN before the pilot (AC-8, P21-10)'</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    P <span class="op">=</span> pilotGrid21()</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"pilot estimate $</span><span class="sc">{</span>estimate21()[<span class="st">'pilot'</span>]<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    rows, p2rows, meta, R <span class="op">=</span> runA2(<span class="st">'a2pilot'</span>, P[<span class="st">'teams'</span>], P[<span class="st">'arms'</span>], LIVE_SPEC, p2<span class="op">=</span>P[<span class="st">'p2'</span>])</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    recs <span class="op">=</span> [json.loads(x) <span class="cf">for</span> x <span class="kw">in</span> (demo_artifact_dir(<span class="st">'a2pilot'</span>, A2) <span class="op">/</span> <span class="st">'records.jsonl'</span>).read_text().splitlines()]</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    C <span class="op">=</span> pilotCheck21(rows, recs, p2rows)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    cr, pw <span class="op">=</span> costRule21(C[<span class="st">'perCall'</span>]), power21(pilotSigma(rows))</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    demo_artifact_dir(<span class="st">'a2pilot'</span>, A2).joinpath(<span class="st">'report.md'</span>).write_text(</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"# A2 pilot (not analysed)</span><span class="ch">\n\n</span><span class="sc">{</span>json<span class="sc">.</span>dumps(<span class="bu">dict</span>(checks<span class="op">=</span>C, projection<span class="op">=</span>cr, power<span class="op">=</span>pw, meta<span class="op">=</span>meta), indent<span class="op">=</span><span class="dv">1</span>, default<span class="op">=</span><span class="bu">str</span>)<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"checks </span><span class="sc">{</span><span class="st">'pass'</span> <span class="cf">if</span> C[<span class="st">'ok'</span>] <span class="cf">else</span> <span class="st">'FAIL: stop and ask'</span><span class="sc">}</span><span class="ss"> </span><span class="sc">{</span>C[<span class="st">'reasons'</span>]<span class="sc">}</span><span class="ss">; cost per call </span><span class="sc">{</span>C[<span class="st">'perCall'</span>]<span class="sc">}</span><span class="ss">; projected main grid "</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"$</span><span class="sc">{</span>cr[<span class="st">'projected'</span>]<span class="sc">:.2f}</span><span class="ss"> against the $</span><span class="sc">{</span>cr[<span class="st">'ceiling'</span>]<span class="sc">:.0f}</span><span class="ss"> ceiling: report to the user and wait (</span><span class="sc">{</span>cr[<span class="st">'verdict'</span>]<span class="sc">}</span><span class="ss">); power </span><span class="sc">{</span>pw[<span class="st">'power'</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="main-run-and-gate-a2---cell-timeout-0---flags-llm-live-about-32" class="level2">
+<h2 class="anchored" data-anchor-id="main-run-and-gate-a2---cell-timeout-0---flags-llm-live-about-32">Main run and Gate A2 (<code>--cell-timeout 0 --flags llm</code>, live, about $32)</h2>
+<p>Six waves; P2 in the first wave’s pool (P21-14). After wave 2 the stability check (<code>waveTwo</code>) may stop the run: then P2, the manipulation check and “Gate A2 not read” are reported (<code>partial='stopped'</code>).</p>
+<div id="d8ff5625" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> LIVE <span class="kw">or</span> STAGE <span class="op">!=</span> <span class="st">'main'</span>:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_LLM_LIVE=1 and EXPLRL_A2_STAGE=main'</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    bad <span class="op">=</span> mainReady()</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="kw">not</span> bad, <span class="ss">f'the main run waits (AC-8, P21-8, P21-10): </span><span class="sc">{</span>bad<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    rows, p2rows, meta, R <span class="op">=</span> runA2(<span class="st">'a2main'</span>, TEAMS21, <span class="bu">list</span>(ARMS21), LIVE_SPEC, p2<span class="op">=</span>p2Grid(), gate<span class="op">=</span>waveTwo)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> demo_artifact_dir(<span class="st">'p2'</span>, A2)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    writeCSV(p2rows, out <span class="op">/</span> <span class="st">'runs.csv'</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    gated <span class="op">=</span> R[<span class="st">'stopped'</span>] <span class="kw">and</span> R[<span class="st">'ran'</span>][<span class="op">-</span><span class="dv">1</span>][<span class="dv">0</span>] <span class="op">==</span> <span class="dv">2</span> <span class="kw">and</span> <span class="bu">bool</span>(waveTwo(rows))        <span class="co"># the stability check stopped it after wave 2</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> R[<span class="st">'stopped'</span>] <span class="kw">and</span> <span class="kw">not</span> gated:</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"stopped (</span><span class="sc">{</span>R[<span class="st">'stopped'</span>]<span class="sc">}</span><span class="ss">): nothing analysed; rerun this stage to resume (finished boards come from the cache)"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        S <span class="op">=</span> analyse(<span class="st">'a2main'</span>, rows, p2rows, meta, partial<span class="op">=</span><span class="st">'stopped'</span> <span class="cf">if</span> gated <span class="cf">else</span> <span class="va">None</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"stopped: </span><span class="sc">{</span>R[<span class="st">'stopped'</span>]<span class="sc">}</span><span class="ss">; Gate A2: </span><span class="sc">{</span>S[<span class="st">'gate'</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="bu">open</span>(demo_artifact_dir(<span class="st">'a2main'</span>, A2) <span class="op">/</span> <span class="st">'report.md'</span>).read()[:<span class="dv">4000</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="rerun-from-the-cache---flags-llm-0" class="level2">
+<h2 class="anchored" data-anchor-id="rerun-from-the-cache---flags-llm-0">Rerun from the cache (<code>--flags llm</code>, $0)</h2>
+<p>Every board replayed through the response cache (the fake client answers only a miss, which then shows as a difference) into <code>a2rerun/</code>; its rows must equal the main run’s.</p>
+<div id="d0004416" class="cell" data-llm="true">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> STAGE <span class="op">!=</span> <span class="st">'rerun'</span>:</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: needs EXPLRL_A2_STAGE=rerun'</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    main <span class="op">=</span> demo_artifact_dir(<span class="st">'a2main'</span>, A2)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> (main <span class="op">/</span> <span class="st">'runs.csv'</span>).exists(), <span class="st">'run the main stage first'</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    shutil.rmtree(demo_artifact_dir(<span class="st">'a2rerun'</span>, A2), ignore_errors<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    rows, p2rows, meta, R <span class="op">=</span> runA2(<span class="st">'a2rerun'</span>, TEAMS21, <span class="bu">list</span>(ARMS21), <span class="bu">dict</span>(kind<span class="op">=</span><span class="st">'fake'</span>, cache<span class="op">=</span>LIVE_SPEC[<span class="st">'cache'</span>]), p2<span class="op">=</span>p2Grid(), gate<span class="op">=</span>waveTwo)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    rr <span class="op">=</span> demo_artifact_dir(<span class="st">'a2rerun'</span>, A2)                         <span class="co"># both sides read from CSV (the same number types)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> a, b <span class="kw">in</span> ((readCSV(main <span class="op">/</span> <span class="st">'runs.csv'</span>), readCSV(rr <span class="op">/</span> <span class="st">'runs.csv'</span>)), (readCSV(main <span class="op">/</span> <span class="st">'p2.csv'</span>), readCSV(rr <span class="op">/</span> <span class="st">'p2.csv'</span>))):</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        ka <span class="op">=</span> {(_key(r) <span class="cf">if</span> <span class="st">'arm'</span> <span class="kw">in</span> r <span class="cf">else</span> (r[<span class="st">'study'</span>], r[<span class="st">'N'</span>], r[<span class="st">'seed'</span>])): r <span class="cf">for</span> r <span class="kw">in</span> a}</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        kb <span class="op">=</span> {(_key(r) <span class="cf">if</span> <span class="st">'arm'</span> <span class="kw">in</span> r <span class="cf">else</span> (r[<span class="st">'study'</span>], r[<span class="st">'N'</span>], r[<span class="st">'seed'</span>])): r <span class="cf">for</span> r <span class="kw">in</span> b}</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> ka.keys() <span class="op">==</span> kb.keys(), <span class="st">'the rerun has other boards'</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        diff <span class="op">=</span> [k <span class="cf">for</span> k <span class="kw">in</span> ka <span class="cf">if</span> json.dumps(ka[k], sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>) <span class="op">!=</span> json.dumps(<span class="bu">dict</span>(kb[k]), sort_keys<span class="op">=</span><span class="va">True</span>, default<span class="op">=</span><span class="bu">str</span>)]</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span><span class="bu">len</span>(ka)<span class="sc">}</span><span class="ss"> boards, </span><span class="sc">{</span><span class="bu">len</span>(diff)<span class="sc">}</span><span class="ss"> differ'</span>, diff[:<span class="dv">3</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

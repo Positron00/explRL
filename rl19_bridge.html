@@ -1,0 +1,2006 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 19 (specs/multiagent/phase19/, T5a and T5b): A1’s bridged world. BRIDGE19 (one plain bridge per pair of squads, every fourth subtask coupled: bridge1, as Gates C1b, C1c and C1d settled P19-8) and GATE_C1 (Gate C1’s record); bridgeWorld19 and bridgeCells19 bridge a world or cells in two squads or more (a single squad stays unbridged, P19-9); BridgeContestLog, contest credit on a bridge board: a relayed liar’s value is the liar’s (P20-12), and a true holder’s mirror post against a mirror lie is a border contest, paid through the receiving squad’s later correct solves (P23-8, kept by the user, 2026-11-12); contestColumns19, the relay-aware evaluation columns with the border contests and P19-9’s waiting counts; bridgeStepStats, a training step’s longestBridge and relays per bridge turn.">
+
+<title>rl19_bridge – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-68bd789f534ae270325663cf66662fbb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="rl19_bridge – explRL">
+<meta property="og:description" content="Phase 19 (specs/multiagent/phase19/, T5a and T5b): A1’s bridged world. BRIDGE19 (one plain bridge per pair of squads, every fourth subtask coupled: bridge1, as Gates C1b, C1c and C1d settled P19-8) and GATE_C1 (Gate C1’s record); bridgeWorld19 and bridgeCells19 bridge a world or cells in two squads or more (a single squad stays unbridged, P19-9); BridgeContestLog, contest credit on a bridge board: a relayed liar’s value is the liar’s (P20-12), and a true holder’s mirror post against a mirror lie is a border contest, paid through the receiving squad’s later correct solves (P23-8, kept by the user, 2026-11-12); contestColumns19, the relay-aware evaluation columns with the border contests and P19-9’s waiting counts; bridgeStepStats, a training step’s longestBridge and relays per bridge turn.">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="rl19_bridge – explRL">
+<meta name="twitter:description" content="Phase 19 (specs/multiagent/phase19/, T5a and T5b): A1’s bridged world. BRIDGE19 (one plain bridge per pair of squads, every fourth subtask coupled: bridge1, as Gates C1b, C1c and C1d settled P19-8) and GATE_C1 (Gate C1’s record); bridgeWorld19 and bridgeCells19 bridge a world or cells in two squads or more (a single squad stays unbridged, P19-9); BridgeContestLog, contest credit on a bridge board: a relayed liar’s value is the liar’s (P20-12), and a true holder’s mirror post against a mirror lie is a border contest, paid through the receiving squad’s later correct solves (P23-8, kept by the user, 2026-11-12); contestColumns19, the relay-aware evaluation columns with the border contests and P19-9’s waiting counts; bridgeStepStats, a training step’s longestBridge and relays per bridge turn.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./rl19_bridge.html">rl19_bridge</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_a2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_a2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_c1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_c1b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Phase 24 (C1c): confirm the dedicated bridge</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1d.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Phase 25 (C1d): confirm the mirror window</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_b3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_b3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl19.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl19</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_cols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_cols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_seq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_seq</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_synth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_synth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_forecast.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_forecast</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_effects.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_cells.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_cells</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_fit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_retro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_retro</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contest.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">contest</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contest_eval.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">contest_eval</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./role_confirm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">role_confirm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./window_confirm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">window_confirm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_bridge.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">rl19_bridge</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_measures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_measures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_spec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_spec</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_step.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_step</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_suite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_suite</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_synth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_synth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-world-and-gate-c1" id="toc-the-world-and-gate-c1" class="nav-link active" data-scroll-target="#the-world-and-gate-c1">The world and Gate C1</a></li>
+  <li><a href="#contest-credit-on-a-bridge-board" id="toc-contest-credit-on-a-bridge-board" class="nav-link" data-scroll-target="#contest-credit-on-a-bridge-board">Contest credit on a bridge board</a></li>
+  <li><a href="#relay-aware-evaluation-columns" id="toc-relay-aware-evaluation-columns" class="nav-link" data-scroll-target="#relay-aware-evaluation-columns">Relay-aware evaluation columns</a></li>
+  <li><a href="#a-training-steps-bridge-numbers" id="toc-a-training-steps-bridge-numbers" class="nav-link" data-scroll-target="#a-training-steps-bridge-numbers">A training step’s bridge numbers</a></li>
+  <li><a href="#tests" id="toc-tests" class="nav-link" data-scroll-target="#tests">Tests</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./rl19_bridge.html">rl19_bridge</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">rl19_bridge</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 19 (<code>specs/multiagent/phase19/</code>, T5a and T5b): A1’s bridged world. <code>BRIDGE19</code> (one plain bridge per pair of squads, every fourth subtask coupled: <code>bridge1</code>, as Gates C1b, C1c and C1d settled P19-8) and <code>GATE_C1</code> (Gate C1’s record); <code>bridgeWorld19</code> and <code>bridgeCells19</code> bridge a world or cells in two squads or more (a single squad stays unbridged, P19-9); <code>BridgeContestLog</code>, contest credit on a bridge board: a relayed liar’s value is the liar’s (P20-12), and a true holder’s mirror post against a mirror lie is a border contest, paid through the receiving squad’s later correct solves (P23-8, kept by the user, 2026-11-12); <code>contestColumns19</code>, the relay-aware evaluation columns with the border contests and P19-9’s waiting counts; <code>bridgeStepStats</code>, a training step’s <code>longestBridge</code> and relays per bridge turn.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="the-world-and-gate-c1" class="level2">
+<h2 class="anchored" data-anchor-id="the-world-and-gate-c1">The world and Gate C1</h2>
+<p>Gate C1 passed on 2026-11-11 and the inert-bridge rule did not fire, so A1 trains in squads joined by bridges (P19-1). Gates C1b, C1c and C1d tried a bridge with evidence, a dedicated bridge and a window; none beat one plain bridge, so every arm gets <code>bridge1</code> (P19-8). A cell is bridged only when it has two squads or more: C1’s <a href="https://Positron00.github.io/explRL/bridge_board.html#checkbridge"><code>checkBridge</code></a> refuses a single squad (the held-out 8-agent cells in squads of 8, and <code>seq8</code>).</p>
+<div id="0dbc142f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.620293+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.628558+00:00&quot;,&quot;total&quot;:0.008269020999989607}}" data-execution_count="3">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L41" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="isbridge19" class="level3">
+<h3 class="anchored" data-anchor-id="isbridge19">isBridge19</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> isBridge19(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    world</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A Phase 19 cell (scheme ‘contest’, enforceK or p19) on a bridged board (couple): its contest columns are relay-aware.</em></p>
+</section>
+</div>
+<div id="540fefad" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.628667+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.632122+00:00&quot;,&quot;total&quot;:0.003458306999988281}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L33" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="bridgecells19" class="level3">
+<h3 class="anchored" data-anchor-id="bridgecells19">bridgeCells19</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> bridgeCells19(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    cells, on:<span class="bu">bool</span><span class="op">=</span><span class="va">True</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Cells (clueCell dicts), each world bridged by bridgeWorld19 in place where <code>on</code> (a bool, or cell -&gt; bool); the cells returned.</em></p>
+</section>
+</div>
+<div id="03738d8d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.632222+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.635257+00:00&quot;,&quot;total&quot;:0.0030383090000043467}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L24" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="bridgeworld19" class="level3">
+<h3 class="anchored" data-anchor-id="bridgeworld19">bridgeWorld19</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> bridgeWorld19(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    world, N</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em><code>world</code> (a dict, or RL19Config’s ((key, value), …)) with BRIDGE19’s keys when it is in at least two squads (N // squads</em> &gt;= 2); a single squad stays unbridged (P19-9: checkBridge refuses it). Returned in the form given.</p>
+</section>
+</div>
+</section>
+<section id="contest-credit-on-a-bridge-board" class="level2">
+<h2 class="anchored" data-anchor-id="contest-credit-on-a-bridge-board">Contest credit on a bridge board</h2>
+<p>Two changes to <code>contest.ContestLog</code>, built only on a bridge board with contest credit (<a href="https://Positron00.github.io/explRL/bridge_board.html#bridgeboardenv.reset"><code>BridgeBoardEnv.reset</code></a>):</p>
+<ul>
+<li><strong>Relayed lies (P20-12, FR-A9).</strong> A relay is posted under the bridge’s slot, but the value is its source’s. <code>lies</code> reads each value’s first poster through <code>relayLog</code>, looked up when a contest is judged (the relay’s own <code>onShare</code> comes before <code>relayLog</code> is written). A relayed liar’s value is a lie on the receiving squad’s board, and a true post against it is a contest.</li>
+<li><strong>Border contests (P23-8, kept by the user on 2026-11-12).</strong> A true holder’s mirror post while the mirror shows a false value that a liar posted there first. Its watchers are the receiving squad’s honest agents without the clue that were shown a lie of the slot before any true value: on their own board after a relay, or on the mirror for the pair’s bridge (the user chose this over bridges only and a flat payment, 2026-11-12). Each watcher’s later correct solve pays the contester as any contest does: 0.5, halved every <code>halfLife</code> turns of the lie’s lead.</li>
+</ul>
+<div id="b4016f4c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.642139+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.645576+00:00&quot;,&quot;total&quot;:0.003440955999991502}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L51" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="bridgecontestlog" class="level3">
+<h3 class="anchored" data-anchor-id="bridgecontestlog">BridgeContestLog</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> BridgeContestLog(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    board, liarSlots, contestSlots, halfLife:<span class="bu">float</span><span class="op">=</span><span class="fl">4.0</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>ContestLog on a bridge board (T5a; P20-12, and P23-8 as the user kept it). A relayed value is its source poster’s, looked</em> up when a contest is judged (relayLog is written after the relay’s own onShare), so a relayed liar’s value is a lie on the receiving squad’s board and contesting it there pays, as any contest. A border contest: the first true mirror post, by an honest holder, while the mirror shows a false value a liar posted there first and no true value (one per slot, so repeated posts cannot farm it). Its watchers are the receiving squad’s honest agents without the clue that were shown that mirror lie before any true value of the slot: on their own board through a relay, or, for the pair’s bridge, on the mirror. A watcher’s later correct solve pays the border contester as any contest pays (the user, 2026-11-12). Board watchers (<code>sawLie</code>) and border watchers (<code>sawBorder</code>) are kept apart.</p>
+</section>
+</div>
+<div id="11d53ef4" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.645677+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.648475+00:00&quot;,&quot;total&quot;:0.0028014780000091832}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L46" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="relayposters" class="level3">
+<h3 class="anchored" data-anchor-id="relayposters">relayPosters</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> relayPosters(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    board</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>{(t, bridge, k, j, r): the source post’s poster} for every relay on the board (relayLog; {} on other boards).</em></p>
+</section>
+</div>
+</section>
+<section id="relay-aware-evaluation-columns" class="level2">
+<h2 class="anchored" data-anchor-id="relay-aware-evaluation-columns">Relay-aware evaluation columns</h2>
+<p><code>contest_eval.contestColumns</code> hands A1’s bridged cells (<a href="https://Positron00.github.io/explRL/rl19_bridge.html#isbridge19"><code>isBridge19</code></a>: Phase 19 cells with <code>couple</code>) to <a href="https://Positron00.github.io/explRL/rl19_bridge.html#contestcolumns19"><code>contestColumns19</code></a>; earlier bridged rows (C1 to C1d, with no Phase 19 marker) keep the plain columns, so their saved rows replay unchanged. The board is read through <a href="https://Positron00.github.io/explRL/rl19_bridge.html#relayed"><code>Relayed</code></a>, where each relay is its source’s post, so liar posts, contests, guarded lies, lags and uncorrected clues agree with the reward. Per-slot shares stay the agents’ own. P19-9: coupled subtasks’ answers leave the waiting rate’s counts and are reported apart, and <code>enforceK</code> exempts them (<code>contest_eval.refuses</code>). <a href="https://Positron00.github.io/explRL/rl19_bridge.html#misreport19"><code>misreport19</code></a> does not count a relay as an honest false post; <code>rl19_measures</code> reads it where present.</p>
+<div id="9d09da2c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.656380+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.660591+00:00&quot;,&quot;total&quot;:0.004213492999980417}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L159" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="contestcolumns19" class="level3">
+<h3 class="anchored" data-anchor-id="contestcolumns19">contestColumns19</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> contestColumns19(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    cfg, board, slotLogs:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>contest_eval’s columns on a bridged Phase 19 board, relay-aware (FR-A9). The lie side reads each relay as its source’s post:</em> liar posts, guarded lies and liar-first clues left uncorrected (<a href="https://Positron00.github.io/explRL/rl19_bridge.html#relayed"><code>Relayed</code></a>); contests (<a href="https://Positron00.github.io/explRL/rl19_bridge.html#contestsof19"><code>contestsOf19</code></a>) keep the real contester. Measures that order posts within a turn by slot (misinformed first answers, the waiting rate) read the board as it is. P19-9: the waiting rate’s counts leave out coupled subtasks’ answers, reported apart (waitAnswersCoupled, usedAnswersCoupled). Added: border contests (count, lags, per slot), mirror lies and misreport19.</p>
+</section>
+</div>
+<div id="30df2f32" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.660670+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.663424+00:00&quot;,&quot;total&quot;:0.0027558989999931782}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L152" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="misreport19" class="level3">
+<h3 class="anchored" data-anchor-id="misreport19">misreport19</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> misreport19(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    board, nLiar</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Misreporting without relays: false values posted by honest agents per 100 honest shares, a relay not counted as a post.</em></p>
+</section>
+</div>
+<div id="4a0a0f06" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.663499+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.666306+00:00&quot;,&quot;total&quot;:0.0028094890000147643}}" data-execution_count="12">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L139" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="bordercontestsof" class="level3">
+<h3 class="anchored" data-anchor-id="bordercontestsof">borderContestsOf</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> borderContestsOf(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    board, nLiar</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>[(t_c, contester, k, j, t_l)]: the border contests on a finished bridge board, as BridgeContestLog judges them (any</em> scheme): the first true mirror post, by an honest slot, while the mirror shows a false value a liar slot posted there first.</p>
+</section>
+</div>
+<div id="6c80fe52" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.666404+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.670435+00:00&quot;,&quot;total&quot;:0.0040339910000000145}}" data-execution_count="13">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L126" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="contestsof19" class="level3">
+<h3 class="anchored" data-anchor-id="contestsof19">contestsOf19</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> contestsOf19(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    board, nLiar</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>contest_eval.contestsOf on a bridge board: a lie’s poster read through relays (a relayed liar’s value is the liar’s),</em> the contester the real poster (a bridge relaying the true value contests, as BridgeContestLog pays it).</p>
+</section>
+</div>
+<div id="b0958cff" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.670542+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.674584+00:00&quot;,&quot;total&quot;:0.004045974000007391}}" data-execution_count="14">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L116" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="relayed" class="level3">
+<h3 class="anchored" data-anchor-id="relayed">Relayed</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Relayed(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    board, submits:NoneType<span class="op">=</span><span class="va">None</span>, shareLog:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A board seen through <a href="https://Positron00.github.io/explRL/rl19_bridge.html#attributed"><code>attributed</code></a> (or with the given <code>shareLog</code>) and other <code>submits</code> if given; every other attribute is the board’s.</em></p>
+</section>
+</div>
+<div id="081d3aa4" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.674692+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.677986+00:00&quot;,&quot;total&quot;:0.0032969929999921987}}" data-execution_count="15">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L110" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="attributed" class="level3">
+<h3 class="anchored" data-anchor-id="attributed">attributed</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> attributed(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    board</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>board.shareLog with each relay’s poster replaced by its source post’s poster (a relayed value is its source’s).</em></p>
+</section>
+</div>
+</section>
+<section id="a-training-steps-bridge-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="a-training-steps-bridge-numbers">A training step’s bridge numbers</h2>
+<p><a href="https://Positron00.github.io/explRL/rl17_train.html#trainrl17"><code>trainRL17</code></a> logs <a href="https://Positron00.github.io/explRL/rl19_bridge.html#bridgestepstats"><code>bridgeStepStats</code></a> in each step’s metrics. The speed check reads <code>longestBridge</code> against the 3,072-token window (the Colab cell refuses bridged metrics without it).</p>
+<div id="c7db5e5b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.680706+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.686148+00:00&quot;,&quot;total&quot;:0.005446807999987868}}" data-execution_count="17">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/rl19_bridge.py#L181" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="bridgestepstats" class="level3">
+<h3 class="anchored" data-anchor-id="bridgestepstats">bridgeStepStats</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> bridgeStepStats(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    gs, tok:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>A step’s rollouts [(LLMConfig, Rollout)] (prompts kept) -&gt; {longestBridge: a bridge’s longest prompt plus reply in tokens (as</em> pairLengths, eos aside; tok None: 4 characters a token), relaysPerBridgeTurn}; {} when no board has bridges.</p>
+</section>
+</div>
+</section>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<div id="4533e1e2" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.687311+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.711863+00:00&quot;,&quot;total&quot;:0.024556980999989264}}" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_bridge19_world (T5a, T5b; P19-1, P19-8, P19-9): bridge1 in two squads or more, a single squad unbridged; Gate C1's</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># record sets the world; every arm's config builds a bridge board, with BridgeContestLog under contest credit</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bridge_board <span class="im">import</span> BridgeBoardEnv, checkBridge</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_grid <span class="im">import</span> BOARD, CLUE_SETTINGS</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_roll <span class="im">import</span> boardFactory</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.contest <span class="im">import</span> ContestLog</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_runs <span class="im">import</span> LLMConfig</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.rl19_bridge <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.rl19_grid <span class="im">import</span> ARMS19, RL19_PLAN, rl19Config, worldFor19</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.rl19_step <span class="im">import</span> check19, world19</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">dict</span>(BRIDGE19) <span class="op">==</span> <span class="bu">dict</span>(couple<span class="op">=</span><span class="fl">0.25</span>, bridges<span class="op">=</span><span class="dv">1</span>) <span class="kw">and</span> RL19_PLAN[<span class="st">'gates'</span>][<span class="st">'C1'</span>] <span class="kw">is</span> GATE_C1</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> worldFor19(GATE_C1) <span class="op">==</span> RL19_PLAN[<span class="st">'world'</span>] <span class="op">==</span> <span class="st">'bridges'</span> <span class="kw">and</span> worldFor19(<span class="bu">dict</span>(GATE_C1, passed<span class="op">=</span><span class="va">False</span>)) <span class="op">==</span> <span class="st">'squads'</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> worldFor19(<span class="bu">dict</span>(GATE_C1, inertFired<span class="op">=</span><span class="va">True</span>)) <span class="op">==</span> <span class="st">'squads'</span> <span class="kw">and</span> worldFor19(<span class="bu">dict</span>(GATE_C1, inertFired<span class="op">=</span><span class="va">True</span>, userAcceptsBridges<span class="op">=</span><span class="va">True</span>)) <span class="op">==</span> <span class="st">'bridges'</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> bridgeWorld19(<span class="bu">dict</span>(squads<span class="op">=</span><span class="dv">4</span>), <span class="dv">16</span>) <span class="op">==</span> <span class="bu">dict</span>(squads<span class="op">=</span><span class="dv">4</span>, couple<span class="op">=</span><span class="fl">0.25</span>, bridges<span class="op">=</span><span class="dv">1</span>) <span class="kw">and</span> bridgeWorld19(<span class="bu">dict</span>(squads<span class="op">=</span><span class="dv">8</span>), <span class="dv">8</span>) <span class="op">==</span> <span class="bu">dict</span>(squads<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> bridgeWorld19(((<span class="st">'r'</span>, <span class="dv">2</span>), (<span class="st">'squads'</span>, <span class="dv">8</span>)), <span class="dv">16</span>) <span class="op">==</span> ((<span class="st">'r'</span>, <span class="dv">2</span>), (<span class="st">'squads'</span>, <span class="dv">8</span>), (<span class="st">'couple'</span>, <span class="fl">0.25</span>), (<span class="st">'bridges'</span>, <span class="dv">1</span>))</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> isBridge19(<span class="bu">dict</span>(scheme<span class="op">=</span><span class="st">'contest'</span>, couple<span class="op">=</span><span class="fl">0.25</span>)) <span class="kw">and</span> isBridge19(<span class="bu">dict</span>(p19<span class="op">=</span><span class="va">True</span>, couple<span class="op">=</span><span class="fl">0.25</span>))</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> isBridge19(<span class="bu">dict</span>(scheme<span class="op">=</span><span class="st">'individual'</span>, couple<span class="op">=</span><span class="fl">0.25</span>, bridges<span class="op">=</span><span class="dv">1</span>)) <span class="kw">and</span> <span class="kw">not</span> isBridge19(<span class="bu">dict</span>(scheme<span class="op">=</span><span class="st">'contest'</span>))   <span class="co"># C1's rows; unbridged</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lcfg(arm, S, nl, life<span class="op">=</span><span class="dv">30</span>):</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">"A training board's LLMConfig as trainRL17 builds it (rl17_train's lcfg)."</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    c <span class="op">=</span> rl19Config(arm, <span class="dv">1</span>, <span class="st">'m'</span>, <span class="st">'o'</span>, {}, S, plan<span class="op">=</span><span class="bu">dict</span>(RL19_PLAN, records<span class="op">=</span><span class="va">False</span>))   <span class="co"># arm 4's records: P19-5, at the freeze</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    check19(c)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> c, LLMConfig(task<span class="op">=</span><span class="st">'clue'</span>, channel<span class="op">=</span>c.channel, N<span class="op">=</span><span class="dv">16</span>, nLiar<span class="op">=</span>nl, turns<span class="op">=</span>c.turns, model<span class="op">=</span>c.model,</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>                        world<span class="op">=</span>{<span class="op">**</span>{k: CLUE_SETTINGS[k] <span class="cf">for</span> k <span class="kw">in</span> BOARD}, <span class="st">'scheme'</span>: c.scheme, <span class="op">**</span><span class="bu">dict</span>(c.world), <span class="op">**</span>world19(c, life)})</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> arm <span class="kw">in</span> ARMS19:</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> S <span class="kw">in</span> (<span class="dv">4</span>, <span class="dv">8</span>):</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>        c, L <span class="op">=</span> lcfg(arm, S, <span class="dv">6</span>)</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>        w <span class="op">=</span> <span class="bu">dict</span>(c.world)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> w[<span class="st">'couple'</span>] <span class="op">==</span> <span class="fl">0.25</span> <span class="kw">and</span> w[<span class="st">'bridges'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> <span class="st">'bridgeGuard'</span> <span class="kw">not</span> <span class="kw">in</span> w <span class="kw">and</span> checkBridge(L.world, <span class="dv">16</span>, <span class="dv">6</span>)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        bd <span class="op">=</span> boardFactory(L)[<span class="dv">0</span>](<span class="dv">900</span>)</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">isinstance</span>(bd, BridgeBoardEnv) <span class="kw">and</span> <span class="bu">len</span>(bd.bridgeSet) <span class="op">==</span> <span class="dv">16</span> <span class="op">//</span> S</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">assert</span> <span class="bu">type</span>(bd.contestLog) <span class="kw">is</span> (BridgeContestLog <span class="cf">if</span> c.scheme <span class="op">==</span> <span class="st">'contest'</span> <span class="cf">else</span> <span class="bu">type</span>(<span class="va">None</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="00232ed3" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.714538+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:29.728557+00:00&quot;,&quot;total&quot;:0.014022558000021945}}" data-execution_count="19">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_bridge19_contest (FR-A9; P20-12, P23-8): on a hand-built 16-agent board in two squads (arm 4: contest credit open to</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># all), a liar's mirror lie, relayed by the bridge, is the liar's on the receiving board (a plain ContestLog sees no lie); a</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co"># true holder's mirror post is a border contest whose watchers are the bridge and the receiving squad's agent shown the</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># relay; the bridge's relay of the true value contests the relayed lie; that agent's correct solve pays both contesters; a relayed true value splits its credit (P20-12)</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.contest <span class="im">import</span> preventionBonus</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.contest_eval <span class="im">import</span> _columns, contestColumns, refuses</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>_, L <span class="op">=</span> lcfg(<span class="st">'a19open'</span>, <span class="dv">8</span>, <span class="dv">4</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>bd <span class="op">=</span> boardFactory(L)[<span class="dv">0</span>](<span class="dv">901</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>log, nS <span class="op">=</span> bd.contestLog, bd.nSquads</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pick(bd, skip<span class="op">=</span>()):</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">"A coupled open subtask with an honest holder of its cross clue, a liar in the mirror squad and a watcher in its own."</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k <span class="kw">in</span> <span class="bu">sorted</span>(bd.coupled):</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        s, s2 <span class="op">=</span> bd.coupled[k]</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>        hs <span class="op">=</span> [h <span class="cf">for</span> h <span class="kw">in</span> bd.tasks[k].holders[<span class="dv">1</span>] <span class="cf">if</span> h <span class="op">&gt;=</span> bd.nLiar]</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        liars <span class="op">=</span> [i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(bd.nLiar) <span class="cf">if</span> i <span class="op">%</span> nS <span class="op">==</span> s2]</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        ws <span class="op">=</span> [a <span class="cf">for</span> a <span class="kw">in</span> <span class="bu">range</span>(bd.nLiar, <span class="dv">16</span>) <span class="cf">if</span> a <span class="op">%</span> nS <span class="op">==</span> s <span class="kw">and</span> a <span class="kw">not</span> <span class="kw">in</span> bd.bridgeSet <span class="kw">and</span> a <span class="kw">not</span> <span class="kw">in</span> bd.tasks[k].holders[<span class="dv">1</span>]]</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="kw">in</span> bd.<span class="bu">open</span> <span class="kw">and</span> k <span class="kw">not</span> <span class="kw">in</span> skip <span class="kw">and</span> hs <span class="kw">and</span> liars <span class="kw">and</span> ws:</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> k, hs[<span class="dv">0</span>], liars[<span class="dv">0</span>], bd.bridges[s][<span class="dv">0</span>], ws[<span class="dv">0</span>]</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>k, h, liar, br, a <span class="op">=</span> pick(bd)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>p, tr <span class="op">=</span> bd.tasks[k].task.clue(<span class="dv">1</span>)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>fr, T <span class="op">=</span> (tr <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p, <span class="bu">iter</span>(x <span class="op">/</span> <span class="dv">100</span> <span class="cf">for</span> x <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">100</span>))   <span class="co"># turns 0.01 apart: no subtask expires meanwhile</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>step <span class="op">=</span> <span class="kw">lambda</span> i, act: bd.<span class="bu">apply</span>(i, act, <span class="bu">next</span>(T))</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>step(liar, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, fr)))                         <span class="co"># the lie on the mirror</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>step(br, (<span class="st">'wait'</span>, <span class="va">None</span>))                                  <span class="co"># the bridge is shown it on its pair's mirror</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>step(br, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, fr)))                           <span class="co"># ... and relays it</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> bd.relayLog <span class="kw">and</span> bd.relayLog[<span class="op">-</span><span class="dv">1</span>][<span class="dv">5</span>][<span class="dv">1</span>] <span class="op">==</span> liar <span class="kw">and</span> log.lies(k, <span class="dv">1</span>)[<span class="dv">0</span>][<span class="dv">1</span>:] <span class="op">==</span> (fr, liar) <span class="kw">and</span> ContestLog.lies(log, k, <span class="dv">1</span>) <span class="op">==</span> []</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>step(a, (<span class="st">'wait'</span>, <span class="va">None</span>))                                   <span class="co"># a, in the receiving squad, is shown the relayed lie</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(log.sawBorder[(k, <span class="dv">1</span>)]) <span class="op">==</span> {br, a} <span class="kw">and</span> <span class="bu">set</span>(log.sawLie[(k, <span class="dv">1</span>)]) <span class="op">==</span> {a}   <span class="co"># the bridge saw the lie on the mirror only</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>step(h, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, tr)))                            <span class="co"># the true holder's mirror post: a border contest</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> log.contests[log.border[<span class="dv">0</span>]]</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(log.border) <span class="op">==</span> <span class="dv">1</span> <span class="op">==</span> <span class="bu">len</span>(log.contests) <span class="kw">and</span> (c.who, c.liar, c.lie) <span class="op">==</span> (h, liar, fr) <span class="kw">and</span> <span class="bu">set</span>(c.watchers) <span class="op">==</span> {br, a}</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>step(h, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, tr)))                            <span class="co"># a repeat true mirror post is no new border contest (no farming)</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(log.border) <span class="op">==</span> <span class="dv">1</span> <span class="op">==</span> <span class="bu">len</span>(log.contests)</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>step(br, (<span class="st">'share'</span>, (k, <span class="dv">1</span>, tr)))                           <span class="co"># the bridge relays the true value: a contest against the relayed lie</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>c2 <span class="op">=</span> log.contests[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(log.contests) <span class="op">==</span> <span class="dv">2</span> <span class="kw">and</span> (c2.who, c2.liar, c2.lie) <span class="op">==</span> (br, liar, fr) <span class="kw">and</span> <span class="bu">set</span>(c2.watchers) <span class="op">==</span> {a}</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>step(a, (<span class="st">'open'</span>, k))</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> bd.tasks[k].task.x</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>step(a, (<span class="st">'submit'</span>, x))                                    <span class="co"># a's correct solve pays both contesters</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> [(q[<span class="dv">1</span>], q[<span class="dv">2</span>], q[<span class="dv">3</span>]) <span class="cf">for</span> q <span class="kw">in</span> log.paid] <span class="op">==</span> [(h, a, k), (br, a, k)]</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(<span class="bu">abs</span>(q[<span class="dv">5</span>] <span class="op">-</span> preventionBonus(cc.t_c <span class="op">-</span> cc.t_l, log.H)) <span class="op">&lt;</span> <span class="fl">1e-12</span> <span class="cf">for</span> q, cc <span class="kw">in</span> <span class="bu">zip</span>(log.paid, (c, c2)))</span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> log.earned(<span class="dv">16</span>)[h] <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">and</span> log.earned(<span class="dv">16</span>)[br] <span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a><span class="co"># the columns: relay-aware on this cell, plain for C1's (no Phase 19 marker)</span></span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>C, P <span class="op">=</span> contestColumns(L, bd), _columns(L, bd)</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> C[<span class="st">'liarPosts'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> P[<span class="st">'liarPosts'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> C[<span class="st">'contests'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> P[<span class="st">'contests'</span>] <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> C[<span class="st">'borderContests'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> C[<span class="st">'mirrorLies'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> json.loads(C[<span class="st">'agentBorderContests'</span>])[h] <span class="op">==</span> <span class="dv">1</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> json.loads(C[<span class="st">'agentShares'</span>]) <span class="op">==</span> json.loads(P[<span class="st">'agentShares'</span>]) <span class="kw">and</span> json.loads(C[<span class="st">'agentShares'</span>])[br] <span class="op">==</span> <span class="dv">2</span></span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> json.loads(C[<span class="st">'agentContests'</span>])[br] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> json.loads(C[<span class="st">'agentContests'</span>])[h] <span class="op">==</span> <span class="dv">0</span>   <span class="co"># the contester is the real poster, as paid</span></span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> C[<span class="st">'liarFirst'</span>] <span class="op">==</span> <span class="dv">1</span> <span class="kw">and</span> C[<span class="st">'uncorrected'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> P[<span class="st">'liarFirst'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> C[<span class="st">'misreport19'</span>] <span class="op">!=</span> C[<span class="st">'misreport19'</span>]   <span class="co"># relays only: NaN</span></span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> refuses(bd, a, k, x, <span class="dv">3</span>)                        <span class="co"># P19-9: a coupled answer is exempt from enforceK</span></span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a><span class="co"># a lie posted straight onto the receiving board (no relay) makes a board watcher, not a border watcher</span></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>k3, h3, liar3, br3, a3 <span class="op">=</span> pick(bd, skip<span class="op">=</span>{k})</span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>s3 <span class="op">=</span> bd.coupled[k3][<span class="dv">0</span>]</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>p3, tr3 <span class="op">=</span> bd.tasks[k3].task.clue(<span class="dv">1</span>)</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>own <span class="op">=</span> <span class="bu">next</span>(i <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(bd.nLiar) <span class="cf">if</span> i <span class="op">%</span> nS <span class="op">==</span> s3)</span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>step(own, (<span class="st">'share'</span>, (k3, <span class="dv">1</span>, (tr3 <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p3)))             <span class="co"># a liar of the receiving squad, on its own board</span></span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>step(liar3, (<span class="st">'share'</span>, (k3, <span class="dv">1</span>, (tr3 <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> p3)))           <span class="co"># the same false value on the mirror</span></span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>step(a3, (<span class="st">'wait'</span>, <span class="va">None</span>))</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> a3 <span class="kw">in</span> log.sawLie[(k3, <span class="dv">1</span>)] <span class="kw">and</span> a3 <span class="kw">not</span> <span class="kw">in</span> log.sawBorder.get((k3, <span class="dv">1</span>), {})</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>step(h3, (<span class="st">'share'</span>, (k3, <span class="dv">1</span>, tr3)))</span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> a3 <span class="kw">not</span> <span class="kw">in</span> log.contests[log.border[<span class="op">-</span><span class="dv">1</span>]].watchers <span class="kw">and</span> <span class="bu">len</span>(log.border) <span class="op">==</span> <span class="dv">2</span></span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bridge_grid <span class="im">import</span> bridgeCheckCells           <span class="co"># P20-11's check runs in A1's world (p19): relay-aware columns too</span></span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(isBridge19(c[<span class="st">'cfg'</span>][<span class="st">'world'</span>]) <span class="cf">for</span> c <span class="kw">in</span> bridgeCheckCells())</span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a><span class="co"># P20-12: a relayed true value's credit share goes half to the bridge, half to the first true poster on the mirror</span></span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>k2, h2, _, br2, a2 <span class="op">=</span> pick(bd, skip<span class="op">=</span>{k, k3})</span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a>p2, tr2 <span class="op">=</span> bd.tasks[k2].task.clue(<span class="dv">1</span>)</span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a>step(h2, (<span class="st">'share'</span>, (k2, <span class="dv">1</span>, tr2)))</span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a>step(br2, (<span class="st">'share'</span>, (k2, <span class="dv">1</span>, tr2)))</span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a>before <span class="op">=</span> bd.pending.copy()</span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a>step(a2, (<span class="st">'open'</span>, k2))</span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a>step(a2, (<span class="st">'submit'</span>, bd.tasks[k2].task.x))</span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a>got <span class="op">=</span> bd.pending <span class="op">-</span> before</span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> <span class="bu">any</span>(s[<span class="dv">2</span>] <span class="op">==</span> k2 <span class="kw">and</span> s[<span class="dv">3</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">for</span> s <span class="kw">in</span> bd.shareLog)   <span class="co"># clue 1 is the only credited clue</span></span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">abs</span>(got[br2] <span class="op">-</span> got[h2]) <span class="op">&lt;</span> <span class="fl">1e-12</span> <span class="kw">and</span> <span class="bu">abs</span>(got[br2] <span class="op">-</span> bd.credit <span class="op">*</span> bd.tasks[k2].value <span class="op">/</span> <span class="dv">2</span>) <span class="op">&lt;</span> <span class="fl">1e-12</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="c49915f6" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:35:29.729136+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:35:30.806556+00:00&quot;,&quot;total&quot;:1.077426676000016}}" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_bridge19_step (T5a done-when): a recorded 16-agent bridged rollout (the fake Claude client, prompts kept) gives the</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># step's longestBridge (at least the bridge's longest prompt, bridgePromptTokens) and relays per bridge turn; none unbridged</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.bridge_agents <span class="im">import</span> bridgePromptTokens</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_policy <span class="im">import</span> claudePolicy</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.clue_roll <span class="im">import</span> rollout</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.colony_agents <span class="im">import</span> scriptedFaults</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_client <span class="im">import</span> LLMClient</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.llm_fake <span class="im">import</span> FakeClient, fakeReply</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>_, L <span class="op">=</span> lcfg(<span class="st">'a19contest'</span>, <span class="dv">4</span>, <span class="dv">4</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>pol <span class="op">=</span> claudePolicy(LLMClient(<span class="st">'claude-haiku-5-5'</span>, client<span class="op">=</span>FakeClient(fakeReply)))</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>ro <span class="op">=</span> rollout(L, [<span class="dv">902</span>], pol, scriptedFaults(L.world, <span class="dv">4</span>), keepPrompts<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>st <span class="op">=</span> bridgeStepStats([(L, ro)])</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(st) <span class="op">==</span> {<span class="st">'longestBridge'</span>, <span class="st">'relaysPerBridgeTurn'</span>} <span class="kw">and</span> st[<span class="st">'longestBridge'</span>] <span class="op">&gt;=</span> bridgePromptTokens(L, [<span class="dv">902</span>])[<span class="st">'bridge'</span>] <span class="op">&gt;</span> <span class="dv">0</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> math.isfinite(st[<span class="st">'relaysPerBridgeTurn'</span>]) <span class="kw">and</span> st[<span class="st">'relaysPerBridgeTurn'</span>] <span class="op">==</span> <span class="bu">len</span>(ro.boards[<span class="dv">0</span>].relayLog) <span class="op">/</span> <span class="bu">sum</span>(</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span> <span class="cf">for</span> r <span class="kw">in</span> ro.boards[<span class="dv">0</span>].ledger <span class="cf">if</span> r[<span class="dv">0</span>] <span class="kw">in</span> ro.boards[<span class="dv">0</span>].bridgeSet)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>L0 <span class="op">=</span> LLMConfig.fromDict({<span class="op">**</span>L.asDict(), <span class="st">'world'</span>: {k: v <span class="cf">for</span> k, v <span class="kw">in</span> L.world.items() <span class="cf">if</span> k <span class="kw">not</span> <span class="kw">in</span> (<span class="st">'couple'</span>, <span class="st">'bridges'</span>)}})</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> bridgeStepStats([(L0, rollout(L0, [<span class="dv">902</span>], pol, scriptedFaults(L0.world, <span class="dv">4</span>), keepPrompts<span class="op">=</span><span class="va">True</span>))]) <span class="op">==</span> {}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

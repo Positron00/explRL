@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.20">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Phase 22 (specs/multiagent/phase22/, experiment B3): the fit. the cells, folds and targets of b3_cells (imported here); simCell and gridSim (the numpy counterpart of a cell through b3_agents.b3Replay, every grid point once, cached per θ in results/multiagent/b3/grid/); loss, fit, heldOut, chooseKnob, bootTau, refit (the pilot refit of P22-6) and fitHealth (FR-B1 to FR-B8).">
+
+<title>b3_fit – explRL</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-17888a1159294d3eb470f19f6f52f5a5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-68bd789f534ae270325663cf66662fbb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="b3_fit – explRL">
+<meta property="og:description" content="Phase 22 (specs/multiagent/phase22/, experiment B3): the fit. the cells, folds and targets of b3_cells (imported here); simCell and gridSim (the numpy counterpart of a cell through b3_agents.b3Replay, every grid point once, cached per θ in results/multiagent/b3/grid/); loss, fit, heldOut, chooseKnob, bootTau, refit (the pilot refit of P22-6) and fitHealth (FR-B1 to FR-B8).">
+<meta property="og:site_name" content="explRL">
+<meta name="twitter:title" content="b3_fit – explRL">
+<meta name="twitter:description" content="Phase 22 (specs/multiagent/phase22/, experiment B3): the fit. the cells, folds and targets of b3_cells (imported here); simCell and gridSim (the numpy counterpart of a cell through b3_agents.b3Replay, every grid point once, cached per θ in results/multiagent/b3/grid/); loss, fit, heldOut, chooseKnob, bootTau, refit (the pilot refit of P22-6) and fitHealth (FR-B1 to FR-B8).">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">explRL</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./b3_fit.html">b3_fit</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">explRL</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./highlights.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Highlights</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Demos and runs</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colab_clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colab_clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_a2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_a2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_c1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_c1b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1c.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Phase 24 (C1c): confirm the dedicated bridge</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_c1d.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Phase 25 (C1d): confirm the mirror window</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_b3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_b3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_clue.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_clue</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_coop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_coop</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_followup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_followup</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_hb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_hb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_liar.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_liar</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_llm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_llm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_multiagent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_multiagent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl16</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl17.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl17</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl18.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl18</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_rl19.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_rl19</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_safety.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_safety</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./demo_trust.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">demo_trust</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Library</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_cols.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_cols</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_seq.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_seq</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_synth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_synth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./a2_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">a2_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./adversary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">adversary</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./basis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">basis</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bench_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bench_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_forecast.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_forecast</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_effects.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_effects</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_cells.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_cells</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_fit.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">b3_fit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_retro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_retro</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./b3_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">b3_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./board_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">board_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./bridge_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">bridge_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./circuit_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">circuit_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_colony.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_colony</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_fix.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_fix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_roll.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_roll</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_sft.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_sft</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_text</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clue_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clue_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./clueboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">clueboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./cluetask.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cluetask</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony32.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony32</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony4b.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony4b</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony64.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony64</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./colony_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">colony_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contest.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">contest</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./contest_eval.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">contest_eval</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./coop_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">coop_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./credit.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">credit</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./defence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">defence</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./envs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">envs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./episodes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">episodes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_rl.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_rl</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./figs_team.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">figs_team</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./fix_stats.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fix_stats</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./followup_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">followup_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./harness_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">harness_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_bench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_bench</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./hidden_profile.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">hidden_profile</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./liar_trace.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">liar_trace</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_agent.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_agent</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_budget.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_budget</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_client.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_client</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_compare.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_compare</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_env.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_env</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_fake.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_fake</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./llm_sched.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">llm_sched</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./local_policy.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">local_policy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./members.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">members</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./multi.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">multi</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./params.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">params</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./patchworld.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">patchworld</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./prestructured_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">prestructured_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_domains.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_domains</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./profile_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">profile_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_board.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_board</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_plan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_plan</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_write.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_write</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./relay_mech.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">relay_mech</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./role_confirm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">role_confirm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./window_confirm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">window_confirm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl16_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl16_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_train</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl17_update.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl17_update</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl18_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl18_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_bridge.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_bridge</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_measures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_measures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_spec.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_spec</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_step.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_step</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_suite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_suite</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl19_synth.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl19_synth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_adv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_adv</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_control.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_control</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rl_torch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rl_torch</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./rounds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">rounds</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_figures.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_figures</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./safety_runs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">safety_runs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_grid.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_grid</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./scale_report.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">scale_report</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./taskboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">taskboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_agents.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_agents</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_refs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_refs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./team_time.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">team_time</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./territory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">territory</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tiny_model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tiny_model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./train.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">train</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#targets-the-fit-and-the-folds" id="toc-targets-the-fit-and-the-folds" class="nav-link active" data-scroll-target="#targets-the-fit-and-the-folds">Targets, the fit and the folds</a></li>
+  <li><a href="#tests" id="toc-tests" class="nav-link" data-scroll-target="#tests">Tests</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./core.html">Library</a></li><li class="breadcrumb-item"><a href="./b3_fit.html">b3_fit</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">b3_fit</h1>
+</div>
+
+<div>
+  <div class="description">
+    Phase 22 (<code>specs/multiagent/phase22/</code>, experiment B3): the fit. the cells, folds and targets of <code>b3_cells</code> (imported here); <code>simCell</code> and <code>gridSim</code> (the numpy counterpart of a cell through <code>b3_agents.b3Replay</code>, every grid point once, cached per θ in <code>results/multiagent/b3/grid/</code>); <code>loss</code>, <code>fit</code>, <code>heldOut</code>, <code>chooseKnob</code>, <code>bootTau</code>, <code>refit</code> (the pilot refit of P22-6) and <code>fitHealth</code> (FR-B1 to FR-B8).
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<div id="334af9cf" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.223432+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.245228+00:00&quot;,&quot;total&quot;:0.021800199999994163}}" data-execution_count="4">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L72" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="gridsim" class="level3">
+<h3 class="anchored" data-anchor-id="gridsim">gridSim</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gridSim(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    cells, thetas, workers:<span class="bu">int</span><span class="op">=</span><span class="dv">8</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    seeds:<span class="bu">tuple</span><span class="op">=</span>(<span class="dv">3000</span>, <span class="dv">3001</span>, <span class="dv">3002</span>, <span class="dv">3003</span>, <span class="dv">3004</span>, <span class="dv">3005</span>, <span class="dv">3006</span>, <span class="dv">3007</span>, <span class="dv">3008</span>, <span class="dv">3009</span>, <span class="dv">3010</span>, <span class="dv">3011</span>, <span class="dv">3012</span>, <span class="dv">3013</span>, <span class="dv">3014</span>, <span class="dv">3015</span>, <span class="dv">3016</span>, <span class="dv">3017</span>, <span class="dv">3018</span>, <span class="dv">3019</span>, <span class="dv">3020</span>, <span class="dv">3021</span>, <span class="dv">3022</span>, <span class="dv">3023</span>, <span class="dv">3024</span>, <span class="dv">3025</span>, <span class="dv">3026</span>, <span class="dv">3027</span>, <span class="dv">3028</span>, <span class="dv">3029</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    out:NoneType<span class="op">=</span><span class="va">None</span>, play:<span class="bu">bool</span><span class="op">=</span><span class="va">True</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>FR-B3: every (θ, cell, seed) once, cached per θ in out (default results/multiagent/b3/grid/&lt;codeHash()&gt;/<key>.csv, so a</key></em> code change never reuses stale boards); -&gt; cell means {key: {cell id: mean}}. gridSim.new is the number of boards this call played. workers &lt;= 1 plays in this process; play=False raises instead of playing a missing board.</p>
+</section>
+</div>
+<div id="604e570e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.245341+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.250095+00:00&quot;,&quot;total&quot;:0.004758273999996732}}" data-execution_count="5">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L64" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="codehash" class="level3">
+<h3 class="anchored" data-anchor-id="codehash">codeHash</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> codeHash():</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The first 12 hex of the SHA-256 of the modules that play a board or compute its row: the grid cache’s folder (NFR-3).</em></p>
+</section>
+</div>
+<div id="eb2504c5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.250193+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.255149+00:00&quot;,&quot;total&quot;:0.004960162999999795}}" data-execution_count="6">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L55" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="simcell" class="level3">
+<h3 class="anchored" data-anchor-id="simcell">simCell</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simCell(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    cell, theta,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    seeds:<span class="bu">tuple</span><span class="op">=</span>(<span class="dv">3000</span>, <span class="dv">3001</span>, <span class="dv">3002</span>, <span class="dv">3003</span>, <span class="dv">3004</span>, <span class="dv">3005</span>, <span class="dv">3006</span>, <span class="dv">3007</span>, <span class="dv">3008</span>, <span class="dv">3009</span>, <span class="dv">3010</span>, <span class="dv">3011</span>, <span class="dv">3012</span>, <span class="dv">3013</span>, <span class="dv">3014</span>, <span class="dv">3015</span>, <span class="dv">3016</span>, <span class="dv">3017</span>, <span class="dv">3018</span>, <span class="dv">3019</span>, <span class="dv">3020</span>, <span class="dv">3021</span>, <span class="dv">3022</span>, <span class="dv">3023</span>, <span class="dv">3024</span>, <span class="dv">3025</span>, <span class="dv">3026</span>, <span class="dv">3027</span>, <span class="dv">3028</span>, <span class="dv">3029</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The simulated cell mean of the cell’s target over seeds (NaN boards left out).</em></p>
+</section>
+</div>
+<div id="8b3519a9" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.255250+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.260061+00:00&quot;,&quot;total&quot;:0.004814146000001074}}" data-execution_count="7">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L40" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="simrow" class="level3">
+<h3 class="anchored" data-anchor-id="simrow">simRow</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simRow(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    cell, seed, theta:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>One numpy board’s row: Phase 14’s clueMetrics row, C1’s c1Columns, else stage4Columns (FR-B2).</em></p>
+</section>
+</div>
+<div id="44ebf79a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.260160+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.269563+00:00&quot;,&quot;total&quot;:0.00940623199999635}}" data-execution_count="8">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L23" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="numpycell" class="level3">
+<h3 class="anchored" data-anchor-id="numpycell">numpyCell</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> numpyCell(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    cell, seed, theta:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The numpy cell of a fit cell (or a C1 cell, kind ‘c1’; Phase 14’s fault ‘liar’: N // 4 liars, as scaleGrid) at one seed, world[‘b3’] = θ when θ sets a knob.</em></p>
+</section>
+</div>
+<section id="targets-the-fit-and-the-folds" class="level2">
+<h2 class="anchored" data-anchor-id="targets-the-fit-and-the-folds">Targets, the fit and the folds</h2>
+<div id="ca2b20f5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.273330+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.276491+00:00&quot;,&quot;total&quot;:0.003164486999999383}}" data-execution_count="10">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L130" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="chooseknob" class="level3">
+<h3 class="anchored" data-anchor-id="chooseknob">chooseKnob</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> chooseKnob(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    sims, targets, cells:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>FR-B5: per candidate, the summed held-out loss over S1, S4 and S4b on its grid points; the lowest wins, ties to spread.</em></p>
+</section>
+</div>
+<div id="718e736b" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.276595+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.279894+00:00&quot;,&quot;total&quot;:0.0033024119999964796}}" data-execution_count="11">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L122" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="heldout" class="level3">
+<h3 class="anchored" data-anchor-id="heldout">heldOut</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> heldOut(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    fold, sims, targets, cells:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The fold’s fit, its loss on the cells the fold left out, and θ_default’s loss on them.</em></p>
+</section>
+</div>
+<div id="76641013" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.279998+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.283060+00:00&quot;,&quot;total&quot;:0.0030652299999971433}}" data-execution_count="12">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L116" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fit" class="level3">
+<h3 class="anchored" data-anchor-id="fit">fit</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    cells, sims, targets, drop:<span class="bu">tuple</span><span class="op">=</span>()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>FR-B4: the grid point of sims with the least loss over cells minus drop (ties: the first key in sorted order).</em></p>
+</section>
+</div>
+<div id="9d89cba6" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.283160+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.285903+00:00&quot;,&quot;total&quot;:0.002747358000000588}}" data-execution_count="13">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L111" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="onknobs" class="level3">
+<h3 class="anchored" data-anchor-id="onknobs">onKnobs</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> onKnobs(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    sims, knobs</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>The grid points of sims that set no knob outside <code>knobs</code>.</em></p>
+</section>
+</div>
+<div id="d882042c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.286003+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.289216+00:00&quot;,&quot;total&quot;:0.003216004000002215}}" data-execution_count="14">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L102" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="loss" class="level3">
+<h3 class="anchored" data-anchor-id="loss">loss</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loss(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    theta, cells, sims, targets</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>Σ over cells of ((sim mean - Claude mean) / se)² at θ (P22-4).</em></p>
+</section>
+</div>
+<div id="f12146d8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.295129+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.298927+00:00&quot;,&quot;total&quot;:0.0038043970000032346}}" data-execution_count="16">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L163" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="fithealth" class="level3">
+<h3 class="anchored" data-anchor-id="fithealth">fitHealth</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fitHealth(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    fits, held, knobs, chosen</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>FR-B8: bound hits (a fitted knob at the top of its range, in any fit: the range may be too narrow; P22-21) and H22-3 per</em> candidate (held-out loss below θ_default’s in at least 2 of S1, S4 and S4b); ok when no bound hit and H22-3 holds for the chosen knob (P22-11, P22-18). A knob fitted to 0 (the behaviour off) is reported in atZero and does not stop the run. fits {name: θ}; held {candidate: {fold: heldOut(…)}}.</p>
+</section>
+</div>
+<div id="ae9e3895" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.299045+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.303097+00:00&quot;,&quot;total&quot;:0.0040560210000037955}}" data-execution_count="17">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L157" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="pilotscale" class="level3">
+<h3 class="anchored" data-anchor-id="pilotscale">pilotScale</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pilotScale(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    rows, measure, nBoards,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    cells:<span class="bu">list</span><span class="op">=</span>[{<span class="st">'id'</span>: <span class="st">'scale/full:baseline:8'</span>, <span class="st">'folder'</span>: <span class="st">'scale/full'</span>, <span class="st">'study'</span>: <span class="st">'scaleB'</span>, <span class="st">'level'</span>: <span class="st">'baseline'</span>, <span class="st">'arm'</span>: <span class="st">'baseline'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">900</span>, <span class="dv">901</span>, <span class="dv">902</span>, <span class="dv">903</span>, <span class="dv">904</span>), <span class="st">'kind'</span>: <span class="st">'p14'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'scale/full:baseline:16'</span>, <span class="st">'folder'</span>: <span class="st">'scale/full'</span>, <span class="st">'study'</span>: <span class="st">'scaleB'</span>, <span class="st">'level'</span>: <span class="st">'baseline'</span>, <span class="st">'arm'</span>: <span class="st">'baseline'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">900</span>, <span class="dv">901</span>, <span class="dv">902</span>, <span class="dv">903</span>, <span class="dv">904</span>), <span class="st">'kind'</span>: <span class="st">'p14'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'scale/full:baseline:32'</span>, <span class="st">'folder'</span>: <span class="st">'scale/full'</span>, <span class="st">'study'</span>: <span class="st">'scaleB'</span>, <span class="st">'level'</span>: <span class="st">'baseline'</span>, <span class="st">'arm'</span>: <span class="st">'baseline'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">900</span>, <span class="dv">901</span>, <span class="dv">902</span>, <span class="dv">903</span>, <span class="dv">904</span>), <span class="st">'kind'</span>: <span class="st">'p14'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:plain|clean:8'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'plain|clean'</span>, <span class="st">'arm'</span>: <span class="st">'plain'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:plain|clean:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'plain|clean'</span>, <span class="st">'arm'</span>: <span class="st">'plain'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:confirm|clean:8'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'confirm|clean'</span>, <span class="st">'arm'</span>: <span class="st">'confirm'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:confirm|clean:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'confirm|clean'</span>, <span class="st">'arm'</span>: <span class="st">'confirm'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colony|clean:8'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colony|clean'</span>, <span class="st">'arm'</span>: <span class="st">'colony'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colony|clean:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colony|clean'</span>, <span class="st">'arm'</span>: <span class="st">'colony'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colonyGuards|clean:8'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|clean'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colonyGuards|clean:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|clean'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage32:plain|clean:32'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage32'</span>, <span class="st">'study'</span>: <span class="st">'colony32'</span>, <span class="st">'level'</span>: <span class="st">'plain|clean'</span>, <span class="st">'arm'</span>: <span class="st">'plain'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage32:colonyGuards|clean:32'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage32'</span>, <span class="st">'study'</span>: <span class="st">'colony32'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|clean'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:failFlag|clean:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'failFlag|clean'</span>, <span class="st">'arm'</span>: <span class="st">'failFlag'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:guardDeal|clean:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'guardDeal|clean'</span>, <span class="st">'arm'</span>: <span class="st">'guardDeal'</span>, <span class="st">'fault'</span>: <span class="st">'clean'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'pooledShare'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colony|independent:8'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colony|independent'</span>, <span class="st">'arm'</span>: <span class="st">'colony'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colony|independent:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colony|independent'</span>, <span class="st">'arm'</span>: <span class="st">'colony'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colonyGuards|independent:8'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|independent'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">8</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage1:colonyGuards|independent:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage1'</span>, <span class="st">'study'</span>: <span class="st">'colony1'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|independent'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage32:colonyGuards|independent:32'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage32'</span>, <span class="st">'study'</span>: <span class="st">'colony32'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|independent'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage64:colonyGuards|independent:64'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage64'</span>, <span class="st">'study'</span>: <span class="st">'colony64'</span>, <span class="st">'level'</span>: <span class="st">'colonyGuards|independent'</span>, <span class="st">'arm'</span>: <span class="st">'colonyGuards'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">64</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:failFlag|independent:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'failFlag|independent'</span>, <span class="st">'arm'</span>: <span class="st">'failFlag'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:failFlag|independent:64'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'failFlag|independent'</span>, <span class="st">'arm'</span>: <span class="st">'failFlag'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">64</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:guardDeal|independent:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'guardDeal|independent'</span>, <span class="st">'arm'</span>: <span class="st">'guardDeal'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:guardDeal|independent:64'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'guardDeal|independent'</span>, <span class="st">'arm'</span>: <span class="st">'guardDeal'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">64</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:guardDealFlag|independent:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'guardDealFlag|independent'</span>, <span class="st">'arm'</span>: <span class="st">'guardDealFlag'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:squads|independent:16'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'squads|independent'</span>, <span class="st">'arm'</span>: <span class="st">'squads'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">16</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:squads|independent:64'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'squads|independent'</span>, <span class="st">'arm'</span>: <span class="st">'squads'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">64</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4:squadsAll|independent:64'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4'</span>, <span class="st">'study'</span>: <span class="st">'colony4'</span>, <span class="st">'level'</span>: <span class="st">'squadsAll|independent'</span>, <span class="st">'arm'</span>: <span class="st">'squadsAll'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">64</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4b:failFlag|independent:32'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4b'</span>, <span class="st">'study'</span>: <span class="st">'colony4b'</span>, <span class="st">'level'</span>: <span class="st">'failFlag|independent'</span>, <span class="st">'arm'</span>: <span class="st">'failFlag'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4b:guardDeal|independent:32'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4b'</span>, <span class="st">'study'</span>: <span class="st">'colony4b'</span>, <span class="st">'level'</span>: <span class="st">'guardDeal|independent'</span>, <span class="st">'arm'</span>: <span class="st">'guardDeal'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}, {<span class="st">'id'</span>: <span class="st">'colony/stage4b:squads|independent:32'</span>, <span class="st">'folder'</span>: <span class="st">'colony/stage4b'</span>, <span class="st">'study'</span>: <span class="st">'colony4b'</span>, <span class="st">'level'</span>: <span class="st">'squads|independent'</span>, <span class="st">'arm'</span>: <span class="st">'squads'</span>, <span class="st">'fault'</span>: <span class="st">'independent'</span>, <span class="st">'N'</span>: <span class="dv">32</span>, <span class="st">'seeds'</span>: (<span class="dv">1800</span>, <span class="dv">1801</span>, <span class="dv">1802</span>, <span class="dv">1803</span>, <span class="dv">1804</span>, <span class="dv">1805</span>, <span class="dv">1806</span>, <span class="dv">1807</span>), <span class="st">'kind'</span>: <span class="st">'colony'</span>, <span class="st">'target'</span>: <span class="st">'contamination'</span>}]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>s_t: the Claude per-board SD of a measure, pooled over the fit cells of that measure, over √(pilot boards).</em></p>
+</section>
+</div>
+<div id="17a1cd06" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.303202+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.307199+00:00&quot;,&quot;total&quot;:0.0040011990000010655}}" data-execution_count="18">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L145" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="refit" class="level3">
+<h3 class="anchored" data-anchor-id="refit">refit</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> refit(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    theta0, tau, pilot, sims, params:<span class="bu">tuple</span><span class="op">=</span>(<span class="st">'trustOne'</span>,)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>FR-B7, P22-6: the grid point θ (other knobs held at θ0) minimizing Σ_t ((sim_t(θ) - pilot_t) / s_t)² + Σ_p ((θ_p - θ0_p)</em> / τ_p)². pilot: [dict(cell=id, value=pilot mean, s=s_t)]; a parameter outside <code>params</code> keeps θ0.</p>
+</section>
+</div>
+<div id="d6dee3e5" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.307301+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:11.311121+00:00&quot;,&quot;total&quot;:0.003822934999995198}}" data-execution_count="19">
+<hr>
+<p><a href="https://github.com/Positron00/explRL/blob/main/explRL/b3_fit.py#L137" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="boottau" class="level3">
+<h3 class="anchored" data-anchor-id="boottau">bootTau</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> bootTau(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    cells, sims, rows, n:<span class="bu">int</span><span class="op">=</span><span class="dv">200</span>, seed:<span class="bu">int</span><span class="op">=</span><span class="dv">0</span>, knobs:NoneType<span class="op">=</span><span class="va">None</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>):</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>FR-B6: per knob, the SD of the fitted θ over resamples of Claude boards within cells, at least 0.1.</em></p>
+</section>
+</div>
+</section>
+<section id="tests" class="level2">
+<h2 class="anchored" data-anchor-id="tests">Tests</h2>
+<div id="163993e1" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:11.312914+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:18.601332+00:00&quot;,&quot;total&quot;:7.288424721999995}}" data-execution_count="20">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_b3_fit (AC-5, FR-B1 to FR-B6, FR-B8): the Claude targets, the folds, a planted θ recovered on a tiny grid, the cache,</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># chooseKnob's rule and tie and fitHealth's flags. CI has no saved results (results/ is gitignored), so the checks</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># on the saved Claude rows are in test_b3_fit_saved</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tempfile</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> {c[<span class="st">'id'</span>]: (<span class="fl">0.3</span>, <span class="fl">0.02</span>, <span class="dv">8</span>) <span class="cf">for</span> c <span class="kw">in</span> FIT_CELLS}                       <span class="co"># synthetic targets: the saved rows are in test_b3_fit_saved</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co"># a planted θ: targets from seeds 3004-3007 at θ*, the fit on seeds 3000-3003 over a 3 x 3 grid recovers θ* within one step</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>tiny <span class="op">=</span> [CELL[c] <span class="cf">for</span> c <span class="kw">in</span> (<span class="st">'colony/stage1:colony|independent:8'</span>, <span class="st">'colony/stage1:plain|clean:8'</span>, <span class="st">'colony/stage1:colonyGuards|independent:8'</span>)]</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>g, out <span class="op">=</span> [<span class="bu">dict</span>(trustOne<span class="op">=</span>a, spread<span class="op">=</span>b) <span class="cf">for</span> a <span class="kw">in</span> (<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">1.0</span>) <span class="cf">for</span> b <span class="kw">in</span> (<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">1.0</span>)], tempfile.mkdtemp()</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>sims <span class="op">=</span> gridSim(tiny, g, workers<span class="op">=</span><span class="dv">0</span>, seeds<span class="op">=</span><span class="bu">range</span>(<span class="dv">3000</span>, <span class="dv">3004</span>), out<span class="op">=</span>out)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> gridSim.new <span class="op">==</span> <span class="dv">9</span> <span class="op">*</span> <span class="dv">3</span> <span class="op">*</span> <span class="dv">4</span> <span class="kw">and</span> <span class="bu">len</span>(sims) <span class="op">==</span> <span class="dv">9</span> <span class="kw">and</span> <span class="st">'default'</span> <span class="kw">in</span> sims</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> gridSim(tiny, g, workers<span class="op">=</span><span class="dv">0</span>, seeds<span class="op">=</span><span class="bu">range</span>(<span class="dv">3000</span>, <span class="dv">3004</span>), out<span class="op">=</span>out) <span class="op">==</span> sims <span class="kw">and</span> gridSim.new <span class="op">==</span> <span class="dv">0</span>      <span class="co"># cached: no new boards</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>star <span class="op">=</span> <span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">1.0</span>, spread<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>tg <span class="op">=</span> {c[<span class="st">'id'</span>]: (simCell(c, star, <span class="bu">range</span>(<span class="dv">3004</span>, <span class="dv">3008</span>)), <span class="fl">0.02</span>, <span class="dv">4</span>) <span class="cf">for</span> c <span class="kw">in</span> tiny}</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>got <span class="op">=</span> fit([c[<span class="st">'id'</span>] <span class="cf">for</span> c <span class="kw">in</span> tiny], sims, tg)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">all</span>(<span class="bu">abs</span>(got.get(k, <span class="dv">0</span>) <span class="op">-</span> v) <span class="op">&lt;=</span> <span class="fl">0.5</span> <span class="cf">for</span> k, v <span class="kw">in</span> star.items()), got</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> fit(<span class="bu">list</span>(tg), sims, {c: (sims[<span class="st">'trustOne=1.00,spread=0.50'</span>][c], <span class="fl">0.01</span>, <span class="dv">4</span>) <span class="cf">for</span> c <span class="kw">in</span> tg}) <span class="op">==</span> star</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> simCell(tiny[<span class="dv">0</span>], {}, <span class="bu">range</span>(<span class="dv">3000</span>, <span class="dv">3004</span>)) <span class="op">==</span> sims[<span class="st">'default'</span>][tiny[<span class="dv">0</span>][<span class="st">'id'</span>]]</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co"># chooseKnob: the lowest summed held-out loss wins; a tie goes to spread</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>ids <span class="op">=</span> <span class="bu">list</span>(T)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>mk <span class="op">=</span> <span class="kw">lambda</span> off: {c: T[c][<span class="dv">0</span>] <span class="op">+</span> off <span class="cf">for</span> c <span class="kw">in</span> ids}</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>fake <span class="op">=</span> {<span class="st">'default'</span>: mk(<span class="fl">0.05</span>), <span class="st">'trustOne=0.20'</span>: mk(<span class="fl">0.03</span>), <span class="st">'spread=0.20'</span>: mk(<span class="fl">0.02</span>), <span class="st">'shareAll=0.20'</span>: mk(<span class="fl">0.0</span>), <span class="st">'guess=0.10'</span>: mk(<span class="fl">0.04</span>)}</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>k, tot <span class="op">=</span> chooseKnob(fake, T, ids)</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> k <span class="op">==</span> <span class="st">'shareAll'</span> <span class="kw">and</span> tot[<span class="st">'shareAll'</span>] <span class="op">==</span> <span class="fl">0.0</span> <span class="op">&lt;</span> tot[<span class="st">'spread'</span>] <span class="op">&lt;</span> tot[<span class="st">'guess'</span>]</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>fake[<span class="st">'spread=0.20'</span>] <span class="op">=</span> mk(<span class="fl">0.0</span>)</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> chooseKnob(fake, T, ids)[<span class="dv">0</span>] <span class="op">==</span> <span class="st">'spread'</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co"># fitHealth flags a bound hit and an H22-3 failure (bootTau's floor is in test_b3_fit_saved)</span></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="kw">lambda</span> b: {f: <span class="bu">dict</span>(better<span class="op">=</span>x) <span class="cf">for</span> f, x <span class="kw">in</span> <span class="bu">zip</span>((<span class="st">'S1'</span>, <span class="st">'S4'</span>, <span class="st">'S4b'</span>), b)}</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>H <span class="op">=</span> fitHealth(<span class="bu">dict</span>(<span class="bu">all</span><span class="op">=</span><span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">0.4</span>, spread<span class="op">=</span><span class="fl">0.3</span>)), <span class="bu">dict</span>(spread<span class="op">=</span>h((<span class="va">True</span>, <span class="va">True</span>, <span class="va">False</span>)), guess<span class="op">=</span>h((<span class="va">True</span>, <span class="va">False</span>, <span class="va">False</span>))), (<span class="st">'trustOne'</span>, <span class="st">'spread'</span>), <span class="st">'spread'</span>)</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> H[<span class="st">'ok'</span>] <span class="kw">and</span> H[<span class="st">'H22_3'</span>] <span class="op">==</span> <span class="bu">dict</span>(spread<span class="op">=</span><span class="va">True</span>, guess<span class="op">=</span><span class="va">False</span>) <span class="kw">and</span> <span class="kw">not</span> H[<span class="st">'boundHits'</span>]</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>H <span class="op">=</span> fitHealth(<span class="bu">dict</span>(<span class="bu">all</span><span class="op">=</span><span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">1.0</span>, spread<span class="op">=</span><span class="fl">0.3</span>), S1<span class="op">=</span><span class="bu">dict</span>(spread<span class="op">=</span><span class="fl">0.3</span>)), <span class="bu">dict</span>(spread<span class="op">=</span>h((<span class="va">True</span>, <span class="va">False</span>, <span class="va">False</span>))), (<span class="st">'trustOne'</span>, <span class="st">'spread'</span>), <span class="st">'spread'</span>)</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="kw">not</span> H[<span class="st">'ok'</span>] <span class="kw">and</span> H[<span class="st">'boundHits'</span>] <span class="op">==</span> [(<span class="st">'all'</span>, <span class="st">'trustOne'</span>, <span class="fl">1.0</span>)] <span class="kw">and</span> H[<span class="st">'atZero'</span>] <span class="op">==</span> [(<span class="st">'S1'</span>, <span class="st">'trustOne'</span>)] <span class="kw">and</span> H[<span class="st">'H22_3'</span>] <span class="op">==</span> <span class="bu">dict</span>(spread<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> fitHealth(<span class="bu">dict</span>(<span class="bu">all</span><span class="op">=</span><span class="bu">dict</span>(spread<span class="op">=</span><span class="fl">0.3</span>)), <span class="bu">dict</span>(spread<span class="op">=</span>h((<span class="va">True</span>, <span class="va">True</span>, <span class="va">False</span>))), (<span class="st">'trustOne'</span>, <span class="st">'spread'</span>), <span class="st">'spread'</span>)[<span class="st">'ok'</span>]   <span class="co"># 0 is not a bound hit (P22-21)</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:                                                                        <span class="co"># cache-only: a missing board raises, none is played</span></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    gridSim(tiny, [<span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">0.2</span>)], workers<span class="op">=</span><span class="dv">0</span>, seeds<span class="op">=</span><span class="bu">range</span>(<span class="dv">3000</span>, <span class="dv">3002</span>), out<span class="op">=</span>out, play<span class="op">=</span><span class="va">False</span>)<span class="op">;</span> <span class="cf">assert</span> <span class="va">False</span></span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">RuntimeError</span>:</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">pass</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:                                                                        <span class="co"># a non-finite cell mean never wins the argmin silently</span></span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>    loss({}, ids, {<span class="st">'default'</span>: {c: <span class="bu">float</span>(<span class="st">'nan'</span>) <span class="cf">for</span> c <span class="kw">in</span> ids}}, T)<span class="op">;</span> <span class="cf">assert</span> <span class="va">False</span></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ValueError</span>:</span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">pass</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(codeHash()) <span class="op">==</span> <span class="dv">12</span> <span class="kw">and</span> <span class="st">'b3_agents'</span> <span class="kw">in</span> PLAYS</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">len</span>(grid((<span class="st">'trustOne'</span>, <span class="st">'guess'</span>))) <span class="op">==</span> <span class="dv">36</span> <span class="kw">and</span> <span class="bu">len</span>(grid((<span class="st">'trustOne'</span>, <span class="st">'spread'</span>), <span class="st">'fine'</span>)) <span class="op">==</span> <span class="dv">121</span> <span class="kw">and</span> grid((<span class="st">'guess'</span>,), <span class="st">'fine'</span>)[<span class="op">-</span><span class="dv">1</span>] <span class="op">==</span> <span class="bu">dict</span>(guess<span class="op">=</span><span class="fl">0.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="793c55c2" class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_b3_refit (AC-6, FR-B7, P22-6): a pilot equal to θ0's simulation gives θ0; a knob with no pilot measure keeps θ0;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># with a large τ the refit is the pilot-only fit</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>c0 <span class="op">=</span> <span class="st">'pilot:colonyGuards|independent:64'</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>S <span class="op">=</span> {thetaKey(<span class="bu">dict</span>(trustOne<span class="op">=</span>a, spread<span class="op">=</span>b)): {c0: <span class="fl">0.1</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> a <span class="op">-</span> <span class="fl">0.1</span> <span class="op">*</span> b} <span class="cf">for</span> a <span class="kw">in</span> np.<span class="bu">round</span>(np.arange(<span class="dv">0</span>, <span class="fl">1.01</span>, <span class="fl">0.1</span>), <span class="dv">2</span>) <span class="cf">for</span> b <span class="kw">in</span> (<span class="fl">0.0</span>, <span class="fl">0.3</span>)}</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>S <span class="op">=</span> {(<span class="st">'default'</span> <span class="cf">if</span> k <span class="op">==</span> <span class="st">'trustOne=0.00'</span> <span class="cf">else</span> k.replace(<span class="st">'trustOne=0.00,'</span>, <span class="st">''</span>)): v <span class="cf">for</span> k, v <span class="kw">in</span> S.items()}</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>th0, tau <span class="op">=</span> <span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">0.3</span>, spread<span class="op">=</span><span class="fl">0.3</span>), <span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">0.1</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> refit(th0, tau, [<span class="bu">dict</span>(cell<span class="op">=</span>c0, value<span class="op">=</span>S[thetaKey(th0)][c0], s<span class="op">=</span><span class="fl">0.05</span>)], S) <span class="op">==</span> th0</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> refit(th0, tau, [], S) <span class="op">==</span> th0</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>far <span class="op">=</span> [<span class="bu">dict</span>(cell<span class="op">=</span>c0, value<span class="op">=</span>S[<span class="st">'trustOne=0.90,spread=0.30'</span>][c0], s<span class="op">=</span><span class="fl">0.05</span>)]</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>r1 <span class="op">=</span> refit(th0, tau, far, S)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> r1[<span class="st">'spread'</span>] <span class="op">==</span> <span class="fl">0.3</span> <span class="kw">and</span> <span class="fl">0.3</span> <span class="op">&lt;</span> r1[<span class="st">'trustOne'</span>] <span class="op">&lt;</span> <span class="fl">0.9</span>                  <span class="co"># pulled toward the pilot, spread kept at θ0</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> refit(th0, <span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">1e6</span>), far, S) <span class="op">==</span> <span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">0.9</span>, spread<span class="op">=</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="1d6c5d7f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-11-14T08:34:18.603359+00:00&quot;,&quot;shell.execute_reply&quot;:&quot;2026-11-14T08:34:18.610210+00:00&quot;,&quot;total&quot;:0.006855133000001956}}" data-execution_count="21">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test_b3_fit_saved (AC-5, FR-B1, FR-B5, FR-B7): the Claude targets and folds from the saved rows, bootTau's floor and pilotScale.</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Needs the saved results (gitignored; CI and the docs build skip it)</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> explRL.train <span class="im">import</span> demo_artifact_dir</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>_R <span class="op">=</span> demo_artifact_dir(<span class="va">None</span>, <span class="st">'multiagent'</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> <span class="bu">all</span>((_R <span class="op">/</span> f <span class="op">/</span> <span class="st">'runs.csv'</span>).exists() <span class="cf">for</span> f <span class="kw">in</span> {c[<span class="st">'folder'</span>] <span class="cf">for</span> c <span class="kw">in</span> FIT_CELLS}):</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'skipped: the saved Claude rows are not here (results/ is gitignored)'</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> claudeRows()</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    T <span class="op">=</span> claudeTargets(rows)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    clean <span class="op">=</span> [c[<span class="st">'id'</span>] <span class="cf">for</span> c <span class="kw">in</span> FIT_CELLS <span class="cf">if</span> c[<span class="st">'target'</span>] <span class="op">==</span> <span class="st">'pooledShare'</span>]</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="bu">len</span>(T) <span class="op">==</span> <span class="dv">32</span> <span class="kw">and</span> <span class="bu">len</span>(clean) <span class="op">==</span> <span class="dv">15</span> <span class="kw">and</span> <span class="bu">all</span>(T[c][<span class="dv">2</span>] <span class="op">==</span> (<span class="dv">5</span> <span class="cf">if</span> CELL[c][<span class="st">'kind'</span>] <span class="op">==</span> <span class="st">'p14'</span> <span class="cf">else</span> <span class="dv">8</span>) <span class="cf">for</span> c <span class="kw">in</span> T)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    means <span class="op">=</span> <span class="bu">dict</span>(<span class="bu">zip</span>(clean, (<span class="fl">0.406</span>, <span class="fl">0.384</span>, <span class="fl">0.341</span>, <span class="fl">0.455</span>, <span class="fl">0.422</span>, <span class="fl">0.378</span>, <span class="fl">0.371</span>, <span class="fl">0.363</span>, <span class="fl">0.361</span>, <span class="fl">0.366</span>, <span class="fl">0.359</span>, <span class="fl">0.357</span>, <span class="fl">0.314</span>, <span class="fl">0.359</span>, <span class="fl">0.230</span>)))</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    means.update(<span class="bu">zip</span>([c <span class="cf">for</span> c <span class="kw">in</span> T <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> clean], (<span class="fl">0.522</span>, <span class="fl">0.669</span>, <span class="fl">0.250</span>, <span class="fl">0.368</span>, <span class="fl">0.449</span>, <span class="fl">0.554</span>, <span class="fl">0.205</span>, <span class="fl">0.284</span>, <span class="fl">0.375</span>, <span class="fl">0.491</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>                                                        <span class="fl">0.218</span>, <span class="fl">0.256</span>, <span class="fl">0.289</span>, <span class="fl">0.173</span>, <span class="fl">0.224</span>, <span class="fl">0.428</span>, <span class="fl">0.284</span>)))</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> <span class="bu">all</span>(<span class="bu">abs</span>(T[c][<span class="dv">0</span>] <span class="op">-</span> m) <span class="op">&lt;</span> <span class="fl">0.0005</span> <span class="cf">for</span> c, m <span class="kw">in</span> means.items()), {c: T[c][<span class="dv">0</span>] <span class="cf">for</span> c <span class="kw">in</span> T}</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    left <span class="op">=</span> <span class="kw">lambda</span> drop: (<span class="bu">sum</span>(c <span class="kw">in</span> clean <span class="cf">for</span> c <span class="kw">in</span> T <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> drop), <span class="bu">sum</span>(c <span class="kw">not</span> <span class="kw">in</span> clean <span class="cf">for</span> c <span class="kw">in</span> T <span class="cf">if</span> c <span class="kw">not</span> <span class="kw">in</span> drop))</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> {f: left(d) <span class="cf">for</span> f, d <span class="kw">in</span> FOLDS.items()} <span class="op">==</span> <span class="bu">dict</span>(S1<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">13</span>), S4<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">7</span>), S4b<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">13</span>), P14<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">17</span>))</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> left(REUSED[<span class="st">'C1'</span>]) <span class="op">==</span> (<span class="dv">15</span>, <span class="dv">15</span>) <span class="kw">and</span> <span class="bu">all</span>(c <span class="kw">in</span> T <span class="cf">for</span> d <span class="kw">in</span> <span class="bu">list</span>(FOLDS.values()) <span class="op">+</span> [REUSED[<span class="st">'C1'</span>]] <span class="cf">for</span> c <span class="kw">in</span> d)</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> <span class="bu">list</span>(T)</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>    mk <span class="op">=</span> <span class="kw">lambda</span> off: {c: T[c][<span class="dv">0</span>] <span class="op">+</span> off <span class="cf">for</span> c <span class="kw">in</span> ids}</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>    fake <span class="op">=</span> {<span class="st">'default'</span>: mk(<span class="fl">0.05</span>), <span class="st">'trustOne=0.20'</span>: mk(<span class="fl">0.03</span>), <span class="st">'spread=0.20'</span>: mk(<span class="fl">0.0</span>), <span class="st">'shareAll=0.20'</span>: mk(<span class="fl">0.0</span>), <span class="st">'guess=0.10'</span>: mk(<span class="fl">0.04</span>)}</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    same <span class="op">=</span> [<span class="bu">dict</span>(r, contamination<span class="op">=</span><span class="fl">0.3</span>, pooledShare<span class="op">=</span><span class="fl">0.3</span>) <span class="cf">for</span> r <span class="kw">in</span> rows]</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> bootTau(ids, fake, same, n<span class="op">=</span><span class="dv">20</span>) <span class="op">==</span> <span class="bu">dict</span>(trustOne<span class="op">=</span><span class="fl">0.1</span>, spread<span class="op">=</span><span class="fl">0.1</span>, shareAll<span class="op">=</span><span class="fl">0.1</span>, guess<span class="op">=</span><span class="fl">0.1</span>)</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> pilotScale(rows, <span class="st">'contamination'</span>, <span class="dv">1</span>) <span class="op">&gt;</span> pilotScale(rows, <span class="st">'contamination'</span>, <span class="dv">4</span>) <span class="op">&gt;</span> <span class="dv">0</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>skipped: the saved Claude rows are not here (results/ is gitignored)</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/Positron00\.github\.io\/explRL");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/Positron00/explRL/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
