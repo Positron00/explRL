@@ -7,6 +7,7 @@ website:
         contents:
           - colab_clue_rl.ipynb
           - demo.ipynb
+          - demo_a2.ipynb
           - demo_bench.ipynb
           - demo_c1.ipynb
           - demo_c1b.ipynb
@@ -37,6 +38,12 @@ website:
       - section: Library
         contents:
           - 00_core.ipynb
+          - a2_cols.ipynb
+          - a2_seq.ipynb
+          - a2_grid.ipynb
+          - a2_report.ipynb
+          - a2_synth.ipynb
+          - a2_write.ipynb
           - adversary.ipynb
           - agents.ipynb
           - basis.ipynb

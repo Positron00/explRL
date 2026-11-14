@@ -15,7 +15,7 @@ from .relay_board import checkRelay
 from .clue_agents import ClueBoard
 from .colony_board import failures
 
-COLONY_OPTS = ('colony', 'confirm', 'guards', 'volunteer', 'fault', 'failFlag', 'squads')   # world keys passed to TextClueEnv (fault: also colony_agents)
+COLONY_OPTS = ('colony', 'confirm', 'guards', 'volunteer', 'fault', 'failFlag', 'squads', 'dropShare', 'slotLines')   # world keys passed to TextClueEnv (fault: also colony_agents)
 FAULTS = ('independent', 'collude', 'error', 'adaptive')
 Q = 2                                                   # distinct senders for "confirmed"
 
@@ -122,7 +122,11 @@ def guardSlots(env):
 
 def colonyRules(env, text, i=None):
     """The rules with the plain sentence about sharing again replaced (colony, confirm), and by slot: the guard sentence for
-    guard slots, the deceiver sentence for the liar slots of an adaptive cell, the volunteer sentence for honest slots."""
+    guard slots, the deceiver sentence for the liar slots of an adaptive cell, the volunteer sentence for honest slots.
+    Phase 21: dropShare removes the plain sentence (and its leading space); slotLines' line for slot i follows its role."""
+    if getattr(env, 'dropShare', False):
+        assert SHARE_AGAIN in text, 'the plain sentence about sharing again moved'
+        text = text.replace(' ' + SHARE_AGAIN, '', 1)
     if env.colony or env.confirm:
         assert SHARE_AGAIN in text, 'the plain sentence about sharing again moved'
         text = text.replace(SHARE_AGAIN, COLONY_RULES if env.colony else CONFIRM_RULES, 1)
@@ -140,6 +144,8 @@ def colonyRules(env, text, i=None):
         text += '\n\n' + DECEIVER_RULE
     elif getattr(env, 'volunteer', False) and i >= env.nLiar:
         text += '\n\n' + VOLUNTEER_RULE
+    line = (getattr(env, 'slotLines', None) or {}).get(i)
+    text = text + '\n\n' + line if line else text                # Phase 21: the board and record line
     from explRL.bridge_agents import bridgeRules                  # Phase 20 (lazy: it imports this module)
     from explRL.relay_agents import relayRules                    # Phase 23 (lazy, likewise)
     return text + bridgeRules(env, i) + relayRules(env, i)
@@ -165,4 +171,6 @@ def checkOptions(world, N=None, nLiar=0):
     S = world.get('squads')
     if S and N is not None and (N % S or g % (N // S)):          # Phase 19: liars may split unevenly (dealSquads)
         raise ValueError(f'squads: N and guards must split evenly into N // {S} squads')
+    if world.get('dropShare') and (world.get('colony') or world.get('confirm')):
+        raise ValueError('dropShare is for the plain board: colony and confirm already replace the sentence')
     return checkBridge(world, N, nLiar) and checkRelay(world, N, nLiar)   # Phase 20: the bridge keys; Phase 23: the relay keys

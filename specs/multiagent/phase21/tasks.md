@@ -1,6 +1,6 @@
 # Tasks: Phase 21
 
-Status (2026-11-10): specified, decisions made 2026-11-09 and 2026-11-10, not built. The user decided P21-1 to P21-12 (README) on 2026-11-09 and P21-13 to P21-14 on 2026-11-10. **Before T5:** `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P21-10). The cap is $250 per calendar month. A2 does not wait for B3 (P21-8). Gate A2 must be read before Phase 19's `RL19_PLAN` is frozen (Phase 19, T8 step 1).
+Status (2026-11-14): **T0-T4 built and tested** (T0 in Phase 20; T1-T4 on 2026-11-14, after an independent review whose three findings were fixed: see design-low-level, "As built"). The full suite passes. **Next: T5**, which waits for the user's approval of the pilot's estimated cost ($1.89, P21-10); nothing has been spent. The user decided P21-1 to P21-12 (README) on 2026-11-09 and P21-13 to P21-14 on 2026-11-10. **Before T5:** `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P21-10). The cap is $250 per calendar month. A2 does not wait for B3 (P21-8). Gate A2 must be read before Phase 19's `RL19_PLAN` is frozen (Phase 19, T8 step 1).
 
 Rules are as in Phases 16-19:
 
@@ -21,10 +21,12 @@ Rules are as in Phases 16-19:
 ## T1. Board options shared with E4 (about half a day)
 - **Files:** `nbs/clue_colony.ipynb` (`dropShare`, `slotLines`, `checkOptions`), `nbs/clue_text.ipynb` (option passing), `nbs/liar_trace.ipynb` (the `traceRun` guard).
 - **Done when:** `test_dropshare`, `test_slotlines`, `test_trace_drop` and `test_hashes21` pass, and the full suite passes. A rendered drop-only prompt at 8 agents differs from Phase 14's by exactly the sentence.
+- **Done 2026-11-14:** test_dropshare, test_slotlines, test_hashes21 (rendered system texts of 624 earlier cells byte-identical) and test_trace_drop pass.
 
 ## T2. Targeted liars, seating, records and the board runner (about 1 day)
 - **Files:** `nbs/a2_cols.ipynb` (new: `followed`, `a2Columns`), `nbs/a2_seq.ipynb` (new: `TargetedLiar`, `seating`, `guardIds`, `successIds`, `recordLines`, `runBoard21`, `runBoard21Cell`).
 - **Done when:** `test_targeted`, `test_seating` and `test_records21` (AC-4 to AC-6) pass. A recorded 16-agent board with the fake client shows no lie on a failure guard's clue, and the record lines are as frozen.
+- **Done 2026-11-14:** test_seating, test_targeted, test_records21 and test_board21 pass (a2_cols, a2_seq).
 
 ## T3. Sequences, grids, plan and demo stages (about 1 day)
 - **Files:** `nbs/a2_seq.ipynb` (`runSequences21`), `nbs/a2_grid.ipynb` (new: `ARMS21`, `boardCell21`, `p2Grid`, `pilotGrid21`, `A2_PLAN` unfrozen, `estimate21`, `costRule21`, `pilotCheck21`), `nbs/demo_a2.ipynb` (stages `quick`, `pilot`, `main`, `rerun`).
@@ -33,11 +35,13 @@ Rules are as in Phases 16-19:
   - `estimate21` reproduces design-low-level's call counts (480 per 16-agent board, 240 and 960 per P2 board), with boards 1-2 once per team and P2 seeds 900-904 at zero;
   - `demo_a2` quick runs end to end with the fake client;
   - the pilot and main stages refuse to run unfrozen (AC-8).
+- **Done 2026-11-14:** test_sequences21, test_p2grid, test_grid21 and the pilot-check tests pass; demo_a2 quick runs end to end with the fake client; the pilot and main stages refuse until their preconditions hold (test_main_ready).
 
 ## T4. Report (about half a day)
 - **Files:** `nbs/a2_report.ipynb` (new: `p2Columns`, `a2TeamEstimates`, `a2Summaries` with `partial='stopped'`, `writeA2`, `figA2`), `nbs/a2_synth.ipynb` (new: `syntheticRows21`).
 - **Also:** the core measures (FR-C5) through Phase 19's `contest_eval.contestColumns`, `rl19_measures` (`index`, `ratio`, `lags`) and `rl19_spec` (`dolIndex`, the persistence rule), with the rows' `agents`, `pos` and `seqId`.
 - **Done when:** `test_a2_report` (AC-9), `test_a2_measures` (AC-10) and the full suite pass, and the report on synthetic rows lists every `A2_PLAN` item, Gorelick's index on boards 3-6 per arm, and the note that cost without liars is not measured.
+- **Done 2026-11-14:** test_a2_report (a2_write), test_a2_measures and the P2 columns test (a2_report) pass; the report on synthetic rows lists every A2_PLAN item.
 
 ## T5. Regression gate, freeze and pilot (Mac, about $1.90)
 - **What:**

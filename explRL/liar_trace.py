@@ -144,7 +144,7 @@ def cacheOnlyClient(cfg, cacheDir):
 def traceRun(cfg, seed, client=None, variant=None):
     """One clue-board cell exactly as runClueNumpy (client None) or runClue (client given), with a Tracer around each
     honest member -> TraceRun(rows, log, trace, board, nLiar, T). variant: numpy honest agents only."""
-    if any(fixOptions(cfg.world).values()):
+    if any(v for k, v in fixOptions(cfg.world).items() if k != 'dropShare'):   # Phase 21: drop-only cells are traced
         raise ValueError('Phase 15 traces baseline cells only (no Phase 13-14 options)')
     if client is not None and variant is not None:
         raise ValueError('variants apply to rule agents only')

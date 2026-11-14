@@ -201,3 +201,15 @@ The projection:
 | `test_board21` | offline | FR-A4: without `targets`, `runBoard21` equals `runClue`'s rows and log |
 | `test_a2_measures` | offline | AC-10: `dolIndex` on boards 3-6 and the persistence rule on a hand-built team, through the `rl19_spec` layout |
 | cached rerun | `llm` | Stage 3 and `scaleB` cells through the cache-only client, byte-identical ($0) |
+
+## As built (2026-11-14)
+
+The code follows this design, with these differences. None changes a measure, a test or a cost.
+
+- **Watchers** come from a live `ContestLog` that `a2_seq.replay21` attaches to the board with no contest slots, so it pays no one and every reward is unchanged. The design's replay from the turn log is not needed. `followed(board, nLiar)` reads the log; without one (a replayed board) the watcher count is NaN.
+- **Placement.** `seating`, `guardIds`, `successIds` and `failureIds` are in `a2_cols`. `boardCell21` is in `a2_seq`, because `runSequences21` needs it and `a2_grid` imports `a2_seq`. `writeA2` and `figA2` are in a new module `a2_write`, as Phase 20's `bridge_write`, so `a2_report` stays under 200 lines. `a2_synth` holds `syntheticRows21`, `pilotSigma` and `power21`.
+- **Cells.** `targets` is stored as `[hit, avoid]` slot lists (CSV-safe). Cells carry `team`, `board` and `seat` in the world; boards 1-2 have level `common|b<b>`, boards 3-6 `<arm>|b<b>`. Rows add `arm`, `pos` and `seqId`. The record texts (`TEXTS21`, frozen in `A2_PLAN['texts']`) use singular forms for 1 ("1 false value", "1 time").
+- **Sequences.** `runSequences21(teams, arms, spec, out, workers, boards, edit, alongside, gate, run)`. P2 runs as an `alongside` grid in the first wave's pool, its rows saved to `p2.csv` only once every board has come back (a partial grid runs again; its finished boards come from the cache). `gate(rows)` after wave 2 returns the reasons to stop. `a2_report.runA2Cell` sends A2 boards to `runBoard21` and P2 boards to `runP2` (Phase 15's `traceRun` with `p2Columns`).
+- **Plan and cost.** `pilotGrid21()` returns the pilot's team, arm and P2 cell. `A2_PLAN` adds `pilotVerdict`. `estimate21` gives the main grid $32.29 and, with the pilot, $34.18 (the table above adds rounded lines: $34.19).
+- **Tests.** `test_hashes21` hashes the rendered system texts (every slot) of Stage 1, Stage 3, Stage 4, `scaleB`, `fixA` and C1's grid, recorded before T1; configuration hashes stay in `bridge_grid`'s `test_c1_hashes`. No traced board at N 4 or 8 (seeds 900-1099) has every liar-first slot honestly held, so `suppressedHeld` = Phase 15's `suppressed` is tested on a board built by dropping the posts on slots no honest agent holds.
+- **Review (2026-11-14).** An independent review found three problems, all fixed: a partial P2 grid would never have been retried; the rerun stage compared CSV rows with in-memory rows, so every board would have differed; and any stop was reported as a stop after wave 2.

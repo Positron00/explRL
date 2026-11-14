@@ -38,16 +38,19 @@ class TextClueEnv:
     task, timeUnit, SCHEMA, unit = 'clue', 'turn', CLUE_SCHEMA, 'points'
 
     def __init__(self, board, hint=None, showOpen=False, ask=False, table=False, record=False, check=False, colony=False,
-                 confirm=False, guards=0, nLiar=0, q=2, volunteer=False, fault='independent', failFlag=False, squads=None):
+                 confirm=False, guards=0, nLiar=0, q=2, volunteer=False, fault='independent', failFlag=False, squads=None,
+                 dropShare=False, slotLines=None):
         """hint: None or a key of HINTS (Track A, A1); showOpen: list teammates' open subtasks (Track A, A3); ask, table,
         record, check: the Phase 13 options (clue_fix; all off: Phase 11 rules, schema and observations); record 'private'
         and check 'public': the Phase 14 settings; colony, confirm, guards (with nLiar, the faulty slots before the guards)
         and q: the Phase 18 options (clue_colony); volunteer and fault 'adaptive': Stage 3 (slot-dependent rules; adaptive
-        liar slots may share any residue); failFlag and squads: Stage 4 (the board line's failure counts; each agent sees its squad)."""
-        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q, volunteer=volunteer, fault=fault, failFlag=failFlag, squads=squads))
+        liar slots may share any residue); failFlag and squads: Stage 4 (the board line's failure counts; each agent sees its squad);
+        dropShare and slotLines ((slot, text) pairs): Phase 21."""
+        checkOptions(dict(colony=colony, confirm=confirm, guards=guards, q=q, volunteer=volunteer, fault=fault, failFlag=failFlag, squads=squads, dropShare=dropShare))
         self.colony, self.confirm, self.guards, self.nLiar, self.q = bool(colony), bool(confirm), int(guards), int(nLiar), int(q)
         self.volunteer, self.fault, self.failFlag, self.squads = bool(volunteer), fault, bool(failFlag), squads
-        self.slotRules = bool(self.guards or self.volunteer or fault == 'adaptive' or hasattr(board, 'bridgeOf'))   # rules(i) differ by slot
+        self.dropShare, self.slotLines = bool(dropShare), {int(k): v for k, v in (slotLines or ())}
+        self.slotRules = bool(self.guards or self.volunteer or fault == 'adaptive' or hasattr(board, 'bridgeOf') or self.slotLines)   # rules(i) differ by slot
         self.world, self.shown, self._heard, self._known = board, {}, {}, {}
         self.hint, self.showOpen = hint, bool(showOpen)
         self.ask, self.table, (self.record, self.check) = bool(ask), bool(table), fixSettings(record, check)
