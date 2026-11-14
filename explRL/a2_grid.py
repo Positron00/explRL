@@ -9,7 +9,7 @@ __all__ = ['ARMS21', 'TEAMS21', 'PILOT21', 'P2_SEEDS', 'P2_CACHED', 'P2_PILOT', 
            'boardSeed', 'p2Cell', 'p2Grid', 'pilotGrid21', 'boardType', 'estimate21', 'perCall21', 'costRule21',
            'manipulated', 'pilotCheck21']
 
-# %% ../nbs/a2_grid.ipynb #25784b64
+# %% ../nbs/a2_grid.ipynb #9a41c20e
 import json
 
 from .a2_cols import BOARDS, failureIds, successIds
@@ -51,9 +51,9 @@ def boardType(r):
     lv, N = str(r['level']), int(r['N'])
     return ('guards16' if lv.startswith('common|') else 'volunteer16') if '|b' in lv else f'plain{N}'
 
-# %% ../nbs/a2_grid.ipynb #2be57bd6
+# %% ../nbs/a2_grid.ipynb #49dce774
 A2_PLAN = dict(
-    version=1, frozen=False, model=HAIKU, effort='low', maxTokens=8000, turns=40, memory='full', channel='blackboard',
+    version=1, frozen=True, model=HAIKU, effort='low', maxTokens=8000, turns=40, memory='full', channel='blackboard',
     world=WORLD18, N=16, liars=4, honest=12, guards=4, teams=TEAMS21, pilotTeam=PILOT21, arms=list(ARMS21), boards=BOARDS,
     sharedBoards=[1, 2], boardSeed='10 * team + b', seating='a2_cols.seating(team, b): default_rng([team, b]).permutation(12), '
     'guard identities first on boards 1-2; guardIds default_rng([team, 0]); successIds default_rng([team, 99])',
@@ -73,7 +73,7 @@ A2_PLAN = dict(
     manipulation=dict(teams=6, of=8, rule='both success guards have a contest on boards 1-2 followed by a correct answer'),
     claims=['Gate A2 passes only if H21-1 passes and the manipulation check passed',
             'H21-1 passing with H21-2 failing is reported as records changed guarding but not as predicted'],
-    pilotGate=dict(maxInvalid=0.05), costRule=dict(ceiling=50.0, rule='report and wait'), approved=dict(pilot=None, main=None), pilotVerdict=None,
+    pilotGate=dict(maxInvalid=0.05), costRule=dict(ceiling=50.0, rule='report and wait'), approved=dict(pilot='2026-11-14 (the user approved the pilot estimate, $1.89)', main=None), pilotVerdict=None,
     cap=250.0, capNote='per calendar month (the user, 2026-11-09)', notMeasured=['cost without liars', 'damage won back', 'contamination across squads'],
     forecasts=dict(file='specs/multiagent/phase21/a2_predictions.json', sha256=None), exploratory=True)
 

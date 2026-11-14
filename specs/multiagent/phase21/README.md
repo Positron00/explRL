@@ -82,6 +82,12 @@ All twelve were decided by the user on 2026-11-09. P21-5 was accepted with an ad
 | P21-13 | Reply limit | **Decided by the user, 2026-11-10** (spec review). `maxTokens=8000`, frozen in `A2_PLAN`, whatever E4 does; raised only if A2's own pilot shows invalid replies at 5% or more. No rerun of P2's cached seeds. |
 | P21-14 | P2 and a stop after wave 2 | **Decided by the user, 2026-11-10** (spec review). P2 runs in the same pool as waves 1-2, so a stop after wave 2 still leaves P2's result and a "Gate A2 not read" report. |
 
+## T5: regression gate and freeze (2026-11-14)
+
+- **Regression gate:** the full suite passes; the cache-only reruns ($0) replay Phase 14's 60 `scaleB` boards (`tools/a2_regression.py`, the P2 originals at 900-904 among them) and 454 colony boards, Stage 3 included, plus 16 reused (`tools/c1_regression.py`), with 0 mismatches.
+- **Approval:** the user approved the pilot's estimated cost ($1.89) on 2026-11-14 (P21-10), recorded in `A2_PLAN['approved']['pilot']`.
+- **Freeze:** `A2_PLAN` frozen for the pilot, `coopHash` **65d5943adf29**, cap $250 per calendar month. The forecasts (P21-8), the pilot's verdict and the approval of the main run are added in a second frozen version before the main run.
+
 ## Handoff to Phase 19
 
 - **Gate A2 passes:** `RL19_PLAN` freezes arm 4 (`a19open`) with `records=True` (P19-5, `DECISIONS19` in `explRL/rl19_grid.py`), with the record format of P21-11 (accepted): per board, the contests made and the correct answers that followed, beside the payoffs.
