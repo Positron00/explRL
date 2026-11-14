@@ -1,6 +1,6 @@
 # Tasks: Phase 21
 
-Status (2026-11-14): **T0-T4 built and tested** (T0 in Phase 20; T1-T4 on 2026-11-14, after an independent review whose three findings were fixed: see design-low-level, "As built"). The full suite passes. **Next: T5**, which waits for the user's approval of the pilot's estimated cost ($1.89, P21-10); nothing has been spent. The user decided P21-1 to P21-12 (README) on 2026-11-09 and P21-13 to P21-14 on 2026-11-10. **Before T5:** `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P21-10). The cap is $250 per calendar month. A2 does not wait for B3 (P21-8). Gate A2 must be read before Phase 19's `RL19_PLAN` is frozen (Phase 19, T8 step 1).
+Status (2026-11-14): **T0-T4 built and tested** (T0 in Phase 20; T1-T4 on 2026-11-14, after an independent review whose three findings were fixed: see design-low-level, "As built"). The full suite passes. **T5 done** (pilot 2026-11-14: checks pass, $1.82; projection $31.87, Gate A2 power 0.80 at 0.05; see README). **Next: T6**, which waits for the user's approval of the projection (P21-10), then the forecasts and the second freeze. The user decided P21-1 to P21-12 (README) on 2026-11-09 and P21-13 to P21-14 on 2026-11-10. **Before T5:** `Budget` counts by month (T0), and the user approves the pilot's estimated cost (P21-10). The cap is $250 per calendar month. A2 does not wait for B3 (P21-8). Gate A2 must be read before Phase 19's `RL19_PLAN` is frozen (Phase 19, T8 step 1).
 
 Rules are as in Phases 16-19:
 

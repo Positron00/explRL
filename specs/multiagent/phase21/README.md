@@ -1,6 +1,6 @@
 # Plan: Phase 21, experience and rule-text screens (Claude Haiku)
 
-Status: **built and tested 2026-11-14 (T0-T4); the pilot (T5) waits for the user's approval of its estimated cost, about $1.89.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). No live call has been made and no API money has been spent.
+Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); the main run (T6, projected $31.87) waits for the user's approval.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
 
 **Order relative to Phase 19.** The user decided on 2026-11-08 that A2 runs before A1 (Phase 19), alongside C1. A2 does not wait for B3 (P21-8, 2026-11-09), unlike C1's main run. Gate A2 sets one item of Phase 19's frozen plan: whether arm 4 (the emergence arm) keeps per-agent records (P19-5). The handoff is stated under "Handoff to Phase 19" below.
 
@@ -87,6 +87,15 @@ All twelve were decided by the user on 2026-11-09. P21-5 was accepted with an ad
 - **Regression gate:** the full suite passes; the cache-only reruns ($0) replay Phase 14's 60 `scaleB` boards (`tools/a2_regression.py`, the P2 originals at 900-904 among them) and 454 colony boards, Stage 3 included, plus 16 reused (`tools/c1_regression.py`), with 0 mismatches.
 - **Approval:** the user approved the pilot's estimated cost ($1.89) on 2026-11-14 (P21-10), recorded in `A2_PLAN['approved']['pilot']`.
 - **Freeze:** `A2_PLAN` frozen for the pilot, `coopHash` **65d5943adf29**, cap $250 per calendar month. The forecasts (P21-8), the pilot's verdict and the approval of the main run are added in a second frozen version before the main run.
+
+### Pilot (2026-11-14, commit 9c5ffb4, plan 65d5943adf29)
+
+- **Checks pass** (`pilotCheck21`): boards, invalid replies (0.29%, under 5%, so `maxTokens` stays 8000), success contests, success followed, no failure-identity lies, records. Failure identities: 1 and 2.
+- **Cost:** $1.82 for 3,840 calls (estimate $1.89). Per call: guards16 $0.000377, volunteer16 $0.000454, plain32 $0.000612. November spend after the pilot: $82.92 of the $250 cap.
+- **Projection** (`costRule21`): main grid **$31.87** (guards16 $2.89, volunteer16 $20.91, plain8 $1.61, plain32 $6.46), under the $50 ceiling; verdict "ask" (P21-10).
+- **Wall time:** 3.7 h in all; one 16-agent board about 32 min, the 32-agent P2 board about 65 min (run alongside). The main grid, with 8 workers, projects to roughly 7-8 h.
+- **Power** (`power21`, pilot sigma 0.071, 8 teams, 2,000 simulations): Gate A2 0.80 at an effect of 0.05 and 0.999 at 0.10; H21-2 0.97 at 0.05.
+- **Next:** the user's approval of the main-run projection, then the forecasts (P21-8) and the second freeze, then T6.
 
 ## Handoff to Phase 19
 
