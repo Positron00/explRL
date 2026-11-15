@@ -481,6 +481,12 @@ for k, name in (('H18_13', 'Copies'), ('H18_14', 'Flags'), ('H18_15', 'Squads'))
     M['Four' + name + 'Raw'] = f"{S4['hyp'][k]['robustness']['estimate']:+.2f}"
 sc15 = TL['change']['haiku']['suppressed']
 M['TraceSuppressChange'], M['TraceSuppressChangeCI'] = f"{sc15['mean']:+.2f}", f"[{sc15['ci'][0]:.2f}, {sc15['ci'][1]:.2f}]"
+P2A = json.loads((R / 'a2/a2main/summary.json').read_text())['summary']['p2']          # A2's rule-text screen (Phase 21, P2)
+for N, name in (('8', 'Eight'), ('32', 'ThirtyTwo')):
+    d = P2A[N]['diff']
+    M['DropShare' + name], M['DropShare' + name + 'CI'] = f"{d['estimate']:+.3f}", f"[{d['lo']:.3f}, {d['hi']:.3f}]"
+    M['DropShare' + name + 'P'] = f"{P2A[N]['pHolm']:.2f}"
+M['DropShareSeeds'] = str(P2A['8']['diff']['n'])
 M['DiagUsesGuardedEight'], M['DiagUsesGuardedSixtyFour'] = f"{gu[0]:.2f}", f"{gu[-1]:.2f}"
 sh = [np.mean([float(r['sharePerHeld']) for r in rows('scale/full/runs.csv') if r['level'] == 'baseline' and r['runner'] == 'llm'
                and int(float(r['N'])) == N]) for N in (8, 16, 32)]                                # clues shared per held clue, no liars

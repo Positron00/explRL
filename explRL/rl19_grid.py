@@ -11,14 +11,14 @@ __all__ = ['LIFETIMES', 'VARIED', 'FIXED4', 'RL19_DEFAULTS', 'ARMS19', 'SEEDS19'
            'pilotChoice19', 'projectHours19', 'evalAdapter19']
 
 # %% ../nbs/rl19_grid.ipynb #1a90c001
-import hashlib
-import json
+import hashlib, json
 from dataclasses import dataclass
 
 from .coop_grid import RL_PLAN
 from .rl17_grid import BASE17, RL17_PLAN, RL17Config, runFields17
 from .rl18_grid import FIX18
 from .rl19_bridge import GATE_C1, bridgeWorld19
+from .rl19_step import GATE_A2
 
 LIFETIMES = (15, 30)                    # P19-7: subtask lifetimes in turns (the board's default life is 30)
 VARIED, FIXED4 = ((0, 4, 6), LIFETIMES), ((4,), LIFETIMES)   # liars of 16 and lifetimes drawn per training board
@@ -102,9 +102,9 @@ PILOT19_PLAN = dict(
     heldOut=list(range(950, 955)), selection='honest welfare (welfareHonest) at 4 liars of 16 minus the warm start\'s on the '
     'held-out boards per adapter; the larger gain wins, squads of 4 win ties', choice=None)
 RL19_PLAN = dict(
-    version=1, frozen=None, userConfirmed=None, decisions=DECISIONS19, squads=None, world=DECISIONS19['P19_1']['value'], records=None,
+    version=1, frozen=None, userConfirmed=None, decisions=DECISIONS19, squads=None, world=DECISIONS19['P19_1']['value'], records=GATE_A2['records'],
     arms=ARMS19, seeds=SEEDS19, runs=[list(r) for r in RUNS19], steps=STEPS19, recipe=dict(RL17_PLAN['recipe']), maxLen=3072,
-    turnFraction=None, warmAnswers=None, projectedHours=None, power=None, gates=dict(C1=GATE_C1, A2=None),
+    turnFraction=None, warmAnswers=None, projectedHours=None, power=None, gates=dict(C1=GATE_C1, A2=GATE_A2),
     common='RL_PLAN v2 + BASE17 (FIX17; wrong answers cost 3 in training) + FIX18 + BASE19; trainSeed = seed - 1',
     evaluation='rl19_suite.contestSuite: 16 agents in the chosen squads of the training world, liars 0, 2, 4, 6, 8 of 16, lifetimes '
                '15 and 30, seeds 900-909, 40 turns, the default (individual) reward scheme in the prompts (sequences: arm 4\'s, contest '

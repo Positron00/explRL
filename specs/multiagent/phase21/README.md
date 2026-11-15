@@ -1,6 +1,6 @@
 # Plan: Phase 21, experience and rule-text screens (Claude Haiku)
 
-Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); main run done 2026-11-15 ($34.96): **Gate A2 fails** (H21-1 p 0.082); T7 (write-up and handoff) next.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
+Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); main run done 2026-11-15 ($34.96): **Gate A2 fails** (H21-1 p 0.082); T7 write-up and handoff done 2026-11-15.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
 
 **Order relative to Phase 19.** The user decided on 2026-11-08 that A2 runs before A1 (Phase 19), alongside C1. A2 does not wait for B3 (P21-8, 2026-11-09), unlike C1's main run. Gate A2 sets one item of Phase 19's frozen plan: whether arm 4 (the emergence arm) keeps per-agent records (P19-5). The handoff is stated under "Handoff to Phase 19" below.
 
@@ -112,7 +112,13 @@ All twelve were decided by the user on 2026-11-09. P21-5 was accepted with an ad
 - **Gate A2 fails.** H21-1 (own minus shared contrast, boards 3-6): +0.022 [-0.003, 0.046], one-sided p 0.082 over 8 teams. H21-2 (own contrast above 0): +0.002, p 0.42, not supported. The shared-record arm's contrast is below 0 (-0.020 [-0.035, -0.003]), and that drives most of the gate statistic.
 - **H21-3 not supported** at either size: drop - orig suppressedHeld +0.021 (N 8, Holm p 0.91) and -0.002 (N 32, Holm p 0.91). Removing the re-sharing sentence did not change suppression.
 - **H21-4 (descriptive):** persistence, volunteers (0 in every arm) and division of labour do not differ by arm. Own records had the highest welfare (0.094 against 0.059 none and 0.082 shared) and contests per lie (0.29 against 0.23 and 0.27), with no test.
-- **Next:** T7 (analysis write-up and handoff to Phase 19: arm 4 runs without records, the plan's own outcome).
+
+## T7: write-up and handoff (2026-11-15)
+
+- **Results** in `results/multiagent/REPORT.md` section 17 (`demo_multiagent.a2Section`, from the saved summary) and the research plan's A2 card (result line, 2026-11-15).
+- **Handoff to Phase 19:** Gate A2 failed and was read, so arm 4 runs without records (P19-5), the plan's own outcome. Recorded in Phase 19's README and in code: `rl19_step.GATE_A2`, with `RL19_PLAN['records'] = False` and `RL19_PLAN['gates']['A2']`. H19-4's condition ("only if A2 finds that experience makes roles persist") is not met.
+- **For the capability plan's E4** (drop-only prompt): the drop-only cells exist for Phase 14's `scaleB` liar board (N // 4 liars), study `a2drop`, level `drop|liar`, world key `dropShare=True` (`a2_grid.p2Cell(N, seed, True)`), at N 8 and 32, seeds 900-907, plus the pilot's N 32 seed 990. Their responses are in the shared cache `results/multiagent/llm/cache` (request keys by `fix_grid.requestKey(cell)`), rows in `results/multiagent/a2/a2main/p2.csv`. E4's 16-agent seeds 900-919 have no drop-only cells yet. The originals at 905-907 (both sizes) are new too.
+- **Preprint** (`paper/main.tex`, `sec:gullible`): the sentence "we did not test either on its own" now reports the rule-text screen (numbers from `paper/make_assets.py`, `DropShare*` macros); the clue listing stays untested. The summary page's limitation line changed the same way in `docs/summary/`; the published page waits for the user's go-ahead.
 
 ## Handoff to Phase 19
 

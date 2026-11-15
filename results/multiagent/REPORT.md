@@ -173,6 +173,17 @@ Details: `specs/multiagent/phase18/README.md`, `results/multiagent/colony/stage1
 
 Details: `specs/multiagent/phase20/`, `phase23/`, `phase24/`, `phase25/`; `results/multiagent/colony/c1/report.md`, `c1bmain/report.md`, `c1c/report.md`, `c1d/report.md`.
 
+## 17. Do roles persist from experience? (A2; Phase 21, exploratory)
+
+16 Claude Haiku 5.5 agents, 4 scripted liars, 8 teams (2100-2107) each playing 6 boards in sequence. Boards 1-2 are shared by the arms: 4 assigned guards, with targeted liars making two of them (the success pair) win contests and never lying on the other two (the failure pair). Boards 3-6 offer the guard role to volunteers, with no record (`none`), the team's record (`shared`) or each agent's own record (`own`) of contests and the correct answers that followed. Plan frozen and pushed before the run; exact one-sided sign-flip tests over teams.
+
+- **Gate A2 fails:** the manipulation check passed in 8 of 8 teams, but own minus shared records in the success-minus-failure guarding contrast on boards 3-6 is 0.022 [-0.003, 0.046] (p 0.082); the own contrast against 0 is +0.002 (p 0.42). What gap there is comes from the shared arm falling below 0 (-0.020 [-0.035, -0.003]).
+- **Roles did not outlast the assignment:** guarding fell from 0.94 of turns on boards 1-2 to 0.16 on board 3 for the same identities, in every arm, and no agent volunteered for the role. Own records had the highest welfare (0.094 against 0.059 without and 0.082 shared) and contests per lie, untested.
+- **The re-sharing sentence is not what makes larger teams gullible (P2, H21-3):** removing it changed the honestly held suppressed share by 0.021 [-0.078, 0.137] at N = 8 and -0.002 [-0.030, 0.030] at N = 32 (Holm p 0.91, 0.91).
+- **For A1 (Phase 19):** arm 4 runs without per-agent records (P19-5), as the plan set out for a failed gate.
+
+Details: `specs/multiagent/phase21/README.md`, `results/multiagent/a2/a2main/report.md`.
+
 ## Limitations
 
 - The numpy results come from a small, abstract world; the LLM results are exploratory, with 3-5 seeds per cell and one sampled reply per request (reruns are exact only through the response cache).
