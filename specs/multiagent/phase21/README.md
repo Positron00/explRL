@@ -1,6 +1,6 @@
 # Plan: Phase 21, experience and rule-text screens (Claude Haiku)
 
-Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); main run approved and `A2_PLAN` frozen again 2026-11-15 (7038dd7cf30d); T6 running.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
+Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); main run done 2026-11-15 ($34.96): **Gate A2 fails** (H21-1 p 0.082); T7 (write-up and handoff) next.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
 
 **Order relative to Phase 19.** The user decided on 2026-11-08 that A2 runs before A1 (Phase 19), alongside C1. A2 does not wait for B3 (P21-8, 2026-11-09), unlike C1's main run. Gate A2 sets one item of Phase 19's frozen plan: whether arm 4 (the emergence arm) keeps per-agent records (P19-5). The handoff is stated under "Handoff to Phase 19" below.
 
@@ -104,7 +104,15 @@ All twelve were decided by the user on 2026-11-09. P21-5 was accepted with an ad
   - Pilot-only: A2-2 +0.003 (team 2190, near 0); A2-4 +0.036 (originals' suppressed share 0.90 against drop-only 0.86); A2-1 and A2-3 fall back to + (no shared-record arm or 8-agent board in the pilot).
   - Fitted and unfitted simulators: "not represented" (Phase 22), not a deviation.
 - **`A2_PLAN`** frozen for the main run with the pilot's verdict, the forecasts' SHA-256 and the approval: `coopHash` **7038dd7cf30d** (pinned in `a2_grid`'s test). `mainReady()` is empty.
-- **Next:** T6, `EXPLRL_A2_STAGE=main`.
+
+## T6: main run (2026-11-15, plan 7038dd7cf30d, commit 0a43357)
+
+- **Ran to the end:** no stop after wave 2. 72,960 calls, **$34.96** (projection $31.87, +10%), 4.1 h wall. November spend $114.13 of the $250 cap. Report: `results/multiagent/a2/a2main/report.md`.
+- **Manipulation check:** 8 of 8 teams (needs 6), so Gate A2 is read. No lie on a failure guard's clue on boards 1-2.
+- **Gate A2 fails.** H21-1 (own minus shared contrast, boards 3-6): +0.022 [-0.003, 0.046], one-sided p 0.082 over 8 teams. H21-2 (own contrast above 0): +0.002, p 0.42, not supported. The shared-record arm's contrast is below 0 (-0.020 [-0.035, -0.003]), and that drives most of the gate statistic.
+- **H21-3 not supported** at either size: drop - orig suppressedHeld +0.021 (N 8, Holm p 0.91) and -0.002 (N 32, Holm p 0.91). Removing the re-sharing sentence did not change suppression.
+- **H21-4 (descriptive):** persistence, volunteers (0 in every arm) and division of labour do not differ by arm. Own records had the highest welfare (0.094 against 0.059 none and 0.082 shared) and contests per lie (0.29 against 0.23 and 0.27), with no test.
+- **Next:** T7 (analysis write-up and handoff to Phase 19: arm 4 runs without records, the plan's own outcome).
 
 ## Handoff to Phase 19
 
