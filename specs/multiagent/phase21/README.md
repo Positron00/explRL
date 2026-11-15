@@ -1,6 +1,6 @@
 # Plan: Phase 21, experience and rule-text screens (Claude Haiku)
 
-Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); the main run (T6, projected $31.87) waits for the user's approval.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
+Status: **built and tested 2026-11-14 (T0-T4); T5 pilot run 2026-11-14, checks pass ($1.82); main run approved and `A2_PLAN` frozen again 2026-11-15 (7038dd7cf30d); T6 running.** Decisions made 2026-11-09 and 2026-11-10. This phase is experiment A2 of the Stage 1 research plan (project A, "train agents into the verification role with RL"). It is the cheap prompted screen behind the plan's main scientific bet, P1 (experience makes specialists), and it also tests one piece of the harness behind the "larger teams are more gullible" finding (the re-sharing sentence). The user decided P21-1 to P21-12 on 2026-11-09 and P21-13 to P21-14 on 2026-11-10 (table below). The pilot spent $1.82 (see T5).
 
 **Order relative to Phase 19.** The user decided on 2026-11-08 that A2 runs before A1 (Phase 19), alongside C1. A2 does not wait for B3 (P21-8, 2026-11-09), unlike C1's main run. Gate A2 sets one item of Phase 19's frozen plan: whether arm 4 (the emergence arm) keeps per-agent records (P19-5). The handoff is stated under "Handoff to Phase 19" below.
 
@@ -95,7 +95,16 @@ All twelve were decided by the user on 2026-11-09. P21-5 was accepted with an ad
 - **Projection** (`costRule21`): main grid **$31.87** (guards16 $2.89, volunteer16 $20.91, plain8 $1.61, plain32 $6.46), under the $50 ceiling; verdict "ask" (P21-10).
 - **Wall time:** 3.7 h in all; one 16-agent board about 32 min, the 32-agent P2 board about 65 min (run alongside). The main grid, with 8 workers, projects to roughly 7-8 h.
 - **Power** (`power21`, pilot sigma 0.071, 8 teams, 2,000 simulations): Gate A2 0.80 at an effect of 0.05 and 0.999 at 0.10; H21-2 0.97 at 0.05.
-- **Next:** the user's approval of the main-run projection, then the forecasts (P21-8) and the second freeze, then T6.
+- **Approval:** the user approved the main-run projection ($31.87) on 2026-11-15 (P21-10).
+
+### Second freeze (2026-11-15)
+
+- **Forecasts (P21-8):** `a2_predictions.json` written by `a2Forecast` (Phase 22's T7), SHA-256 `58f83bf4…22bdbe`. The pilot's rows were mapped to its per-team form: team 2190's own-record contrast, and the drop-only board at seed 990 against Phase 14's originals 900-904 at 32 agents, replayed from the cache ($0).
+  - Every-design-helps: + on A2-1 to A2-4.
+  - Pilot-only: A2-2 +0.003 (team 2190, near 0); A2-4 +0.036 (originals' suppressed share 0.90 against drop-only 0.86); A2-1 and A2-3 fall back to + (no shared-record arm or 8-agent board in the pilot).
+  - Fitted and unfitted simulators: "not represented" (Phase 22), not a deviation.
+- **`A2_PLAN`** frozen for the main run with the pilot's verdict, the forecasts' SHA-256 and the approval: `coopHash` **7038dd7cf30d** (pinned in `a2_grid`'s test). `mainReady()` is empty.
+- **Next:** T6, `EXPLRL_A2_STAGE=main`.
 
 ## Handoff to Phase 19
 

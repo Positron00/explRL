@@ -1,0 +1,134 @@
+{
+ "b3Plan": "3490efe9aa41",
+ "commit": "fa58144a9d23999f509ce550de70351f598c8dea",
+ "dirty": false,
+ "exp": "A2",
+ "fitted": "not represented",
+ "items": {
+  "A2-1": {
+   "N": 16,
+   "fault": "seq16",
+   "hyp": "H21-1",
+   "lines": {
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": null,
+     "fallback": true,
+     "sign": "+"
+    }
+   },
+   "measure": "guardContrast",
+   "naive": "+",
+   "note": "own-record contrast - shared-record contrast (success minus failure guards, boards 3-6), per team; Gate A2",
+   "represented": false,
+   "simulators": "not represented",
+   "terms": [
+    [
+     1,
+     "own"
+    ],
+    [
+     -1,
+     "shared"
+    ]
+   ]
+  },
+  "A2-2": {
+   "N": 16,
+   "fault": "seq16",
+   "hyp": "H21-2",
+   "lines": {
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": 0.003124999999999996,
+     "fallback": false,
+     "sign": "+"
+    }
+   },
+   "measure": "guardContrast",
+   "naive": "+",
+   "note": "own-record contrast; the pilot has team 2190",
+   "represented": false,
+   "simulators": "not represented",
+   "terms": [
+    [
+     1,
+     "own"
+    ]
+   ]
+  },
+  "A2-3": {
+   "N": 8,
+   "fault": "liar",
+   "hyp": "H21-3",
+   "lines": {
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": null,
+     "fallback": true,
+     "sign": "+"
+    }
+   },
+   "measure": "suppressedHeld",
+   "naive": "+",
+   "note": "original - drop-only at 8; P2 boards with liars, drop-only seeds as the originals",
+   "represented": false,
+   "simulators": "not represented",
+   "terms": [
+    [
+     1,
+     "original"
+    ],
+    [
+     -1,
+     "dropOnly"
+    ]
+   ]
+  },
+  "A2-4": {
+   "N": 32,
+   "fault": "liar",
+   "hyp": "H21-3",
+   "lines": {
+    "naive": {
+     "sign": "+"
+    },
+    "pilotOnly": {
+     "estimate": 0.036448007959635875,
+     "fallback": false,
+     "sign": "+"
+    }
+   },
+   "measure": "suppressedHeld",
+   "naive": "+",
+   "note": "original - drop-only at 32; pilot: drop-only seed 990 against Phase 14's originals 900-904",
+   "represented": false,
+   "simulators": "not represented",
+   "terms": [
+    [
+     1,
+     "original"
+    ],
+    [
+     -1,
+     "dropOnly"
+    ]
+   ]
+  }
+ },
+ "lines": [
+  "pilotOnly",
+  "naive"
+ ],
+ "pilot": {
+  "boards": 2
+ },
+ "rule": "simulators: + or - when the 95% bootSeeds interval over seeds (2,000 resamples) excludes 0, else 0; pilot-only: the point estimate's sign, or naive's marked fallback when an arm is in neither pilot nor prior rows (P22-17); naive: e.naive (P22-8)",
+ "unfitted": "not represented"
+}
